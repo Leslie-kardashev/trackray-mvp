@@ -9,7 +9,7 @@ import { getOrders, addOrder } from "@/lib/data-service";
 import { type Order, type Location } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Map, Marker, APIProvider, useMap, InfoWindow } from "@vis.gl/react-google-maps";
-import { Truck, Warehouse, Package, Pin } from "lucide-react";
+import { Truck, Warehouse, Package, Pin, LocateFixed } from "lucide-react";
 
 import {
   Card,
@@ -132,6 +132,36 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
         form.setValue("deliveryAddress", "");
     };
 
+    const handleUseCurrentLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const latLng = { lat: latitude, lng: longitude };
+                    geocodeLatLng(latLng, "pickupAddress");
+                    toast({
+                        title: "Location Fetched",
+                        description: "Your current location has been set as the pickup address.",
+                    });
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                    toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Could not fetch your location. Please grant permission.",
+                    });
+                }
+            );
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Geolocation is not supported by your browser.",
+            });
+        }
+    };
+
     async function onSubmit(values: NewOrderValues) {
         if (!pickupLocation || !deliveryLocation) {
             toast({ variant: "destructive", title: "Missing Locations", description: "Please set both pickup and delivery locations on the map." });
@@ -145,7 +175,7 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
                 pickup: pickupLocation,
                 destination: deliveryLocation,
                 paymentStatus: values.paymentMethod,
-                currentLocation: pickupLocation.coords,
+                currentLocation: null, // Starts with no truck assigned
                 routeColor: '#FF5733', // Default color
             });
             toast({
@@ -267,7 +297,10 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
                            <CardHeader>
                                 <div className="flex justify-between items-center">
                                     <CardTitle className="text-xl">3. Set Locations</CardTitle>
-                                    <Button type="button" variant="outline" size="sm" onClick={handleResetLocations}>Reset</Button>
+                                    <div className="flex gap-2">
+                                        <Button type="button" variant="outline" size="sm" onClick={handleUseCurrentLocation} className="gap-1.5"><LocateFixed className="w-4 h-4" /> Use My Location</Button>
+                                        <Button type="button" variant="outline" size="sm" onClick={handleResetLocations}>Reset</Button>
+                                    </div>
                                 </div>
                                 <CardDescription>
                                     Click on the map to set a {!pickupLocation ? 'Pickup' : 'Delivery'} location.
@@ -334,6 +367,12 @@ function Directions({ order }: { order: Order }) {
 
     const directionsService = new google.maps.DirectionsService();
     
+    // Don't draw a route if the truck hasn't been dispatched yet.
+    if (!order.currentLocation) {
+        if(directionsRenderer) directionsRenderer.setDirections({routes: []});
+        return;
+    };
+    
     const origin = (order.status === 'Moving' && order.currentLocation) ? order.currentLocation : order.pickup.coords;
     
     directionsService.route({
@@ -399,7 +438,7 @@ function CustomerMap({ order }: { order: Order }) {
                     </InfoWindow>
                 )}
 
-                {order.status === 'Moving' && order.currentLocation && (
+                {['Moving', 'Idle', 'Returning'].includes(order.status) && order.currentLocation && (
                     <Marker position={order.currentLocation} onClick={() => setActiveMarker('truck')}>
                          <div className="bg-primary p-2 rounded-full shadow-lg">
                             <Truck className="w-5 h-5 text-primary-foreground" />
@@ -431,7 +470,7 @@ export function CustomerOrders() {
             setOrders(fetchedOrders);
             // If no order is selected, or the selected one is gone, select the first one.
             if (!selectedOrder || !fetchedOrders.find(o => o.id === selectedOrder.id)) {
-                 setSelectedOrder(fetchedOrders.find(o => o.status === 'Moving') || fetchedOrders[0] || null);
+                 setSelectedOrder(fetchedOrders.find(o => ['Moving', 'Idle', 'Returning'].includes(o.status)) || fetchedOrders[0] || null);
             }
         } catch (error) {
             console.error("Failed to fetch orders:", error);
@@ -442,7 +481,10 @@ export function CustomerOrders() {
 
     useEffect(() => {
         fetchOrders();
-    }, [fetchOrders]);
+        // Poll for updates every 5 seconds
+        const interval = setInterval(fetchOrders, 5000);
+        return () => clearInterval(interval);
+    }, []);
     
     const handleOrderSubmitted = () => {
         fetchOrders();
@@ -533,3 +575,5 @@ export function CustomerOrders() {
     </Tabs>
   );
 }
+
+    
