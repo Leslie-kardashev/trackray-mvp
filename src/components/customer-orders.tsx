@@ -7,7 +7,7 @@ import { z } from "zod";
 import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Map, MapMarker, APIProvider, Polyline } from "@vis.gl/react-google-maps";
+import { Map, Marker, APIProvider, Polyline } from "@vis.gl/react-google-maps";
 import { Truck } from "lucide-react";
 
 import {
@@ -141,14 +141,14 @@ function CustomerMap({ order }: { order: Order }) {
                 mapId="customer-map"
                 className="h-full w-full rounded-lg"
             >
-                <MapMarker position={order.pickup.coords} label="A" title={order.pickup.address} />
-                <MapMarker position={order.destination.coords} label="B" title={order.destination.address} />
+                <Marker position={order.pickup.coords} label="A" title={order.pickup.address} />
+                <Marker position={order.destination.coords} label="B" title={order.destination.address} />
                 {order.status === 'In Transit' && order.currentLocation && (
-                    <MapMarker position={order.currentLocation} title="Current Location">
+                    <Marker position={order.currentLocation} title="Current Location">
                          <div className="bg-primary p-2 rounded-full shadow-lg">
                             <Truck className="w-5 h-5 text-primary-foreground" />
                         </div>
-                    </MapMarker>
+                    </Marker>
                 )}
                 <Polyline path={route} options={{ strokeColor: '#0000FF', strokeWeight: 3 }} />
             </Map>

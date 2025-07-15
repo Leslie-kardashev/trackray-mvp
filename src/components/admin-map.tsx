@@ -1,6 +1,6 @@
 "use client";
 
-import { APIProvider, Map, MapMarker } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
 import { Truck } from "lucide-react";
@@ -31,7 +31,7 @@ function FleetMap() {
           mapId="admin-fleet-map"
         >
           {inTransitOrders.map((order) => (
-            <MapMarker
+            <Marker
               key={order.id}
               position={order.currentLocation!}
               title={`Order ${order.id}`}
@@ -39,7 +39,7 @@ function FleetMap() {
                 <div className="bg-primary p-2 rounded-full shadow-lg">
                     <Truck className="w-5 h-5 text-primary-foreground" />
                 </div>
-            </MapMarker>
+            </Marker>
           ))}
         </Map>
       </APIProvider>

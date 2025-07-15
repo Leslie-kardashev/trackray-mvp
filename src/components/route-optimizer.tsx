@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route";
 import { useToast } from "@/hooks/use-toast";
-import { Map, APIProvider, MapMarker, Polyline } from "@vis.gl/react-google-maps";
+import { Map, APIProvider, Marker, Polyline } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 
 
@@ -62,8 +62,8 @@ function RouteMap({ result }: { result: SuggestRouteOutput | null }) {
                     defaultZoom={12}
                     mapId="route-optimizer-map"
                 >
-                    <MapMarker position={origin} label="A" title="Origin" />
-                    <MapMarker position={destination} label="B" title="Destination" />
+                    <Marker position={origin} label="A" title="Origin" />
+                    <Marker position={destination} label="B" title="Destination" />
                     <Polyline path={routePolyline} options={{ strokeColor: "#1a73e8", strokeWeight: 5 }} />
                 </Map>
             </APIProvider>
