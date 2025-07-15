@@ -76,7 +76,7 @@ export default function DashboardLayout({
                 <SidebarTrigger />
                 <h2 className="font-headline text-xl font-bold">TrackRay</h2>
             </header>
-            <SidebarInset className="p-4 md:p-6 lg:p-8">
+            <SidebarInset className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
                 {children}
             </SidebarInset>
         </div>

@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 import {
   Card,
@@ -26,7 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader, Sparkles, MapPin, Clock, Lightbulb } from "lucide-react";
+import { Loader, Sparkles, MapPin, Clock, Lightbulb, CornerUpLeft, CornerUpRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
@@ -70,8 +71,8 @@ export function RouteOptimizer() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-      <Card className="shadow-sm">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <Card className="shadow-sm lg:col-span-1">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardHeader>
@@ -139,7 +140,7 @@ export function RouteOptimizer() {
         </Form>
       </Card>
 
-      <Card className="shadow-sm sticky top-8">
+      <Card className="shadow-sm lg:col-span-2 sticky top-8">
         <CardHeader>
           <CardTitle className="font-headline text-2xl">
             Suggested Route
@@ -148,45 +149,60 @@ export function RouteOptimizer() {
             Your AI-optimized route will appear here.
           </CardDescription>
         </CardHeader>
-        <CardContent className="min-h-[300px] flex items-center justify-center">
+        <CardContent className="min-h-[450px] flex flex-col items-center justify-center p-0">
           {isLoading ? (
             <div className="flex flex-col items-center gap-2 text-muted-foreground">
               <Loader className="h-8 w-8 animate-spin text-primary" />
               <p>Optimizing route...</p>
             </div>
           ) : result ? (
-            <div className="space-y-6 w-full">
-                <div className="space-y-4">
+            <div className="w-full h-full flex flex-col">
+              <div className="relative w-full aspect-[16/9] rounded-t-lg overflow-hidden">
+                <Image src="https://placehold.co/800x450.png" alt="Map of the suggested route" layout="fill" objectFit="cover" data-ai-hint="route map" />
+                <div className="absolute top-4 left-4 right-4 bg-background/80 backdrop-blur-sm p-3 rounded-lg shadow-lg flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <CornerUpLeft className="w-6 h-6 text-primary" />
+                    <div>
+                      <h3 className="font-semibold text-sm">Origin</h3>
+                      <p className="text-muted-foreground text-xs">{form.getValues('currentLocation')}</p>
+                    </div>
+                  </div>
+                   <div className="flex items-center gap-3 text-right">
+                     <div>
+                      <h3 className="font-semibold text-sm">Destination</h3>
+                      <p className="text-muted-foreground text-xs">{form.getValues('destination')}</p>
+                    </div>
+                    <CornerUpRight className="w-6 h-6 text-primary" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                 <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-3">
-                        <Clock className="w-6 h-6 text-primary"/>
+                        <Clock className="w-5 h-5 text-primary"/>
                         <div>
-                            <h3 className="font-semibold">Estimated Travel Time</h3>
+                            <h3 className="font-semibold">Est. Travel Time</h3>
                             <p className="text-muted-foreground">{result.estimatedTravelTime}</p>
                         </div>
                     </div>
-                     <div className="flex items-center gap-3">
-                        <Lightbulb className="w-6 h-6 text-primary"/>
+                     <div className="flex items-start gap-3">
+                        <Lightbulb className="w-5 h-5 text-primary mt-0.5"/>
                         <div>
                             <h3 className="font-semibold">Reasoning</h3>
                             <p className="text-muted-foreground">{result.reasoning}</p>
                         </div>
                     </div>
                 </div>
-
                 <Separator />
-                
-                <div className="space-y-4">
-                     <div className="flex items-start gap-3">
-                        <MapPin className="w-6 h-6 text-primary mt-1"/>
-                        <div>
-                            <h3 className="font-semibold mb-2">Turn-by-turn Directions</h3>
-                            <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">{result.optimizedRoute}</p>
-                        </div>
-                    </div>
+                 <div className="space-y-3">
+                    <h3 className="font-semibold flex items-center gap-2"><MapPin className="w-5 h-5 text-primary"/>Turn-by-turn Directions</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">{result.optimizedRoute}</p>
                 </div>
+              </div>
             </div>
           ) : (
-             <div className="text-center text-muted-foreground">
+             <div className="text-center text-muted-foreground flex flex-col items-center gap-4">
+                <MapPin className="w-12 h-12 text-gray-300 dark:text-gray-700"/>
                 <p>Submit the form to generate your route.</p>
             </div>
           )}
