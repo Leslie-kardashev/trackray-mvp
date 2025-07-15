@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState } from "react";
-import { mockInventory } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { getInventory, addInventoryItem } from "@/lib/data-service";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,6 +46,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "./ui/skeleton";
 
 const statusStyles: { [key in InventoryItem['status']]: string } = {
   'In Stock': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
@@ -116,18 +118,37 @@ function AddItemForm({ onAddItem, closeDialog }: { onAddItem: (item: Omit<Invent
 }
 
 export function AdminInventory() {
-  const [inventory, setInventory] = useState<InventoryItem[]>(mockInventory);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isAddDialogOpen, setAddDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  const handleAddItem = (newItem: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated'>) => {
-    const newId = `ITM-${String(inventory.length + 1).padStart(3, '0')}`;
-    const today = new Date().toISOString().split('T')[0];
-    setInventory(prev => [...prev, {
-      ...newItem,
-      id: newId,
-      status: 'In Stock',
-      lastUpdated: today
-    }]);
+  const fetchInventory = async () => {
+    try {
+      setIsLoading(true);
+      const fetchedInventory = await getInventory();
+      setInventory(fetchedInventory);
+    } catch (error) {
+      console.error("Failed to fetch inventory:", error);
+      toast({ variant: "destructive", title: "Error", description: "Could not fetch inventory." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const handleAddItem = async (newItem: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated'>) => {
+    try {
+      await addInventoryItem(newItem);
+      toast({ title: "Success", description: "New item added to inventory." });
+      fetchInventory(); // Refresh the list
+    } catch (error) {
+      console.error("Failed to add item:", error);
+      toast({ variant: "destructive", title: "Error", description: "Could not add new item." });
+    }
   };
 
   return (
@@ -174,19 +195,31 @@ export function AdminInventory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {inventory.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-mono">{item.id}</TableCell>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell>{item.quantity}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={cn("border", statusStyles[item.status])}>
-                    {item.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{item.lastUpdated}</TableCell>
-              </TableRow>
-            ))}
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                </TableRow>
+              ))
+            ) : (
+              inventory.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-mono">{item.id}</TableCell>
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>{item.quantity}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={cn("border", statusStyles[item.status])}>
+                      {item.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{item.lastUpdated}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

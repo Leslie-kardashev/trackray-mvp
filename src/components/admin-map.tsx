@@ -2,31 +2,12 @@
 "use client";
 
 import { APIProvider, Map, Marker, useMap, InfoWindow } from "@vis.gl/react-google-maps";
-import { mockOrders } from "@/lib/mock-data";
+import { getOrders, updateTruckLocations } from "@/lib/data-service";
 import { type Order } from "@/lib/types";
 import { Truck, Warehouse, Package, CirclePause, Undo2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-
-// Function to simulate a truck moving along a path
-const moveTruck = (
-  current: { lat: number, lng: number },
-  destination: { lat: number, lng: number },
-  speed = 0.001 // Adjust for faster/slower simulation
-) => {
-  const latDiff = destination.lat - current.lat;
-  const lngDiff = destination.lng - current.lng;
-  const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
-
-  if (distance < speed) {
-    return destination;
-  }
-
-  const newLat = current.lat + (latDiff / distance) * speed;
-  const newLng = current.lng + (lngDiff / distance) * speed;
-  return { lat: newLat, lng: newLng };
-};
 
 function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
   const map = useMap();
@@ -43,12 +24,12 @@ function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
         strokeWeight: 6,
       },
     }));
-  }, [map, order.routeColor]);
+  }, [map]);
 
   useEffect(() => {
     if (!directionsRenderer) return;
     
-    // Update polyline options when isFaded changes
+    // Update polyline options when isFaded or color changes
     directionsRenderer.setOptions({
         polylineOptions: {
             strokeColor: order.routeColor || '#1a73e8',
@@ -76,7 +57,7 @@ function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
       if (status === google.maps.DirectionsStatus.OK) {
         directionsRenderer.setDirections(result);
       } else {
-        console.error(`Directions request failed due to ${status}`);
+        console.error(`Directions request failed for order ${order.id} due to ${status}`);
       }
     });
     
@@ -105,7 +86,7 @@ const TruckMarker = ({ order, isFaded, onClick, onMouseOver, onMouseOut }: { ord
                 );
             case 'Returning':
                 return (
-                    <div className={cn(wrapperClasses, "bg-yellow-500")}>
+                    <div className={cn(wrapperClasses, "bg-orange-500")}>
                         <Undo2 className="w-5 h-5 text-white" />
                     </div>
                 );
@@ -116,12 +97,14 @@ const TruckMarker = ({ order, isFaded, onClick, onMouseOver, onMouseOut }: { ord
                     </div>
                 );
             default:
-                return null;
+                return null; // Don't render marker for Pending, Delivered, etc.
         }
     };
 
+    if (!order.currentLocation) return null;
+
     return (
-        <Marker position={order.currentLocation!} onClick={onClick} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
+        <Marker position={order.currentLocation} onClick={onClick} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
             {markerContent()}
         </Marker>
     );
@@ -129,29 +112,22 @@ const TruckMarker = ({ order, isFaded, onClick, onMouseOver, onMouseOut }: { ord
 
 
 function FleetMap() {
-    const [orders, setOrders] = useState<Order[]>(mockOrders);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
     const [hoveredOrderId, setHoveredOrderId] = useState<string | null>(null);
     const map = useMap();
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setOrders(prevOrders => {
-                return prevOrders.map(order => {
-                    if ((order.status === 'Moving' || order.status === 'Returning') && order.currentLocation) {
-                        const destination = order.status === 'Returning' ? order.pickup.coords : order.destination.coords;
-                        const newLocation = moveTruck(order.currentLocation, destination);
-                        
-                        let newStatus = order.status;
-                        if(newLocation.lat === destination.lat && newLocation.lng === destination.lng) {
-                           newStatus = order.status === 'Moving' ? 'Delivered' : 'Idle';
-                        }
-                        return { ...order, currentLocation: newLocation, status: newStatus };
-                    }
-                    return order;
-                });
-            });
-        }, 1000); // Update every second
+        const fetchAndUpdateLocations = async () => {
+            const updatedOrders = await updateTruckLocations();
+            setOrders(updatedOrders);
+        };
+        
+        // Fetch initial data
+        getOrders().then(setOrders);
+
+        // Update every second
+        const interval = setInterval(fetchAndUpdateLocations, 1000); 
 
         return () => clearInterval(interval);
     }, []);
@@ -195,14 +171,16 @@ function FleetMap() {
         {activeOrders.map((order) => {
             const isFaded = hoveredOrderId !== null && hoveredOrderId !== order.id;
             return (
+              <React.Fragment key={order.id}>
                 <TruckMarker
-                    key={order.id}
                     order={order}
                     isFaded={isFaded}
                     onClick={() => setActiveMarkerId(order.id)}
                     onMouseOver={() => setHoveredOrderId(order.id)}
                     onMouseOut={() => setHoveredOrderId(null)}
                 />
+                <Directions order={order} isFaded={isFaded} />
+              </React.Fragment>
             );
         })}
 
@@ -217,11 +195,6 @@ function FleetMap() {
                 </div>
             </InfoWindow>
         )}
-        
-         {activeOrders.map((order) => {
-             const isFaded = hoveredOrderId !== null && hoveredOrderId !== order.id;
-             return <Directions key={`dir-${order.id}`} order={order} isFaded={isFaded} />
-         })}
     </>
   );
 }

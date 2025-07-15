@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { mockOrders } from "@/lib/mock-data";
-import { type Order } from "@/lib/types";
+import { getOrders, addOrder } from "@/lib/data-service";
+import { type Order, type Location } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Map, Marker, APIProvider, useMap, InfoWindow } from "@vis.gl/react-google-maps";
 import { Truck, Warehouse, Package, Pin } from "lucide-react";
@@ -43,6 +43,7 @@ import { Textarea } from "./ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "./ui/separator";
+import { Skeleton } from "./ui/skeleton";
 
 const newOrderSchema = z.object({
   itemDescription: z.string().min(3, "Item description must be at least 3 characters."),
@@ -50,7 +51,7 @@ const newOrderSchema = z.object({
   weight: z.coerce.number().min(0, "Weight cannot be negative.").optional(),
   pickupAddress: z.string().min(1, "Please set a pickup address on the map."),
   deliveryAddress: z.string().min(1, "Please set a delivery address on the map."),
-  paymentMethod: z.enum(["pod", "momo"], {
+  paymentMethod: z.enum(["Pay on Delivery", "Paid"], {
     required_error: "You need to select a payment method.",
   }),
 });
@@ -67,10 +68,10 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-function NewOrderForm() {
+function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
     const { toast } = useToast();
-    const [pickupCoords, setPickupCoords] = useState<LatLngLiteral | null>(null);
-    const [deliveryCoords, setDeliveryCoords] = useState<LatLngLiteral | null>(null);
+    const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
+    const [deliveryLocation, setDeliveryLocation] = useState<Location | null>(null);
 
     const form = useForm<NewOrderValues>({
         resolver: zodResolver(newOrderSchema),
@@ -92,7 +93,13 @@ function NewOrderForm() {
         geocoder.geocode({ location: latlng }, (results, status) => {
             if (status === 'OK') {
                 if (results?.[0]) {
-                    form.setValue(field, results[0].formatted_address, { shouldValidate: true });
+                    const address = results[0].formatted_address;
+                    form.setValue(field, address, { shouldValidate: true });
+                    if (field === "pickupAddress") {
+                        setPickupLocation({ address, coords: latlng });
+                    } else {
+                        setDeliveryLocation({ address, coords: latlng });
+                    }
                 } else {
                     toast({ variant: "destructive", title: "Geocoding Error", description: "No results found for the selected location." });
                 }
@@ -106,11 +113,9 @@ function NewOrderForm() {
     const handleMapClick = (e: google.maps.MapMouseEvent) => {
         if (!e.latLng) return;
         const latLng = e.latLng.toJSON();
-        if (!pickupCoords) {
-            setPickupCoords(latLng);
+        if (!pickupLocation) {
             geocodeLatLng(latLng, "pickupAddress");
-        } else if (!deliveryCoords) {
-            setDeliveryCoords(latLng);
+        } else if (!deliveryLocation) {
             geocodeLatLng(latLng, "deliveryAddress");
         } else {
             toast({
@@ -121,21 +126,39 @@ function NewOrderForm() {
     };
     
     const handleResetLocations = () => {
-        setPickupCoords(null);
-        setDeliveryCoords(null);
+        setPickupLocation(null);
+        setDeliveryLocation(null);
         form.setValue("pickupAddress", "");
         form.setValue("deliveryAddress", "");
     };
 
-    function onSubmit(values: NewOrderValues) {
-        // In a real app, this would submit the order to the backend.
-        console.log({ ...values, pickupCoords, deliveryCoords });
-        toast({
-            title: "Order Submitted!",
-            description: "Your new order has been created successfully.",
-        });
-        form.reset();
-        handleResetLocations();
+    async function onSubmit(values: NewOrderValues) {
+        if (!pickupLocation || !deliveryLocation) {
+            toast({ variant: "destructive", title: "Missing Locations", description: "Please set both pickup and delivery locations on the map." });
+            return;
+        }
+
+        try {
+            await addOrder({
+                customerName: "Customer 123", // Placeholder
+                item: values.itemDescription,
+                pickup: pickupLocation,
+                destination: deliveryLocation,
+                paymentStatus: values.paymentMethod,
+                currentLocation: pickupLocation.coords,
+                routeColor: '#FF5733', // Default color
+            });
+            toast({
+                title: "Order Submitted!",
+                description: "Your new order has been created successfully.",
+            });
+            form.reset();
+            handleResetLocations();
+            onOrderSubmitted(); // Callback to refresh the history tab
+        } catch (error) {
+            console.error("Failed to submit order:", error);
+            toast({ variant: "destructive", title: "Submission Error", description: "Could not submit your order." });
+        }
     }
 
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
@@ -214,7 +237,7 @@ function NewOrderForm() {
                                         >
                                           <FormItem className="flex items-center space-x-3 space-y-0">
                                             <FormControl>
-                                              <RadioGroupItem value="pod" />
+                                              <RadioGroupItem value="Pay on Delivery" />
                                             </FormControl>
                                             <FormLabel className="font-normal">
                                               Pay on Delivery
@@ -222,7 +245,7 @@ function NewOrderForm() {
                                           </FormItem>
                                           <FormItem className="flex items-center space-x-3 space-y-0">
                                             <FormControl>
-                                              <RadioGroupItem value="momo" />
+                                              <RadioGroupItem value="Paid" />
                                             </FormControl>
                                             <FormLabel className="font-normal">
                                               Pay Now with Mobile Money
@@ -247,7 +270,7 @@ function NewOrderForm() {
                                     <Button type="button" variant="outline" size="sm" onClick={handleResetLocations}>Reset</Button>
                                 </div>
                                 <CardDescription>
-                                    Click on the map to set a {!pickupCoords ? 'Pickup' : 'Delivery'} location.
+                                    Click on the map to set a {!pickupLocation ? 'Pickup' : 'Delivery'} location.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="h-[400px] w-full p-0 rounded-b-lg overflow-hidden">
@@ -260,15 +283,15 @@ function NewOrderForm() {
                                         onClick={handleMapClick}
                                         className="h-full w-full"
                                     >
-                                        {pickupCoords && (
-                                            <Marker position={pickupCoords}>
+                                        {pickupLocation && (
+                                            <Marker position={pickupLocation.coords}>
                                                 <div className="bg-background p-2 rounded-full shadow-md border-2 border-primary">
                                                     <Warehouse className="w-5 h-5 text-primary" />
                                                 </div>
                                             </Marker>
                                         )}
-                                         {deliveryCoords && (
-                                            <Marker position={deliveryCoords}>
+                                         {deliveryLocation && (
+                                            <Marker position={deliveryLocation.coords}>
                                                 <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
                                                     <Package className="w-5 h-5 text-green-600" />
                                                 </div>
@@ -396,9 +419,38 @@ function CustomerMap({ order }: { order: Order }) {
 }
 
 export function CustomerOrders() {
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(mockOrders.find(o => o.status === 'Moving') || mockOrders[0]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("new");
+
+    const fetchOrders = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const fetchedOrders = await getOrders();
+            setOrders(fetchedOrders);
+            // If no order is selected, or the selected one is gone, select the first one.
+            if (!selectedOrder || !fetchedOrders.find(o => o.id === selectedOrder.id)) {
+                 setSelectedOrder(fetchedOrders.find(o => o.status === 'Moving') || fetchedOrders[0] || null);
+            }
+        } catch (error) {
+            console.error("Failed to fetch orders:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [selectedOrder]);
+
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
+    
+    const handleOrderSubmitted = () => {
+        fetchOrders();
+        setActiveTab("history"); // Switch to history tab after submitting
+    };
+
   return (
-    <Tabs defaultValue="new">
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
     <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="font-headline text-2xl">My Orders</CardTitle>
@@ -429,17 +481,27 @@ export function CustomerOrders() {
                                 </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                {mockOrders.map((order) => (
-                                    <TableRow key={order.id} onClick={() => setSelectedOrder(order)} className="cursor-pointer" data-state={selectedOrder?.id === order.id ? 'selected' : 'unselected'}>
-                                        <TableCell className="font-mono">{order.id}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline" className={cn("border-0 font-semibold", statusStyles[order.status])}>
-                                                {order.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>{order.orderDate}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {isLoading ? (
+                                    Array.from({ length: 5 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                            <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
+                                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    orders.map((order) => (
+                                        <TableRow key={order.id} onClick={() => setSelectedOrder(order)} className="cursor-pointer" data-state={selectedOrder?.id === order.id ? 'selected' : 'unselected'}>
+                                            <TableCell className="font-mono">{order.id}</TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline" className={cn("border-0 font-semibold", statusStyles[order.status])}>
+                                                    {order.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>{order.orderDate}</TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                                 </TableBody>
                             </Table>
                         </CardContent>
@@ -458,14 +520,14 @@ export function CustomerOrders() {
                          </Card>
                     ) : (
                         <div className="flex items-center justify-center h-full bg-muted rounded-lg">
-                            <p className="text-muted-foreground">Select an order to see details</p>
+                            <p className="text-muted-foreground">Select an order to see details or create a new one.</p>
                         </div>
                     )}
                 </div>
             </div>
         </TabsContent>
         <TabsContent value="new">
-            <NewOrderForm />
+            <NewOrderForm onOrderSubmitted={handleOrderSubmitted} />
         </TabsContent>
     </Card>
     </Tabs>

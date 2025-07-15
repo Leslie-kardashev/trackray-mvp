@@ -1,3 +1,4 @@
+
 import { type InventoryItem, type Order } from './types';
 
 export const mockInventory: InventoryItem[] = [

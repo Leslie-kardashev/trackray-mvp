@@ -9,7 +9,8 @@ import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route"
 import { calculateFuel, type CalculateFuelInput, type CalculateFuelOutput } from "@/ai/flows/calculate-fuel";
 import { useToast } from "@/hooks/use-toast";
 import { Map, APIProvider, Marker, useMap, InfoWindow } from "@vis.gl/react-google-maps";
-import { mockOrders } from "@/lib/mock-data";
+import { getOrders } from "@/lib/data-service";
+import { type Order } from "@/lib/types";
 
 
 import {
@@ -156,21 +157,37 @@ export function RouteOptimizer() {
   const [result, setResult] = useState<SuggestRouteOutput | null>(null);
   const [fuelResult, setFuelResult] = useState<CalculateFuelOutput | null>(null);
   const { toast } = useToast();
+  const [orders, setOrders] = useState<Order[]>([]);
   
-  const [routeCoords, setRouteCoords] = useState<{origin?: LatLngLiteral, destination?: LatLngLiteral}>({
-      origin: mockOrders[1].pickup.coords,
-      destination: mockOrders[1].destination.coords
-  });
+  const [routeCoords, setRouteCoords] = useState<{origin?: LatLngLiteral, destination?: LatLngLiteral}>({});
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      currentLocation: mockOrders[1].pickup.address,
-      destination: mockOrders[1].destination.address,
+      currentLocation: "",
+      destination: "",
       trafficData: "Heavy traffic on N1 highway near Tema, moderate traffic in Adenta.",
       vehicleType: "Standard Cargo Van",
     },
   });
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+        const liveOrders = await getOrders();
+        setOrders(liveOrders);
+        const firstOrder = liveOrders[0];
+        if (firstOrder) {
+            form.setValue("currentLocation", firstOrder.pickup.address);
+            form.setValue("destination", firstOrder.destination.address);
+            setRouteCoords({
+                origin: firstOrder.pickup.coords,
+                destination: firstOrder.destination.coords,
+            });
+        }
+    };
+    fetchInitialData();
+  }, [form]);
+
 
   const handleGetCurrentLocation = () => {
     if (navigator.geolocation) {
@@ -212,29 +229,12 @@ export function RouteOptimizer() {
     setFuelResult(null);
 
     try {
-      // Suggest route and calculate fuel in parallel
-      const [suggestion, _] = await Promise.all([
-        suggestRoute(data),
-        // This is a mock implementation. A real app would geocode addresses from the suggestion
-        // to get coordinates for the map. We'll keep using mock data for the map for now,
-        // unless the "Use My Location" feature has been used.
-        (() => {
-          const originOrder = mockOrders.find(o => o.pickup.address === data.currentLocation) || mockOrders[1];
-          const destinationOrder = mockOrders.find(o => o.destination.address === data.destination) || mockOrders[1];
-
-          setRouteCoords({
-              origin: originOrder.pickup.coords,
-              destination: destinationOrder.destination.coords
-          });
-        })(),
-      ]);
-
+      const suggestion = await suggestRoute(data);
       setResult(suggestion);
       
       if (suggestion.estimatedTravelTime) {
-         // Extract distance from reasoning or route for fuel calculation. A bit of a hack.
         const distanceMatch = suggestion.optimizedRoute.match(/(\d+(\.\d+)?)\s*km/);
-        const distance = distanceMatch ? `${distanceMatch[1]} km` : "150 km"; // Fallback distance
+        const distance = distanceMatch ? `${distanceMatch[1]} km` : "150 km"; 
 
         const fuelInput: CalculateFuelInput = {
             distance: distance,
@@ -260,18 +260,21 @@ export function RouteOptimizer() {
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
         if (name === 'currentLocation' || name === 'destination') {
-            const originOrder = mockOrders.find(o => o.pickup.address === value.currentLocation);
-            const destinationOrder = mockOrders.find(o => o.destination.address === value.destination);
+            const originOrder = orders.find(o => o.pickup.address === value.currentLocation);
+            const destinationOrder = orders.find(o => o.destination.address === value.destination);
             
             const newCoords: {origin?: LatLngLiteral, destination?: LatLngLiteral} = {};
             if(originOrder) newCoords.origin = originOrder.pickup.coords;
+            else if (name === 'currentLocation') newCoords.origin = undefined;
+
             if(destinationOrder) newCoords.destination = destinationOrder.destination.coords;
+            else if (name === 'destination') newCoords.destination = undefined;
             
             setRouteCoords(prev => ({...prev, ...newCoords}));
         }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, orders]);
 
 
   return (
