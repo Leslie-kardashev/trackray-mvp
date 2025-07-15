@@ -2,12 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { ShieldCheck, Truck, ShoppingCart } from "lucide-react";
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/components/ui/sidebar";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export function DashboardNav() {
   const pathname = usePathname();
@@ -31,21 +27,19 @@ export function DashboardNav() {
   const navItems = getNavItems();
 
   return (
-    <SidebarMenu>
+    <>
       {navItems.map((item, index) => (
-        <SidebarMenuItem key={index}>
-          <SidebarMenuButton
-            asChild
-            isActive={isActive(item.href)}
-            tooltip={{ children: item.label }}
-          >
-            <Link href={item.href}>
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        <Link
+          key={index}
+          href={item.href}
+          className={cn(
+            "transition-colors hover:text-foreground",
+            isActive(item.href) ? "text-foreground font-semibold" : "text-muted-foreground"
+          )}
+        >
+          {item.label}
+        </Link>
       ))}
-    </SidebarMenu>
+    </>
   );
 }
