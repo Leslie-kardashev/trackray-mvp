@@ -6,6 +6,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route";
+import { calculateFuel, type CalculateFuelInput, type CalculateFuelOutput } from "@/ai/flows/calculate-fuel";
 import { useToast } from "@/hooks/use-toast";
 import { Map, APIProvider, Marker, useMap, InfoWindow } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
@@ -30,13 +31,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader, Sparkles, Clock, Lightbulb, LocateFixed, Warehouse, Package } from "lucide-react";
+import { Loader, Sparkles, Clock, Lightbulb, LocateFixed, Warehouse, Package, Fuel } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const formSchema = z.object({
   currentLocation: z.string().min(1, "Current location is required."),
   destination: z.string().min(1, "Destination is required."),
   trafficData: z.string().min(1, "Traffic data is required."),
+  vehicleType: z.string().min(1, "Please select a vehicle type."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -145,6 +154,7 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
 export function RouteOptimizer() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SuggestRouteOutput | null>(null);
+  const [fuelResult, setFuelResult] = useState<CalculateFuelOutput | null>(null);
   const { toast } = useToast();
   
   const [routeCoords, setRouteCoords] = useState<{origin?: LatLngLiteral, destination?: LatLngLiteral}>({
@@ -158,6 +168,7 @@ export function RouteOptimizer() {
       currentLocation: mockOrders[1].pickup.address,
       destination: mockOrders[1].destination.address,
       trafficData: "Heavy traffic on N1 highway near Tema, moderate traffic in Adenta.",
+      vehicleType: "Standard Cargo Van",
     },
   });
 
@@ -198,19 +209,41 @@ export function RouteOptimizer() {
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setResult(null);
-    try {
-      const suggestion = await suggestRoute(data);
-      // This is a mock implementation. A real app would geocode addresses from the suggestion
-      // to get coordinates for the map. We'll keep using mock data for the map for now,
-      // unless the "Use My Location" feature has been used.
-      const originOrder = mockOrders.find(o => o.pickup.address === data.currentLocation) || mockOrders[1];
-      const destinationOrder = mockOrders.find(o => o.destination.address === data.destination) || mockOrders[1];
+    setFuelResult(null);
 
-      setRouteCoords({
-          origin: originOrder.pickup.coords,
-          destination: destinationOrder.destination.coords
-      });
+    try {
+      // Suggest route and calculate fuel in parallel
+      const [suggestion, _] = await Promise.all([
+        suggestRoute(data),
+        // This is a mock implementation. A real app would geocode addresses from the suggestion
+        // to get coordinates for the map. We'll keep using mock data for the map for now,
+        // unless the "Use My Location" feature has been used.
+        (() => {
+          const originOrder = mockOrders.find(o => o.pickup.address === data.currentLocation) || mockOrders[1];
+          const destinationOrder = mockOrders.find(o => o.destination.address === data.destination) || mockOrders[1];
+
+          setRouteCoords({
+              origin: originOrder.pickup.coords,
+              destination: destinationOrder.destination.coords
+          });
+        })(),
+      ]);
+
       setResult(suggestion);
+      
+      if (suggestion.estimatedTravelTime) {
+         // Extract distance from reasoning or route for fuel calculation. A bit of a hack.
+        const distanceMatch = suggestion.optimizedRoute.match(/(\d+(\.\d+)?)\s*km/);
+        const distance = distanceMatch ? `${distanceMatch[1]} km` : "150 km"; // Fallback distance
+
+        const fuelInput: CalculateFuelInput = {
+            distance: distance,
+            vehicleType: data.vehicleType,
+        };
+        const fuelSuggestion = await calculateFuel(fuelInput);
+        setFuelResult(fuelSuggestion);
+      }
+
     } catch (error) {
       console.error("Failed to get route suggestion:", error);
       toast({
@@ -251,7 +284,7 @@ export function RouteOptimizer() {
                 <Sparkles className="text-primary" /> Route AI
               </CardTitle>
               <CardDescription>
-                Enter details to get an AI-optimized route in Ghana.
+                Enter details to get an AI-optimized route and fuel estimate.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -287,6 +320,28 @@ export function RouteOptimizer() {
                   </FormItem>
                 )}
               />
+               <FormField
+                  control={form.control}
+                  name="vehicleType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vehicle Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select vehicle type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Motorbike">Motorbike</SelectItem>
+                          <SelectItem value="Standard Cargo Van">Standard Cargo Van</SelectItem>
+                          <SelectItem value="Heavy Duty Truck">Heavy Duty Truck</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               <FormField
                 control={form.control}
                 name="trafficData"
@@ -323,7 +378,7 @@ export function RouteOptimizer() {
             Suggested Route
           </CardTitle>
           <CardDescription>
-            Your AI-optimized route will appear here.
+            Your AI-optimized route and fuel estimate will appear here.
           </CardDescription>
         </CardHeader>
         <CardContent className="min-h-[450px] flex flex-col items-center justify-center p-0">
@@ -336,7 +391,7 @@ export function RouteOptimizer() {
             <div className="w-full h-full flex flex-col">
               <RouteMap origin={routeCoords.origin} destination={routeCoords.destination} />
               <div className="p-6 space-y-4">
-                 <div className="grid grid-cols-2 gap-4 text-sm">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-3">
                         <Clock className="w-5 h-5 text-primary"/>
                         <div>
@@ -352,6 +407,27 @@ export function RouteOptimizer() {
                         </div>
                     </div>
                 </div>
+                 {fuelResult && (
+                    <>
+                    <Separator />
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-3">
+                            <Fuel className="w-5 h-5 text-primary"/>
+                            <div>
+                                <h3 className="font-semibold">Est. Fuel Consumption</h3>
+                                <p className="text-muted-foreground">{fuelResult.fuelConsumedLiters.toFixed(2)} Liters ({fuelResult.estimatedCost})</p>
+                            </div>
+                        </div>
+                         <div className="flex items-start gap-3">
+                            <Lightbulb className="w-5 h-5 text-primary mt-0.5"/>
+                            <div>
+                                <h3 className="font-semibold">Fuel Calculation</h3>
+                                <p className="text-muted-foreground">{fuelResult.reasoning}</p>
+                            </div>
+                        </div>
+                    </div>
+                    </>
+                )}
                 <Separator />
                  <div className="space-y-3">
                     <h3 className="font-semibold flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin w-5 h-5 text-primary"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Turn-by-turn Directions</h3>
