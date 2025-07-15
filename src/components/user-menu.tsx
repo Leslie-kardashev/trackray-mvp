@@ -12,6 +12,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu"
+import { LogOut } from "lucide-react"
 import Link from "next/link"
   
   export function UserMenu() {
@@ -32,9 +33,13 @@ import Link from "next/link"
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild><Link href="/">Logout</Link></DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/" className="flex items-center gap-2">
+              <LogOut />
+              <span>Logout</span>
+            </Link>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     )
   }
-  
