@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route";
 import { useToast } from "@/hooks/use-toast";
-import { Map, APIProvider, Marker, useMap } from "@vis.gl/react-google-maps";
+import { Map, APIProvider, Marker } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 
 
@@ -29,7 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader, Sparkles, MapPin, Clock, Lightbulb } from "lucide-react";
+import { Loader, Sparkles, MapPin, Clock, Lightbulb, LocateFixed } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
@@ -48,7 +48,6 @@ function Directions() {
     useEffect(() => {
         if (!map) return;
         
-        // In a real app, you would use the Directions Service API to get a route
         const routePolyline = new google.maps.Polyline({
             path: [origin, destination],
             geodesic: true,
@@ -75,7 +74,6 @@ function RouteMap() {
 
     const defaultCenter = { lat: 40.7128, lng: -74.0060 }; // Default to NYC
     
-    // For demo, we'll just use the first two orders' locations as start and end
     const origin = mockOrders[1].pickup.coords;
     const destination = mockOrders[1].destination.coords;
 
@@ -119,6 +117,37 @@ export function RouteOptimizer() {
     },
   });
 
+  const handleGetCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const locationString = `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`;
+          form.setValue("currentLocation", locationString);
+          toast({
+            title: "Location Fetched",
+            description: "Your current location has been set.",
+          })
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not fetch your location. Please ensure you have granted permission.",
+          });
+        }
+      );
+    } else {
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Geolocation is not supported by your browser.",
+      });
+    }
+  };
+
+
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setResult(null);
@@ -156,7 +185,13 @@ export function RouteOptimizer() {
                 name="currentLocation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Location</FormLabel>
+                    <div className="flex justify-between items-center">
+                      <FormLabel>Current Location</FormLabel>
+                       <Button variant="ghost" size="sm" type="button" onClick={handleGetCurrentLocation} className="gap-1 text-xs">
+                          <LocateFixed className="w-3 h-3"/>
+                          Use My Location
+                       </Button>
+                    </div>
                     <FormControl>
                       <Input placeholder="e.g., Warehouse A" {...field} />
                     </FormControl>
