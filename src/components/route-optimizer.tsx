@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route";
 import { useToast } from "@/hooks/use-toast";
-import { Map, APIProvider, Marker } from "@vis.gl/react-google-maps";
+import { Map, APIProvider, Marker, useMap } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 
 
