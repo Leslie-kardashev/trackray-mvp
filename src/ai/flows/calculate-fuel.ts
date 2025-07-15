@@ -10,13 +10,13 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const CalculateFuelInputSchema = z.object({
+const CalculateFuelInputSchema = z.object({
   distance: z.string().describe('The total distance of the trip, e.g., "150 km".'),
   vehicleType: z.string().describe('The type of vehicle, e.g., "Standard Cargo Van", "Motorbike", "Heavy Duty Truck".'),
 });
 export type CalculateFuelInput = z.infer<typeof CalculateFuelInputSchema>;
 
-export const CalculateFuelOutputSchema = z.object({
+const CalculateFuelOutputSchema = z.object({
   fuelConsumedLiters: z.number().describe('The estimated fuel consumption in liters.'),
   estimatedCost: z.string().describe('The estimated cost of the fuel in Ghana Cedis (GHS), formatted as "GHS XXX.XX".'),
   reasoning: z.string().describe('A brief explanation of the assumptions made for the calculation, like average fuel efficiency and price.'),
