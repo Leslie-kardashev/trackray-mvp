@@ -104,7 +104,8 @@ function NewOrderForm() {
 
 
     const handleMapClick = (e: google.maps.MapMouseEvent) => {
-        const latLng = e.latLng!.toJSON();
+        if (!e.latLng) return;
+        const latLng = e.latLng.toJSON();
         if (!pickupCoords) {
             setPickupCoords(latLng);
             geocodeLatLng(latLng, "pickupAddress");
