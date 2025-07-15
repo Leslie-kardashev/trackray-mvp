@@ -40,42 +40,63 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function Directions() {
+type LatLngLiteral = google.maps.LatLngLiteral;
+
+function Directions({ origin, destination }: { origin?: LatLngLiteral; destination?: LatLngLiteral }) {
     const map = useMap();
-    const origin = mockOrders[1].pickup.coords;
-    const destination = mockOrders[1].destination.coords;
-    
+    const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+
     useEffect(() => {
         if (!map) return;
-        
-        const routePolyline = new google.maps.Polyline({
-            path: [origin, destination],
-            geodesic: true,
-            strokeColor: '#1a73e8',
-            strokeOpacity: 1.0,
-            strokeWeight: 5
+        setDirectionsRenderer(new google.maps.DirectionsRenderer({
+            map,
+            suppressMarkers: true, // We use our own markers
+            polylineOptions: {
+                strokeColor: '#1a73e8',
+                strokeOpacity: 0.8,
+                strokeWeight: 6,
+            },
+        }));
+    }, [map]);
+
+    useEffect(() => {
+        if (!directionsRenderer || !origin || !destination) {
+            // Clear previous routes if any
+            if(directionsRenderer) {
+                directionsRenderer.setDirections({routes: []});
+            }
+            return;
+        }
+
+        const directionsService = new google.maps.DirectionsService();
+
+        directionsService.route({
+            origin: origin,
+            destination: destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+        }, (result, status) => {
+            if (status === google.maps.DirectionsStatus.OK) {
+                directionsRenderer.setDirections(result);
+            } else {
+                console.error(`Directions request failed due to ${status}`);
+            }
         });
 
-        routePolyline.setMap(map);
-
         return () => {
-            routePolyline.setMap(null);
+            directionsRenderer.setDirections({routes: []});
         };
 
-    }, [map, origin, destination]);
+    }, [directionsRenderer, origin, destination]);
 
     return null;
 }
 
-function RouteMap() {
+function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination?: LatLngLiteral }) {
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
         return <div className="flex items-center justify-center h-full bg-muted rounded-t-lg"><p>Google Maps API Key not configured.</p></div>
     }
 
     const defaultCenter = { lat: 7.9465, lng: -1.0232 }; // Default to Ghana
-    
-    const origin = mockOrders[1].pickup.coords;
-    const destination = mockOrders[1].destination.coords;
 
     return (
         <div className="relative w-full aspect-[16/9] rounded-t-lg overflow-hidden">
@@ -85,18 +106,19 @@ function RouteMap() {
                     defaultZoom={8}
                     mapId="route-optimizer-map"
                     gestureHandling={'greedy'}
+                    key={JSON.stringify(origin) + JSON.stringify(destination)} // Force re-render on prop change
                 >
-                    <Marker position={origin} title="Origin" >
+                    {origin && <Marker position={origin} title="Origin" >
                          <div className="bg-background p-1.5 rounded-full shadow-md">
                             <MapPin className="w-5 h-5 text-red-600" />
                         </div>
-                    </Marker>
-                    <Marker position={destination} title="Destination">
+                    </Marker>}
+                    {destination && <Marker position={destination} title="Destination">
                         <div className="bg-background p-1.5 rounded-full shadow-md">
                             <MapPin className="w-5 h-5 text-green-600" />
                         </div>
-                    </Marker>
-                    <Directions />
+                    </Marker>}
+                    <Directions origin={origin} destination={destination} />
                 </Map>
             </APIProvider>
         </div>
@@ -107,6 +129,11 @@ export function RouteOptimizer() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SuggestRouteOutput | null>(null);
   const { toast } = useToast();
+  
+  const [routeCoords, setRouteCoords] = useState<{origin?: LatLngLiteral, destination?: LatLngLiteral}>({
+      origin: mockOrders[1].pickup.coords,
+      destination: mockOrders[1].destination.coords
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -153,6 +180,12 @@ export function RouteOptimizer() {
     setResult(null);
     try {
       const suggestion = await suggestRoute(data);
+      // This is a mock implementation. A real app would geocode addresses from the suggestion
+      // to get coordinates for the map. We'll keep using mock data for the map for now.
+      setRouteCoords({
+          origin: mockOrders[1].pickup.coords, // Replace with geocoded origin from `data`
+          destination: mockOrders[1].destination.coords // Replace with geocoded destination from `data`
+      });
       setResult(suggestion);
     } catch (error) {
       console.error("Failed to get route suggestion:", error);
@@ -259,7 +292,7 @@ export function RouteOptimizer() {
             </div>
           ) : result ? (
             <div className="w-full h-full flex flex-col">
-              <RouteMap />
+              <RouteMap origin={routeCoords.origin} destination={routeCoords.destination} />
               <div className="p-6 space-y-4">
                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-3">
@@ -286,7 +319,7 @@ export function RouteOptimizer() {
             </div>
           ) : (
              <div className="w-full h-full flex flex-col">
-                 <RouteMap />
+                 <RouteMap origin={routeCoords.origin} destination={routeCoords.destination} />
                   <div className="p-6 text-center text-muted-foreground">
                     <p>Submit the form to generate your route.</p>
                   </div>

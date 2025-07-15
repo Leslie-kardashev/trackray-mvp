@@ -127,28 +127,45 @@ function NewOrderForm() {
 
 function Directions({ order }: { order: Order }) {
   const map = useMap();
+  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
 
   useEffect(() => {
-    if (!map || !order || !order.currentLocation) return;
+    if (!map) return;
+    setDirectionsRenderer(new google.maps.DirectionsRenderer({
+      map,
+      suppressMarkers: true, // We use our own markers
+      polylineOptions: {
+        strokeColor: '#1a73e8',
+        strokeOpacity: 0.8,
+        strokeWeight: 6,
+      },
+    }));
+  }, [map]);
 
-    const path = [order.pickup.coords, order.currentLocation, order.destination.coords].filter(Boolean) as google.maps.LatLngLiteral[];
+  useEffect(() => {
+    if (!directionsRenderer || !order) return;
+
+    const directionsService = new google.maps.DirectionsService();
     
-    if (path.length < 2) return;
-    
-    const polyline = new google.maps.Polyline({
-      path: path,
-      geodesic: true,
-      strokeColor: '#0000FF',
-      strokeOpacity: 1.0,
-      strokeWeight: 3
+    const waypoints = order.currentLocation ? [{ location: order.currentLocation, stopover: false }] : [];
+
+    directionsService.route({
+      origin: order.pickup.coords,
+      destination: order.destination.coords,
+      waypoints: waypoints,
+      travelMode: google.maps.TravelMode.DRIVING,
+    }, (result, status) => {
+      if (status === google.maps.DirectionsStatus.OK) {
+        directionsRenderer.setDirections(result);
+      } else {
+        console.error(`Directions request failed due to ${status}`);
+      }
     });
-
-    polyline.setMap(map);
-
+    
     return () => {
-      polyline.setMap(null);
+      directionsRenderer.setDirections({routes: []});
     };
-  }, [map, order]);
+  }, [directionsRenderer, order]);
 
   return null;
 }
