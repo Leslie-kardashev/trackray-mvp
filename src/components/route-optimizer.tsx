@@ -6,7 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route";
 import { useToast } from "@/hooks/use-toast";
-import Image from "next/image";
+import { Map, APIProvider, MapMarker, Polyline } from "@vis.gl/react-google-maps";
+import { mockOrders } from "@/lib/mock-data";
+
 
 import {
   Card,
@@ -38,6 +40,37 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+function RouteMap({ result }: { result: SuggestRouteOutput | null }) {
+    if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        return <div className="flex items-center justify-center h-full bg-muted rounded-t-lg"><p>Google Maps API Key not configured.</p></div>
+    }
+
+    const defaultCenter = { lat: 40.7128, lng: -74.0060 }; // Default to NYC
+    
+    // For demo, we'll just use the first two orders' locations as start and end
+    const origin = mockOrders[1].pickup.coords;
+    const destination = mockOrders[1].destination.coords;
+    
+    // In a real app, you would parse the turn-by-turn directions to create a polyline
+    const routePolyline = [origin, destination];
+
+    return (
+        <div className="relative w-full aspect-[16/9] rounded-t-lg overflow-hidden">
+            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+                <Map
+                    defaultCenter={origin || defaultCenter}
+                    defaultZoom={12}
+                    mapId="route-optimizer-map"
+                >
+                    <MapMarker position={origin} label="A" title="Origin" />
+                    <MapMarker position={destination} label="B" title="Destination" />
+                    <Polyline path={routePolyline} options={{ strokeColor: "#1a73e8", strokeWeight: 5 }} />
+                </Map>
+            </APIProvider>
+        </div>
+    )
+}
+
 export function RouteOptimizer() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SuggestRouteOutput | null>(null);
@@ -46,8 +79,8 @@ export function RouteOptimizer() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      currentLocation: "123 Main St, Anytown, USA",
-      destination: "789 Oak Ave, Sometown, USA",
+      currentLocation: mockOrders[1].pickup.address,
+      destination: mockOrders[1].destination.address,
       trafficData: "Heavy congestion on I-95, moderate traffic on Route 1, accident near Elm Street.",
     },
   });
@@ -157,25 +190,7 @@ export function RouteOptimizer() {
             </div>
           ) : result ? (
             <div className="w-full h-full flex flex-col">
-              <div className="relative w-full aspect-[16/9] rounded-t-lg overflow-hidden">
-                <Image src="https://placehold.co/800x450.png" alt="Map of the suggested route" layout="fill" objectFit="cover" data-ai-hint="route map" />
-                <div className="absolute top-4 left-4 right-4 bg-background/80 backdrop-blur-sm p-3 rounded-lg shadow-lg flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <CornerUpLeft className="w-6 h-6 text-primary" />
-                    <div>
-                      <h3 className="font-semibold text-sm">Origin</h3>
-                      <p className="text-muted-foreground text-xs">{form.getValues('currentLocation')}</p>
-                    </div>
-                  </div>
-                   <div className="flex items-center gap-3 text-right">
-                     <div>
-                      <h3 className="font-semibold text-sm">Destination</h3>
-                      <p className="text-muted-foreground text-xs">{form.getValues('destination')}</p>
-                    </div>
-                    <CornerUpRight className="w-6 h-6 text-primary" />
-                  </div>
-                </div>
-              </div>
+              <RouteMap result={result} />
               <div className="p-6 space-y-4">
                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-3">
@@ -201,9 +216,11 @@ export function RouteOptimizer() {
               </div>
             </div>
           ) : (
-             <div className="text-center text-muted-foreground flex flex-col items-center gap-4">
-                <MapPin className="w-12 h-12 text-gray-300 dark:text-gray-700"/>
-                <p>Submit the form to generate your route.</p>
+             <div className="w-full h-full flex flex-col">
+                 <RouteMap result={null} />
+                  <div className="p-6 text-center text-muted-foreground">
+                    <p>Submit the form to generate your route.</p>
+                  </div>
             </div>
           )}
         </CardContent>

@@ -6,7 +6,7 @@ export default function CustomerDashboard() {
       <div>
         <h1 className="text-3xl font-headline font-bold">Customer Center</h1>
         <p className="text-muted-foreground">
-          Submit new orders and track your delivery history.
+          Submit new orders, track your deliveries, and view your order history.
         </p>
       </div>
 

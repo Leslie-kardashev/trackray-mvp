@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { type Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Truck } from "lucide-react";
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -29,8 +30,8 @@ export function AdminDeliveries() {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">
-          Live Deliveries
+        <CardTitle className="font-headline text-2xl flex items-center gap-2">
+          <Truck className="w-6 h-6" /> Live Deliveries
         </CardTitle>
         <CardDescription>
           Real-time monitoring of all active orders.
@@ -52,9 +53,9 @@ export function AdminDeliveries() {
               <TableRow key={order.id}>
                 <TableCell className="font-mono">{order.id}</TableCell>
                 <TableCell className="font-medium">{order.customerName}</TableCell>
-                <TableCell>{order.destination}</TableCell>
+                <TableCell>{order.destination.address}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={cn("border", statusStyles[order.status])}>
+                  <Badge variant="outline" className={cn("border-0 font-semibold", statusStyles[order.status])}>
                     {order.status}
                   </Badge>
                 </TableCell>

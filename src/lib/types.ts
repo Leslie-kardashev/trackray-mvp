@@ -1,3 +1,11 @@
+export type Location = {
+  address: string;
+  coords: {
+    lat: number;
+    lng: number;
+  };
+};
+
 export type InventoryItem = {
   id: string;
   name: string;
@@ -11,7 +19,8 @@ export type Order = {
   customerName: string;
   item: string;
   status: 'Pending' | 'In Transit' | 'Delivered' | 'Cancelled';
-  pickup: string;
-  destination: string;
+  pickup: Location;
+  destination: Location;
   orderDate: string;
+  currentLocation: { lat: number, lng: number } | null;
 };
