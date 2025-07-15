@@ -218,7 +218,6 @@ export function AdminMap() {
                         <Map
                         defaultCenter={initialCenter}
                         defaultZoom={7}
-                        mapId="admin-fleet-map"
                         gestureHandling="greedy"
                         className="h-full rounded-b-lg"
                         >

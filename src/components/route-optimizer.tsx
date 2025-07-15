@@ -119,7 +119,6 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
                 <Map
                     defaultCenter={origin || defaultCenter}
                     defaultZoom={8}
-                    mapId="route-optimizer-map"
                     gestureHandling={'greedy'}
                     key={JSON.stringify(origin) + JSON.stringify(destination)} // Force re-render on prop change
                 >

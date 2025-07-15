@@ -311,7 +311,6 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
                                     <Map
                                         defaultCenter={{ lat: 7.9465, lng: -1.0232 }}
                                         defaultZoom={7}
-                                        mapId="new-order-map"
                                         gestureHandling={'greedy'}
                                         onClick={handleMapClick}
                                         className="h-full w-full"
@@ -411,7 +410,6 @@ function CustomerMap({ order }: { order: Order }) {
             <Map
                 defaultCenter={center}
                 defaultZoom={10}
-                mapId="customer-map"
                 className="h-full w-full rounded-lg"
                 gestureHandling={'greedy'}
             >
