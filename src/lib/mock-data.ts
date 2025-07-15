@@ -45,6 +45,9 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
   const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled'];
   const status = statuses[Math.floor(Math.random() * statuses.length)];
   
+  const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Delivery', 'Pending'];
+  const paymentStatus = paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)];
+
   let currentLocation: { lat: number, lng: number } | null = null;
   if (status === 'Moving' || status === 'Returning') {
     // Start somewhere between pickup and destination
@@ -67,6 +70,7 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
     customerName: `Customer ${101 + i}`,
     item: `ITM-00${(i % 5) + 1}`,
     status,
+    paymentStatus,
     pickup,
     destination,
     orderDate: `2024-05-${20 + (i % 10)}`,

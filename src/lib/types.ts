@@ -19,6 +19,7 @@ export type Order = {
   customerName: string;
   item: string;
   status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
+  paymentStatus: 'Paid' | 'Pay on Delivery' | 'Pending';
   pickup: Location;
   destination: Location;
   orderDate: string;

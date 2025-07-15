@@ -17,8 +17,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { type Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Truck } from "lucide-react";
+import { Truck, MoreHorizontal } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
+import { Button } from "./ui/button";
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -27,6 +36,12 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Returning': 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300',
   'Delivered': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
+};
+
+const paymentStatusStyles: { [key in Order['paymentStatus']]: string } = {
+    'Paid': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
+    'Pay on Delivery': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
+    'Pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
 };
 
 export function AdminDeliveries() {
@@ -48,6 +63,8 @@ export function AdminDeliveries() {
                 <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead><span className="sr-only">Actions</span></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -59,6 +76,28 @@ export function AdminDeliveries() {
                     <Badge variant="outline" className={cn("border-0 font-semibold", statusStyles[order.status])}>
                       {order.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                  <Badge variant="outline" className={cn("border-0 font-semibold", paymentStatusStyles[order.paymentStatus])}>
+                      {order.paymentStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>View Order Details</DropdownMenuItem>
+                            <DropdownMenuItem>Contact Customer</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
