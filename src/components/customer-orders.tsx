@@ -366,22 +366,24 @@ function Directions({ order }: { order: Order }) {
 
     const directionsService = new google.maps.DirectionsService();
     
-    // Don't draw a route if the truck hasn't been dispatched yet.
-    if (!order.currentLocation) {
+    // Only draw a route for active trucks.
+    if (!['Moving', 'Idle', 'Returning'].includes(order.status) || !order.currentLocation) {
         if(directionsRenderer) directionsRenderer.setDirections({routes: []});
         return;
     };
     
-    const origin = (order.status === 'Moving' && order.currentLocation) ? order.currentLocation : order.pickup.coords;
+    const origin = order.currentLocation;
+    const destination = order.status === 'Returning' ? order.pickup.coords : order.destination.coords;
     
     directionsService.route({
       origin: origin,
-      destination: order.destination.coords,
+      destination: destination,
       travelMode: google.maps.TravelMode.DRIVING,
     }, (result, status) => {
       if (status === google.maps.DirectionsStatus.OK) {
         directionsRenderer.setDirections(result);
-      } else {
+      } else if (status !== google.maps.DirectionsStatus.ZERO_RESULTS) {
+        // We expect ZERO_RESULTS sometimes, so don't log it as an error.
         console.error(`Directions request failed due to ${status}`);
       }
     });
@@ -403,7 +405,7 @@ function CustomerMap({ order }: { order: Order }) {
         return <div className="flex items-center justify-center h-full bg-muted rounded-lg"><p>Google Maps API Key not configured.</p></div>
     }
 
-    const center = order.currentLocation || order.pickup.coords;
+    const center = order.currentLocation || order.destination.coords;
     
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
