@@ -1,7 +1,7 @@
 
 "use client";
 
-import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, Marker, useMap, InfoWindow } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
 import { Truck, Warehouse, Package } from "lucide-react";
@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 const moveTruck = (
   current: { lat: number, lng: number },
   destination: { lat: number, lng: number },
-  speed = 0.01 // Adjust for faster/slower simulation
+  speed = 0.001 // Adjust for faster/slower simulation
 ) => {
   const latDiff = destination.lat - current.lat;
   const lngDiff = destination.lng - current.lng;
@@ -74,6 +74,7 @@ function Directions({ order }: { order: Order }) {
 
 function FleetMap() {
     const [orders, setOrders] = useState<Order[]>(mockOrders);
+    const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
     const map = useMap();
 
     useEffect(() => {
@@ -82,18 +83,22 @@ function FleetMap() {
                 return prevOrders.map(order => {
                     if (order.status === 'In Transit' && order.currentLocation) {
                         const newLocation = moveTruck(order.currentLocation, order.destination.coords);
+                        
+                        if(newLocation.lat === order.destination.coords.lat && newLocation.lng === order.destination.coords.lng) {
+                            return { ...order, currentLocation: newLocation, status: 'Delivered' };
+                        }
                         return { ...order, currentLocation: newLocation };
                     }
                     return order;
                 });
             });
-        }, 2000); // Update every 2 seconds
+        }, 1000); // Update every second
 
         return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
-        if (!map) return;
+        if (!map || activeMarkerId) return;
         const inTransitOrders = orders.filter(order => order.status === 'In Transit' && order.currentLocation);
         if (inTransitOrders.length === 0) return;
 
@@ -109,12 +114,12 @@ function FleetMap() {
         } else {
             map.fitBounds(bounds);
         }
-    }, [orders, map]);
+    }, [orders, map, activeMarkerId]);
 
 
   if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
     return (
-      <div className="flex items-center justify-center h-[400px] bg-muted rounded-lg">
+      <div className="flex items-center justify-center h-full bg-muted rounded-lg">
         <p>Google Maps API Key not configured.</p>
       </div>
     );
@@ -130,13 +135,25 @@ function FleetMap() {
             <Marker
                 key={order.id}
                 position={order.currentLocation!}
-                title={`Order ${order.id}`}
+                onClick={() => setActiveMarkerId(order.id)}
             >
                 <div className="bg-primary p-2 rounded-full shadow-lg animate-pulse">
                     <Truck className="w-5 h-5 text-primary-foreground" />
                 </div>
             </Marker>
         ))}
+
+        {activeMarkerId && inTransitOrders.find(o => o.id === activeMarkerId) && (
+             <InfoWindow
+                position={inTransitOrders.find(o => o.id === activeMarkerId)?.currentLocation!}
+                onCloseClick={() => setActiveMarkerId(null)}
+                >
+                <div className="p-2 font-semibold">
+                    <p>Truck (Order: {activeMarkerId})</p>
+                </div>
+            </InfoWindow>
+        )}
+        
          {inTransitOrders.map((order) => (
             <Directions key={`dir-${order.id}`} order={order} />
         ))}
@@ -157,7 +174,7 @@ export function AdminMap() {
                 Real-time locations of all trucks currently in transit in Ghana.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="p-0 h-[400px]">
+            <CardContent className="p-0 h-full min-h-[500px]">
                 {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
                     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
                         <Map

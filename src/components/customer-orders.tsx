@@ -8,7 +8,7 @@ import { z } from "zod";
 import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Map, Marker, APIProvider, useMap } from "@vis.gl/react-google-maps";
+import { Map, Marker, APIProvider, useMap, InfoWindow } from "@vis.gl/react-google-maps";
 import { Truck, Warehouse, Package } from "lucide-react";
 
 import {
@@ -174,6 +174,8 @@ function Directions({ order }: { order: Order }) {
 }
 
 function CustomerMap({ order }: { order: Order }) {
+    const [activeMarker, setActiveMarker] = useState<string | null>(null);
+
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
         return <div className="flex items-center justify-center h-full bg-muted rounded-lg"><p>Google Maps API Key not configured.</p></div>
     }
@@ -189,23 +191,42 @@ function CustomerMap({ order }: { order: Order }) {
                 className="h-full w-full rounded-lg"
                 gestureHandling={'greedy'}
             >
-                <Marker position={order.pickup.coords} title={order.pickup.address}>
+                <Marker position={order.pickup.coords} onClick={() => setActiveMarker('origin')}>
                     <div className="bg-background p-2 rounded-full shadow-md border-2 border-red-500">
                         <Warehouse className="w-5 h-5 text-red-600" />
                     </div>
                 </Marker>
-                <Marker position={order.destination.coords} title={order.destination.address}>
+                 {activeMarker === 'origin' && (
+                    <InfoWindow position={order.pickup.coords} onCloseClick={() => setActiveMarker(null)}>
+                        <p className="font-semibold p-1">Origin</p>
+                    </InfoWindow>
+                )}
+
+
+                <Marker position={order.destination.coords} onClick={() => setActiveMarker('destination')}>
                     <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
                         <Package className="w-5 h-5 text-green-600" />
                     </div>
                 </Marker>
+                {activeMarker === 'destination' && (
+                    <InfoWindow position={order.destination.coords} onCloseClick={() => setActiveMarker(null)}>
+                        <p className="font-semibold p-1">Destination</p>
+                    </InfoWindow>
+                )}
+
                 {order.status === 'In Transit' && order.currentLocation && (
-                    <Marker position={order.currentLocation} title="Current Location">
+                    <Marker position={order.currentLocation} onClick={() => setActiveMarker('truck')}>
                          <div className="bg-primary p-2 rounded-full shadow-lg">
                             <Truck className="w-5 h-5 text-primary-foreground" />
                         </div>
                     </Marker>
                 )}
+                {activeMarker === 'truck' && order.currentLocation && (
+                    <InfoWindow position={order.currentLocation} onCloseClick={() => setActiveMarker(null)}>
+                        <p className="font-semibold p-1">Your Truck</p>
+                    </InfoWindow>
+                )}
+
                 <Directions order={order} />
             </Map>
         </APIProvider>

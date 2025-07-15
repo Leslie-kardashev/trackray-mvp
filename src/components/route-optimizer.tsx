@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route";
 import { useToast } from "@/hooks/use-toast";
-import { Map, APIProvider, Marker, useMap } from "@vis.gl/react-google-maps";
+import { Map, APIProvider, Marker, useMap, InfoWindow } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 
 
@@ -95,6 +95,8 @@ function Directions({ origin, destination }: { origin?: LatLngLiteral; destinati
 }
 
 function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination?: LatLngLiteral }) {
+    const [activeMarker, setActiveMarker] = useState<'origin' | 'destination' | null>(null);
+
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
         return <div className="flex items-center justify-center h-full bg-muted rounded-t-lg"><p>Google Maps API Key not configured.</p></div>
     }
@@ -102,7 +104,7 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
     const defaultCenter = { lat: 7.9465, lng: -1.0232 }; // Default to Ghana
 
     return (
-        <div className="relative w-full aspect-[16/9] rounded-t-lg overflow-hidden">
+        <div className="relative w-full aspect-video rounded-t-lg overflow-hidden">
             <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
                 <Map
                     defaultCenter={origin || defaultCenter}
@@ -111,16 +113,28 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
                     gestureHandling={'greedy'}
                     key={JSON.stringify(origin) + JSON.stringify(destination)} // Force re-render on prop change
                 >
-                    {origin && <Marker position={origin} title="Origin" >
+                    {origin && <Marker position={origin} onClick={() => setActiveMarker('origin')} >
                          <div className="bg-background p-2 rounded-full shadow-md border-2 border-red-500">
                             <Warehouse className="w-5 h-5 text-red-600" />
                         </div>
                     </Marker>}
-                    {destination && <Marker position={destination} title="Destination">
+                    {activeMarker === 'origin' && origin && (
+                        <InfoWindow position={origin} onCloseClick={() => setActiveMarker(null)}>
+                            <p className="font-semibold p-1">Origin</p>
+                        </InfoWindow>
+                    )}
+
+                    {destination && <Marker position={destination} onClick={() => setActiveMarker('destination')}>
                         <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
                             <Package className="w-5 h-5 text-green-600" />
                         </div>
                     </Marker>}
+                    {activeMarker === 'destination' && destination && (
+                        <InfoWindow position={destination} onCloseClick={() => setActiveMarker(null)}>
+                             <p className="font-semibold p-1">Destination</p>
+                        </InfoWindow>
+                    )}
+                    
                     <Directions origin={origin} destination={destination} />
                 </Map>
             </APIProvider>
@@ -152,8 +166,11 @@ export function RouteOptimizer() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+          // A real app would use a geocoding service to convert these coords to an address.
+          // For this demo, we'll just set the lat/lng string and update the map.
           const locationString = `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`;
           form.setValue("currentLocation", locationString);
+          setRouteCoords(prev => ({ ...prev, origin: { lat: latitude, lng: longitude } }));
           toast({
             title: "Location Fetched",
             description: "Your current location has been set.",
@@ -184,10 +201,14 @@ export function RouteOptimizer() {
     try {
       const suggestion = await suggestRoute(data);
       // This is a mock implementation. A real app would geocode addresses from the suggestion
-      // to get coordinates for the map. We'll keep using mock data for the map for now.
+      // to get coordinates for the map. We'll keep using mock data for the map for now,
+      // unless the "Use My Location" feature has been used.
+      const originOrder = mockOrders.find(o => o.pickup.address === data.currentLocation) || mockOrders[1];
+      const destinationOrder = mockOrders.find(o => o.destination.address === data.destination) || mockOrders[1];
+
       setRouteCoords({
-          origin: mockOrders[1].pickup.coords, // Replace with geocoded origin from `data`
-          destination: mockOrders[1].destination.coords // Replace with geocoded destination from `data`
+          origin: originOrder.pickup.coords,
+          destination: destinationOrder.destination.coords
       });
       setResult(suggestion);
     } catch (error) {
@@ -201,6 +222,24 @@ export function RouteOptimizer() {
       setIsLoading(false);
     }
   };
+
+  // Update map if form values change
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+        if (name === 'currentLocation' || name === 'destination') {
+            const originOrder = mockOrders.find(o => o.pickup.address === value.currentLocation);
+            const destinationOrder = mockOrders.find(o => o.destination.address === value.destination);
+            
+            const newCoords: {origin?: LatLngLiteral, destination?: LatLngLiteral} = {};
+            if(originOrder) newCoords.origin = originOrder.pickup.coords;
+            if(destinationOrder) newCoords.destination = destinationOrder.destination.coords;
+            
+            setRouteCoords(prev => ({...prev, ...newCoords}));
+        }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -278,7 +317,7 @@ export function RouteOptimizer() {
         </Form>
       </Card>
 
-      <Card className="shadow-sm lg:col-span-2 sticky top-8">
+      <Card className="shadow-sm lg:col-span-2 sticky top-24">
         <CardHeader>
           <CardTitle className="font-headline text-2xl">
             Suggested Route
@@ -289,7 +328,7 @@ export function RouteOptimizer() {
         </CardHeader>
         <CardContent className="min-h-[450px] flex flex-col items-center justify-center p-0">
           {isLoading ? (
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+            <div className="flex flex-col items-center gap-2 text-muted-foreground p-6">
               <Loader className="h-8 w-8 animate-spin text-primary" />
               <p>Optimizing route...</p>
             </div>
@@ -315,7 +354,7 @@ export function RouteOptimizer() {
                 </div>
                 <Separator />
                  <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin w-5 h-5 text-primary"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Turn-by-turn Directions</h3>
+                    <h3 className="font-semibold flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin w-5 h-5 text-primary"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Turn-by-turn Directions</h3>
                     <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">{result.optimizedRoute}</p>
                 </div>
               </div>
