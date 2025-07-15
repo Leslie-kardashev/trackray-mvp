@@ -4,7 +4,7 @@
 import { APIProvider, Map, Marker, useMap, InfoWindow } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
-import { Truck, Warehouse, Package } from "lucide-react";
+import { Truck, Warehouse, Package, CirclePause, Undo2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useState, useEffect } from "react";
 
@@ -37,21 +37,24 @@ function Directions({ order }: { order: Order }) {
       map,
       suppressMarkers: true, 
       polylineOptions: {
-        strokeColor: '#1a73e8',
+        strokeColor: order.routeColor || '#1a73e8',
         strokeOpacity: 0.8,
         strokeWeight: 6,
       },
     }));
-  }, [map]);
+  }, [map, order.routeColor]);
 
   useEffect(() => {
     if (!directionsRenderer || !order.currentLocation) return;
 
     const directionsService = new google.maps.DirectionsService();
+    const origin = order.status === 'Returning' ? order.destination.coords : order.pickup.coords;
+    const destination = order.status === 'Returning' ? order.pickup.coords : order.destination.coords;
+
 
     directionsService.route({
-      origin: order.currentLocation,
-      destination: order.destination.coords,
+      origin: origin,
+      destination: destination,
       travelMode: google.maps.TravelMode.DRIVING,
     }, (result, status) => {
       if (status === google.maps.DirectionsStatus.OK) {
@@ -73,6 +76,37 @@ function Directions({ order }: { order: Order }) {
   return null;
 }
 
+const TruckMarker = ({ order, onClick }: { order: Order; onClick: () => void }) => {
+    switch (order.status) {
+        case 'Moving':
+            return (
+                <Marker position={order.currentLocation!} onClick={onClick}>
+                    <div className="bg-blue-500 p-2 rounded-full shadow-lg border-2 border-white animate-pulse">
+                        <Truck className="w-5 h-5 text-white" />
+                    </div>
+                </Marker>
+            );
+        case 'Returning':
+            return (
+                <Marker position={order.currentLocation!} onClick={onClick}>
+                    <div className="bg-yellow-500 p-2 rounded-full shadow-lg border-2 border-white">
+                        <Undo2 className="w-5 h-5 text-white" />
+                    </div>
+                </Marker>
+            );
+        case 'Idle':
+            return (
+                <Marker position={order.currentLocation!} onClick={onClick}>
+                    <div className="bg-gray-500 p-2 rounded-full shadow-lg border-2 border-white">
+                        <CirclePause className="w-5 h-5 text-white" />
+                    </div>
+                </Marker>
+            );
+        default:
+            return null;
+    }
+};
+
 
 function FleetMap() {
     const [orders, setOrders] = useState<Order[]>(mockOrders);
@@ -83,13 +117,15 @@ function FleetMap() {
         const interval = setInterval(() => {
             setOrders(prevOrders => {
                 return prevOrders.map(order => {
-                    if (order.status === 'In Transit' && order.currentLocation) {
-                        const newLocation = moveTruck(order.currentLocation, order.destination.coords);
+                    if ((order.status === 'Moving' || order.status === 'Returning') && order.currentLocation) {
+                        const destination = order.status === 'Returning' ? order.pickup.coords : order.destination.coords;
+                        const newLocation = moveTruck(order.currentLocation, destination);
                         
-                        if(newLocation.lat === order.destination.coords.lat && newLocation.lng === order.destination.coords.lng) {
-                            return { ...order, currentLocation: newLocation, status: 'Delivered' };
+                        let newStatus = order.status;
+                        if(newLocation.lat === destination.lat && newLocation.lng === destination.lng) {
+                           newStatus = order.status === 'Moving' ? 'Delivered' : 'Idle';
                         }
-                        return { ...order, currentLocation: newLocation };
+                        return { ...order, currentLocation: newLocation, status: newStatus };
                     }
                     return order;
                 });
@@ -101,11 +137,11 @@ function FleetMap() {
 
     useEffect(() => {
         if (!map || activeMarkerId) return;
-        const inTransitOrders = orders.filter(order => order.status === 'In Transit' && order.currentLocation);
-        if (inTransitOrders.length === 0) return;
+        const activeOrders = orders.filter(order => ['Moving', 'Idle', 'Returning'].includes(order.status) && order.currentLocation);
+        if (activeOrders.length === 0) return;
 
         const bounds = new google.maps.LatLngBounds();
-        inTransitOrders.forEach(order => {
+        activeOrders.forEach(order => {
             if(order.currentLocation) {
                 bounds.extend(new google.maps.LatLng(order.currentLocation.lat, order.currentLocation.lng));
             }
@@ -127,36 +163,31 @@ function FleetMap() {
     );
   }
 
-  const inTransitOrders = orders.filter(
-    (order) => order.status === "In Transit" && order.currentLocation
+  const activeOrders = orders.filter(
+    (order) => ['Moving', 'Idle', 'Returning'].includes(order.status) && order.currentLocation
   );
+  
+  const activeOrderForInfoWindow = activeOrders.find(o => o.id === activeMarkerId);
   
   return (
       <>
-        {inTransitOrders.map((order) => (
-            <Marker
-                key={order.id}
-                position={order.currentLocation!}
-                onClick={() => setActiveMarkerId(order.id)}
-            >
-                <div className="bg-primary p-2 rounded-full shadow-lg animate-pulse">
-                    <Truck className="w-5 h-5 text-primary-foreground" />
-                </div>
-            </Marker>
+        {activeOrders.map((order) => (
+            <TruckMarker key={order.id} order={order} onClick={() => setActiveMarkerId(order.id)} />
         ))}
 
-        {activeMarkerId && inTransitOrders.find(o => o.id === activeMarkerId) && (
+        {activeMarkerId && activeOrderForInfoWindow && (
              <InfoWindow
-                position={inTransitOrders.find(o => o.id === activeMarkerId)?.currentLocation!}
+                position={activeOrderForInfoWindow.currentLocation!}
                 onCloseClick={() => setActiveMarkerId(null)}
                 >
                 <div className="p-2 font-semibold">
-                    <p>Truck (Order: {activeMarkerId})</p>
+                    <p>Truck: {activeOrderForInfoWindow.id}</p>
+                    <p className="text-sm text-muted-foreground">Status: {activeOrderForInfoWindow.status}</p>
                 </div>
             </InfoWindow>
         )}
         
-         {inTransitOrders.map((order) => (
+         {activeOrders.map((order) => (
             <Directions key={`dir-${order.id}`} order={order} />
         ))}
     </>
@@ -173,7 +204,7 @@ export function AdminMap() {
                 Live Fleet Overview
                 </CardTitle>
                 <CardDescription>
-                Real-time locations of all trucks currently in transit in Ghana.
+                Real-time locations of all trucks currently active in Ghana.
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-0 h-full min-h-[500px]">

@@ -28,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import {
   Form,
@@ -51,7 +51,9 @@ type NewOrderValues = z.infer<typeof newOrderSchema>;
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
-  'In Transit': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
+  'Moving': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
+  'Idle': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
+  'Returning': 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300',
   'Delivered': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
@@ -149,7 +151,7 @@ function Directions({ order }: { order: Order }) {
     const directionsService = new google.maps.DirectionsService();
     
     // Use current location as the origin if available and in transit, otherwise use pickup location
-    const origin = (order.status === 'In Transit' && order.currentLocation) ? order.currentLocation : order.pickup.coords;
+    const origin = (order.status === 'Moving' && order.currentLocation) ? order.currentLocation : order.pickup.coords;
     
     directionsService.route({
       origin: origin,
@@ -214,7 +216,7 @@ function CustomerMap({ order }: { order: Order }) {
                     </InfoWindow>
                 )}
 
-                {order.status === 'In Transit' && order.currentLocation && (
+                {order.status === 'Moving' && order.currentLocation && (
                     <Marker position={order.currentLocation} onClick={() => setActiveMarker('truck')}>
                          <div className="bg-primary p-2 rounded-full shadow-lg">
                             <Truck className="w-5 h-5 text-primary-foreground" />
@@ -234,7 +236,7 @@ function CustomerMap({ order }: { order: Order }) {
 }
 
 export function CustomerOrders() {
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(mockOrders[1]);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(mockOrders.find(o => o.status === 'Moving') || mockOrders[0]);
   return (
     <Tabs defaultValue="history">
     <Card className="shadow-sm">

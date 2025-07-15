@@ -18,9 +18,10 @@ export type Order = {
   id: string;
   customerName: string;
   item: string;
-  status: 'Pending' | 'In Transit' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
   pickup: Location;
   destination: Location;
   orderDate: string;
   currentLocation: { lat: number, lng: number } | null;
+  routeColor?: string;
 };
