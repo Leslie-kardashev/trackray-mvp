@@ -7,6 +7,7 @@ import { type Order } from "@/lib/types";
 import { Truck, Warehouse, Package, CirclePause, Undo2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 // Function to simulate a truck moving along a path
 const moveTruck = (
@@ -27,7 +28,7 @@ const moveTruck = (
   return { lat: newLat, lng: newLng };
 };
 
-function Directions({ order }: { order: Order }) {
+function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
   const map = useMap();
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
 
@@ -38,11 +39,26 @@ function Directions({ order }: { order: Order }) {
       suppressMarkers: true, 
       polylineOptions: {
         strokeColor: order.routeColor || '#1a73e8',
-        strokeOpacity: 0.8,
+        strokeOpacity: isFaded ? 0.3 : 0.8,
         strokeWeight: 6,
       },
     }));
   }, [map, order.routeColor]);
+
+  useEffect(() => {
+    if (!directionsRenderer) return;
+    
+    // Update polyline options when isFaded changes
+    directionsRenderer.setOptions({
+        polylineOptions: {
+            strokeColor: order.routeColor || '#1a73e8',
+            strokeOpacity: isFaded ? 0.3 : 0.8,
+            strokeWeight: 6,
+        }
+    });
+
+  }, [isFaded, directionsRenderer, order.routeColor]);
+
 
   useEffect(() => {
     if (!directionsRenderer || !order.currentLocation) return;
@@ -76,41 +92,46 @@ function Directions({ order }: { order: Order }) {
   return null;
 }
 
-const TruckMarker = ({ order, onClick }: { order: Order; onClick: () => void }) => {
-    switch (order.status) {
-        case 'Moving':
-            return (
-                <Marker position={order.currentLocation!} onClick={onClick}>
-                    <div className="bg-blue-500 p-2 rounded-full shadow-lg border-2 border-white animate-pulse">
+const TruckMarker = ({ order, isFaded, onClick, onMouseOver, onMouseOut }: { order: Order; isFaded: boolean; onClick: () => void; onMouseOver: () => void; onMouseOut: () => void; }) => {
+    const wrapperClasses = cn("p-2 rounded-full shadow-lg border-2 border-white transition-opacity", isFaded ? "opacity-50" : "opacity-100");
+    
+    const markerContent = () => {
+        switch (order.status) {
+            case 'Moving':
+                return (
+                    <div className={cn(wrapperClasses, "bg-blue-500 animate-pulse")}>
                         <Truck className="w-5 h-5 text-white" />
                     </div>
-                </Marker>
-            );
-        case 'Returning':
-            return (
-                <Marker position={order.currentLocation!} onClick={onClick}>
-                    <div className="bg-yellow-500 p-2 rounded-full shadow-lg border-2 border-white">
+                );
+            case 'Returning':
+                return (
+                    <div className={cn(wrapperClasses, "bg-yellow-500")}>
                         <Undo2 className="w-5 h-5 text-white" />
                     </div>
-                </Marker>
-            );
-        case 'Idle':
-            return (
-                <Marker position={order.currentLocation!} onClick={onClick}>
-                    <div className="bg-gray-500 p-2 rounded-full shadow-lg border-2 border-white">
+                );
+            case 'Idle':
+                return (
+                    <div className={cn(wrapperClasses, "bg-gray-500")}>
                         <CirclePause className="w-5 h-5 text-white" />
                     </div>
-                </Marker>
-            );
-        default:
-            return null;
-    }
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <Marker position={order.currentLocation!} onClick={onClick} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
+            {markerContent()}
+        </Marker>
+    );
 };
 
 
 function FleetMap() {
     const [orders, setOrders] = useState<Order[]>(mockOrders);
     const [activeMarkerId, setActiveMarkerId] = useState<string | null>(null);
+    const [hoveredOrderId, setHoveredOrderId] = useState<string | null>(null);
     const map = useMap();
 
     useEffect(() => {
@@ -171,9 +192,19 @@ function FleetMap() {
   
   return (
       <>
-        {activeOrders.map((order) => (
-            <TruckMarker key={order.id} order={order} onClick={() => setActiveMarkerId(order.id)} />
-        ))}
+        {activeOrders.map((order) => {
+            const isFaded = hoveredOrderId !== null && hoveredOrderId !== order.id;
+            return (
+                <TruckMarker
+                    key={order.id}
+                    order={order}
+                    isFaded={isFaded}
+                    onClick={() => setActiveMarkerId(order.id)}
+                    onMouseOver={() => setHoveredOrderId(order.id)}
+                    onMouseOut={() => setHoveredOrderId(null)}
+                />
+            );
+        })}
 
         {activeMarkerId && activeOrderForInfoWindow && (
              <InfoWindow
@@ -187,9 +218,10 @@ function FleetMap() {
             </InfoWindow>
         )}
         
-         {activeOrders.map((order) => (
-            <Directions key={`dir-${order.id}`} order={order} />
-        ))}
+         {activeOrders.map((order) => {
+             const isFaded = hoveredOrderId !== null && hoveredOrderId !== order.id;
+             return <Directions key={`dir-${order.id}`} order={order} isFaded={isFaded} />
+         })}
     </>
   );
 }
