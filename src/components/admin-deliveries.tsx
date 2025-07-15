@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { type Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Truck } from "lucide-react";
+import { ScrollArea } from "./ui/scroll-area";
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -28,42 +29,40 @@ const statusStyles: { [key in Order['status']]: string } = {
 
 export function AdminDeliveries() {
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm h-full">
       <CardHeader>
         <CardTitle className="font-headline text-2xl flex items-center gap-2">
-          <Truck className="w-6 h-6" /> Live Deliveries
+          <Truck className="w-6 h-6" /> Active Deliveries
         </CardTitle>
         <CardDescription>
           Real-time monitoring of all active orders.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Order Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockOrders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-mono">{order.id}</TableCell>
-                <TableCell className="font-medium">{order.customerName}</TableCell>
-                <TableCell>{order.destination.address}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={cn("border-0 font-semibold", statusStyles[order.status])}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{order.orderDate}</TableCell>
+        <ScrollArea className="h-[400px]">
+          <Table>
+            <TableHeader className="sticky top-0 bg-card">
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {mockOrders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-mono">{order.id}</TableCell>
+                  <TableCell className="font-medium">{order.customerName}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={cn("border-0 font-semibold", statusStyles[order.status])}>
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
