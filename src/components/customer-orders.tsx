@@ -484,7 +484,7 @@ export function CustomerOrders() {
         // Poll for updates every 5 seconds
         const interval = setInterval(fetchOrders, 5000);
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchOrders]);
     
     const handleOrderSubmitted = () => {
         fetchOrders();
@@ -575,5 +575,3 @@ export function CustomerOrders() {
     </Tabs>
   );
 }
-
-    
