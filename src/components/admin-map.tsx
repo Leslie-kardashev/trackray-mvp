@@ -1,12 +1,12 @@
 
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { APIProvider, Map, Marker, useMap, InfoWindow } from "@vis.gl/react-google-maps";
 import { getOrders, updateTruckLocations } from "@/lib/data-service";
 import { type Order } from "@/lib/types";
 import { Truck, Warehouse, Package, CirclePause, Undo2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
@@ -24,7 +24,7 @@ function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
         strokeWeight: 6,
       },
     }));
-  }, [map]);
+  }, [map, order.routeColor]);
 
   useEffect(() => {
     if (!directionsRenderer) return;
