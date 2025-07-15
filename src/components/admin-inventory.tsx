@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import { PlusCircle, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { type InventoryItem } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const statusStyles: { [key in InventoryItem['status']]: string } = {
   'In Stock': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
