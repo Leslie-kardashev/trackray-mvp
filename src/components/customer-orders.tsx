@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,7 +9,7 @@ import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Map, Marker, APIProvider, useMap } from "@vis.gl/react-google-maps";
-import { Truck, MapPin } from "lucide-react";
+import { Truck, Warehouse, Package } from "lucide-react";
 
 import {
   Card,
@@ -147,12 +148,12 @@ function Directions({ order }: { order: Order }) {
 
     const directionsService = new google.maps.DirectionsService();
     
-    const waypoints = order.currentLocation ? [{ location: order.currentLocation, stopover: false }] : [];
-
+    // Use current location as the origin if available and in transit, otherwise use pickup location
+    const origin = (order.status === 'In Transit' && order.currentLocation) ? order.currentLocation : order.pickup.coords;
+    
     directionsService.route({
-      origin: order.pickup.coords,
+      origin: origin,
       destination: order.destination.coords,
-      waypoints: waypoints,
       travelMode: google.maps.TravelMode.DRIVING,
     }, (result, status) => {
       if (status === google.maps.DirectionsStatus.OK) {
@@ -163,7 +164,9 @@ function Directions({ order }: { order: Order }) {
     });
     
     return () => {
-      directionsRenderer.setDirections({routes: []});
+      if (directionsRenderer) {
+        directionsRenderer.setDirections({routes: []});
+      }
     };
   }, [directionsRenderer, order]);
 
@@ -187,13 +190,13 @@ function CustomerMap({ order }: { order: Order }) {
                 gestureHandling={'greedy'}
             >
                 <Marker position={order.pickup.coords} title={order.pickup.address}>
-                    <div className="bg-background p-1.5 rounded-full shadow-md">
-                        <MapPin className="w-5 h-5 text-red-600" />
+                    <div className="bg-background p-2 rounded-full shadow-md border-2 border-red-500">
+                        <Warehouse className="w-5 h-5 text-red-600" />
                     </div>
                 </Marker>
                 <Marker position={order.destination.coords} title={order.destination.address}>
-                    <div className="bg-background p-1.5 rounded-full shadow-md">
-                        <MapPin className="w-5 h-5 text-green-600" />
+                    <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
+                        <Package className="w-5 h-5 text-green-600" />
                     </div>
                 </Marker>
                 {order.status === 'In Transit' && order.currentLocation && (

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -29,7 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader, Sparkles, MapPin, Clock, Lightbulb, LocateFixed } from "lucide-react";
+import { Loader, Sparkles, Clock, Lightbulb, LocateFixed, Warehouse, Package } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
@@ -83,7 +84,9 @@ function Directions({ origin, destination }: { origin?: LatLngLiteral; destinati
         });
 
         return () => {
-            directionsRenderer.setDirections({routes: []});
+            if (directionsRenderer) {
+                directionsRenderer.setDirections({routes: []});
+            }
         };
 
     }, [directionsRenderer, origin, destination]);
@@ -109,13 +112,13 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
                     key={JSON.stringify(origin) + JSON.stringify(destination)} // Force re-render on prop change
                 >
                     {origin && <Marker position={origin} title="Origin" >
-                         <div className="bg-background p-1.5 rounded-full shadow-md">
-                            <MapPin className="w-5 h-5 text-red-600" />
+                         <div className="bg-background p-2 rounded-full shadow-md border-2 border-red-500">
+                            <Warehouse className="w-5 h-5 text-red-600" />
                         </div>
                     </Marker>}
                     {destination && <Marker position={destination} title="Destination">
-                        <div className="bg-background p-1.5 rounded-full shadow-md">
-                            <MapPin className="w-5 h-5 text-green-600" />
+                        <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
+                            <Package className="w-5 h-5 text-green-600" />
                         </div>
                     </Marker>}
                     <Directions origin={origin} destination={destination} />
@@ -312,7 +315,7 @@ export function RouteOptimizer() {
                 </div>
                 <Separator />
                  <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2"><MapPin className="w-5 h-5 text-primary"/>Turn-by-turn Directions</h3>
+                    <h3 className="font-semibold flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin w-5 h-5 text-primary"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Turn-by-turn Directions</h3>
                     <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">{result.optimizedRoute}</p>
                 </div>
               </div>

@@ -1,9 +1,10 @@
+
 "use client";
 
 import { APIProvider, Map, Marker, useMap } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
-import { Truck } from "lucide-react";
+import { Truck, Warehouse, Package } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useState, useEffect } from "react";
 
@@ -26,6 +27,51 @@ const moveTruck = (
   return { lat: newLat, lng: newLng };
 };
 
+function Directions({ order }: { order: Order }) {
+  const map = useMap();
+  const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+    setDirectionsRenderer(new google.maps.DirectionsRenderer({
+      map,
+      suppressMarkers: true, 
+      polylineOptions: {
+        strokeColor: '#1a73e8',
+        strokeOpacity: 0.8,
+        strokeWeight: 6,
+      },
+    }));
+  }, [map]);
+
+  useEffect(() => {
+    if (!directionsRenderer || !order.currentLocation) return;
+
+    const directionsService = new google.maps.DirectionsService();
+
+    directionsService.route({
+      origin: order.currentLocation,
+      destination: order.destination.coords,
+      travelMode: google.maps.TravelMode.DRIVING,
+    }, (result, status) => {
+      if (status === google.maps.DirectionsStatus.OK) {
+        directionsRenderer.setDirections(result);
+      } else {
+        console.error(`Directions request failed due to ${status}`);
+      }
+    });
+    
+    return () => {
+      if (directionsRenderer) {
+        directionsRenderer.setDirections({routes: []});
+      }
+    };
+  }, [directionsRenderer, order]);
+
+  return null;
+}
+
+
 function FleetMap() {
     const [orders, setOrders] = useState<Order[]>(mockOrders);
     const map = useMap();
@@ -33,14 +79,13 @@ function FleetMap() {
     useEffect(() => {
         const interval = setInterval(() => {
             setOrders(prevOrders => {
-                const updatedOrders = prevOrders.map(order => {
+                return prevOrders.map(order => {
                     if (order.status === 'In Transit' && order.currentLocation) {
                         const newLocation = moveTruck(order.currentLocation, order.destination.coords);
                         return { ...order, currentLocation: newLocation };
                     }
                     return order;
                 });
-                return updatedOrders;
             });
         }, 2000); // Update every 2 seconds
 
@@ -91,6 +136,9 @@ function FleetMap() {
                     <Truck className="w-5 h-5 text-primary-foreground" />
                 </div>
             </Marker>
+        ))}
+         {inTransitOrders.map((order) => (
+            <Directions key={`dir-${order.id}`} order={order} />
         ))}
     </>
   );
