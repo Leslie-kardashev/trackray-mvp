@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useForm } from "react";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { mockOrders } from "@/lib/mock-data";
@@ -470,5 +470,3 @@ export function CustomerOrders() {
     </Tabs>
   );
 }
-
-    
