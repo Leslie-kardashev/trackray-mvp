@@ -59,8 +59,8 @@ function FleetMap() {
             }
         });
         if(bounds.isEmpty()) {
-             map.setCenter({ lat: 39.8283, lng: -98.5795 });
-             map.setZoom(4);
+             map.setCenter({ lat: 7.9465, lng: -1.0232 }); // Center of Ghana
+             map.setZoom(7);
         } else {
             map.fitBounds(bounds);
         }
@@ -97,7 +97,7 @@ function FleetMap() {
 }
 
 export function AdminMap() {
-    const initialCenter = { lat: 39.8283, lng: -98.5795 };
+    const initialCenter = { lat: 7.9465, lng: -1.0232 }; // Center of Ghana
     return (
         <Card className="shadow-sm h-full">
             <CardHeader>
@@ -106,7 +106,7 @@ export function AdminMap() {
                 Live Fleet Overview
                 </CardTitle>
                 <CardDescription>
-                Real-time locations of all trucks currently in transit.
+                Real-time locations of all trucks currently in transit in Ghana.
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-0 h-[400px]">
@@ -114,7 +114,7 @@ export function AdminMap() {
                     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
                         <Map
                         defaultCenter={initialCenter}
-                        defaultZoom={4}
+                        defaultZoom={7}
                         mapId="admin-fleet-map"
                         gestureHandling="greedy"
                         className="h-full rounded-b-lg"

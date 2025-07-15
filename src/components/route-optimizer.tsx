@@ -72,7 +72,7 @@ function RouteMap() {
         return <div className="flex items-center justify-center h-full bg-muted rounded-t-lg"><p>Google Maps API Key not configured.</p></div>
     }
 
-    const defaultCenter = { lat: 40.7128, lng: -74.0060 }; // Default to NYC
+    const defaultCenter = { lat: 7.9465, lng: -1.0232 }; // Default to Ghana
     
     const origin = mockOrders[1].pickup.coords;
     const destination = mockOrders[1].destination.coords;
@@ -82,7 +82,7 @@ function RouteMap() {
             <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
                 <Map
                     defaultCenter={origin || defaultCenter}
-                    defaultZoom={12}
+                    defaultZoom={8}
                     mapId="route-optimizer-map"
                     gestureHandling={'greedy'}
                 >
@@ -113,7 +113,7 @@ export function RouteOptimizer() {
     defaultValues: {
       currentLocation: mockOrders[1].pickup.address,
       destination: mockOrders[1].destination.address,
-      trafficData: "Heavy congestion on I-95, moderate traffic on Route 1, accident near Elm Street.",
+      trafficData: "Heavy traffic on N1 highway near Tema, moderate traffic in Adenta.",
     },
   });
 
@@ -176,7 +176,7 @@ export function RouteOptimizer() {
                 <Sparkles className="text-primary" /> Route AI
               </CardTitle>
               <CardDescription>
-                Enter details to get an AI-optimized route.
+                Enter details to get an AI-optimized route in Ghana.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -193,7 +193,7 @@ export function RouteOptimizer() {
                        </Button>
                     </div>
                     <FormControl>
-                      <Input placeholder="e.g., Warehouse A" {...field} />
+                      <Input placeholder="e.g., Adum, Kumasi" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -206,7 +206,7 @@ export function RouteOptimizer() {
                   <FormItem>
                     <FormLabel>Destination</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 456 Tech Park" {...field} />
+                      <Input placeholder="e.g., Takoradi Market Circle" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
