@@ -8,7 +8,7 @@ import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Map, Marker, APIProvider, Polyline } from "@vis.gl/react-google-maps";
-import { Truck } from "lucide-react";
+import { Truck, MapPin } from "lucide-react";
 
 import {
   Card,
@@ -141,8 +141,12 @@ function CustomerMap({ order }: { order: Order }) {
                 mapId="customer-map"
                 className="h-full w-full rounded-lg"
             >
-                <Marker position={order.pickup.coords} label="A" title={order.pickup.address} />
-                <Marker position={order.destination.coords} label="B" title={order.destination.address} />
+                <Marker position={order.pickup.coords} title={order.pickup.address}>
+                    <MapPin className="w-6 h-6 text-red-600" />
+                </Marker>
+                <Marker position={order.destination.coords} title={order.destination.address}>
+                    <MapPin className="w-6 h-6 text-green-600" />
+                </Marker>
                 {order.status === 'In Transit' && order.currentLocation && (
                     <Marker position={order.currentLocation} title="Current Location">
                          <div className="bg-primary p-2 rounded-full shadow-lg">

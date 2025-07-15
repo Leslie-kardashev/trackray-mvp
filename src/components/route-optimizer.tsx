@@ -62,8 +62,12 @@ function RouteMap({ result }: { result: SuggestRouteOutput | null }) {
                     defaultZoom={12}
                     mapId="route-optimizer-map"
                 >
-                    <Marker position={origin} label="A" title="Origin" />
-                    <Marker position={destination} label="B" title="Destination" />
+                    <Marker position={origin} title="Origin" >
+                        <MapPin className="w-6 h-6 text-red-600" />
+                    </Marker>
+                    <Marker position={destination} title="Destination">
+                        <MapPin className="w-6 h-6 text-green-600" />
+                    </Marker>
                     <Polyline path={routePolyline} options={{ strokeColor: "#1a73e8", strokeWeight: 5 }} />
                 </Map>
             </APIProvider>
