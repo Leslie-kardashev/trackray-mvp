@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { mockOrders } from "@/lib/mock-data";
 import { type Order } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Map, Marker, APIProvider, Polyline } from "@vis.gl/react-google-maps";
+import { Map, Marker, APIProvider, useMap } from "@vis.gl/react-google-maps";
 import { Truck, MapPin } from "lucide-react";
 
 import {
@@ -125,14 +125,41 @@ function NewOrderForm() {
     );
 }
 
+function Directions({ order }: { order: Order }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !order || !order.currentLocation) return;
+
+    const path = [order.pickup.coords, order.currentLocation, order.destination.coords].filter(Boolean) as google.maps.LatLngLiteral[];
+    
+    if (path.length < 2) return;
+    
+    const polyline = new google.maps.Polyline({
+      path: path,
+      geodesic: true,
+      strokeColor: '#0000FF',
+      strokeOpacity: 1.0,
+      strokeWeight: 3
+    });
+
+    polyline.setMap(map);
+
+    return () => {
+      polyline.setMap(null);
+    };
+  }, [map, order]);
+
+  return null;
+}
+
 function CustomerMap({ order }: { order: Order }) {
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
         return <div className="flex items-center justify-center h-full bg-muted rounded-lg"><p>Google Maps API Key not configured.</p></div>
     }
 
     const center = order.currentLocation || order.pickup.coords;
-    const route = [order.pickup.coords, order.currentLocation, order.destination.coords].filter(Boolean) as google.maps.LatLngLiteral[];
-
+    
     return (
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
             <Map
@@ -140,12 +167,17 @@ function CustomerMap({ order }: { order: Order }) {
                 defaultZoom={10}
                 mapId="customer-map"
                 className="h-full w-full rounded-lg"
+                gestureHandling={'greedy'}
             >
                 <Marker position={order.pickup.coords} title={order.pickup.address}>
-                    <MapPin className="w-6 h-6 text-red-600" />
+                    <div className="bg-background p-1.5 rounded-full shadow-md">
+                        <MapPin className="w-5 h-5 text-red-600" />
+                    </div>
                 </Marker>
                 <Marker position={order.destination.coords} title={order.destination.address}>
-                    <MapPin className="w-6 h-6 text-green-600" />
+                    <div className="bg-background p-1.5 rounded-full shadow-md">
+                        <MapPin className="w-5 h-5 text-green-600" />
+                    </div>
                 </Marker>
                 {order.status === 'In Transit' && order.currentLocation && (
                     <Marker position={order.currentLocation} title="Current Location">
@@ -154,7 +186,7 @@ function CustomerMap({ order }: { order: Order }) {
                         </div>
                     </Marker>
                 )}
-                <Polyline path={route} options={{ strokeColor: '#0000FF', strokeWeight: 3 }} />
+                <Directions order={order} />
             </Map>
         </APIProvider>
     )
@@ -195,7 +227,7 @@ export function CustomerOrders() {
                                 </TableHeader>
                                 <TableBody>
                                 {mockOrders.map((order) => (
-                                    <TableRow key={order.id} onClick={() => setSelectedOrder(order)} className="cursor-pointer">
+                                    <TableRow key={order.id} onClick={() => setSelectedOrder(order)} className="cursor-pointer" data-state={selectedOrder?.id === order.id ? 'selected' : 'unselected'}>
                                         <TableCell className="font-mono">{order.id}</TableCell>
                                         <TableCell>
                                             <Badge variant="outline" className={cn("border-0 font-semibold", statusStyles[order.status])}>

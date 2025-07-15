@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { suggestRoute, type SuggestRouteOutput } from "@/ai/flows/suggest-route";
 import { useToast } from "@/hooks/use-toast";
-import { Map, APIProvider, Marker, Polyline } from "@vis.gl/react-google-maps";
+import { Map, APIProvider, Marker, useMap } from "@vis.gl/react-google-maps";
 import { mockOrders } from "@/lib/mock-data";
 
 
@@ -29,7 +29,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader, Sparkles, MapPin, Clock, Lightbulb, CornerUpLeft, CornerUpRight } from "lucide-react";
+import { Loader, Sparkles, MapPin, Clock, Lightbulb } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
@@ -40,7 +40,35 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function RouteMap({ result }: { result: SuggestRouteOutput | null }) {
+function Directions() {
+    const map = useMap();
+    const origin = mockOrders[1].pickup.coords;
+    const destination = mockOrders[1].destination.coords;
+    
+    useEffect(() => {
+        if (!map) return;
+        
+        // In a real app, you would use the Directions Service API to get a route
+        const routePolyline = new google.maps.Polyline({
+            path: [origin, destination],
+            geodesic: true,
+            strokeColor: '#1a73e8',
+            strokeOpacity: 1.0,
+            strokeWeight: 5
+        });
+
+        routePolyline.setMap(map);
+
+        return () => {
+            routePolyline.setMap(null);
+        };
+
+    }, [map, origin, destination]);
+
+    return null;
+}
+
+function RouteMap() {
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
         return <div className="flex items-center justify-center h-full bg-muted rounded-t-lg"><p>Google Maps API Key not configured.</p></div>
     }
@@ -50,9 +78,6 @@ function RouteMap({ result }: { result: SuggestRouteOutput | null }) {
     // For demo, we'll just use the first two orders' locations as start and end
     const origin = mockOrders[1].pickup.coords;
     const destination = mockOrders[1].destination.coords;
-    
-    // In a real app, you would parse the turn-by-turn directions to create a polyline
-    const routePolyline = [origin, destination];
 
     return (
         <div className="relative w-full aspect-[16/9] rounded-t-lg overflow-hidden">
@@ -61,14 +86,19 @@ function RouteMap({ result }: { result: SuggestRouteOutput | null }) {
                     defaultCenter={origin || defaultCenter}
                     defaultZoom={12}
                     mapId="route-optimizer-map"
+                    gestureHandling={'greedy'}
                 >
                     <Marker position={origin} title="Origin" >
-                        <MapPin className="w-6 h-6 text-red-600" />
+                         <div className="bg-background p-1.5 rounded-full shadow-md">
+                            <MapPin className="w-5 h-5 text-red-600" />
+                        </div>
                     </Marker>
                     <Marker position={destination} title="Destination">
-                        <MapPin className="w-6 h-6 text-green-600" />
+                        <div className="bg-background p-1.5 rounded-full shadow-md">
+                            <MapPin className="w-5 h-5 text-green-600" />
+                        </div>
                     </Marker>
-                    <Polyline path={routePolyline} options={{ strokeColor: "#1a73e8", strokeWeight: 5 }} />
+                    <Directions />
                 </Map>
             </APIProvider>
         </div>
@@ -194,7 +224,7 @@ export function RouteOptimizer() {
             </div>
           ) : result ? (
             <div className="w-full h-full flex flex-col">
-              <RouteMap result={result} />
+              <RouteMap />
               <div className="p-6 space-y-4">
                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-3">
@@ -221,7 +251,7 @@ export function RouteOptimizer() {
             </div>
           ) : (
              <div className="w-full h-full flex flex-col">
-                 <RouteMap result={null} />
+                 <RouteMap />
                   <div className="p-6 text-center text-muted-foreground">
                     <p>Submit the form to generate your route.</p>
                   </div>
