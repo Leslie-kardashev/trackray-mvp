@@ -461,7 +461,7 @@ export function CustomerOrders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("new");
+    const [activeTab, setActiveTab] = useState("history");
 
     const fetchOrders = useCallback(async () => {
         try {
@@ -492,18 +492,20 @@ export function CustomerOrders() {
     };
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-    <Card className="shadow-sm">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">My Orders</CardTitle>
-          <div className="flex justify-between items-end">
-          <CardDescription>
-            Submit a new order or view your delivery history.
-          </CardDescription>
-          <TabsList>
-            <TabsTrigger value="new">Create New Order</TabsTrigger>
-            <TabsTrigger value="history">Order History & Tracking</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="font-headline text-2xl">Create & Track</CardTitle>
+              <CardDescription>
+                Submit a new order or view your delivery history.
+              </CardDescription>
+            </div>
+            <TabsList>
+              <TabsTrigger value="new">Create New Order</TabsTrigger>
+              <TabsTrigger value="history">Order History & Tracking</TabsTrigger>
+            </TabsList>
           </div>
         </CardHeader>
         <TabsContent value="history">
@@ -575,3 +577,5 @@ export function CustomerOrders() {
     </Tabs>
   );
 }
+
+    
