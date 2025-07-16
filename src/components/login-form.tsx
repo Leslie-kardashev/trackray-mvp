@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -41,9 +42,9 @@ export function LoginForm() {
   const SelectedIcon = roleConfig[role as keyof typeof roleConfig].icon;
 
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl">Sign In</CardTitle>
+    <Card className="shadow-none border-0 bg-transparent">
+      <CardHeader className="text-center">
+        <CardTitle className="font-headline text-3xl">Welcome Back</CardTitle>
         <CardDescription>
           Select your role to access your dashboard.
         </CardDescription>
