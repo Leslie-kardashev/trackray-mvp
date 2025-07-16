@@ -19,7 +19,7 @@ export function DashboardNav() {
       case "driver":
         return [];
       case "customer":
-        return [{ href: "/customer", label: "Order Center", icon: ShoppingCart }];
+        return [];
       default:
         return [];
     }
