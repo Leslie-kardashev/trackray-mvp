@@ -54,20 +54,20 @@ export function LoginForm() {
           <Label htmlFor="role">Role</Label>
           <Select value={role} onValueChange={setRole}>
             <SelectTrigger id="role" className="w-full py-6 text-base">
-              <SelectValue asChild>
-                <span className="flex items-center gap-2">
-                  <SelectedIcon className="h-5 w-5 text-muted-foreground" />
-                  {roleConfig[role as keyof typeof roleConfig].label}
-                </span>
-              </SelectValue>
+               <SelectValue asChild>
+                 <span className="flex items-center gap-2">
+                    <SelectedIcon className="h-5 w-5 text-muted-foreground" />
+                    <span>{roleConfig[role as keyof typeof roleConfig].label}</span>
+                  </span>
+               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {Object.entries(roleConfig).map(([key, { icon: Icon, label }]) => (
                 <SelectItem key={key} value={key} className="py-3 text-base">
-                  <span className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <Icon className="h-5 w-5 text-muted-foreground" />
-                    {label}
-                  </span>
+                    <span>{label}</span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
