@@ -30,8 +30,8 @@ const getRandomLocation = () => {
 };
 
 const routeColors = [
-  '#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF',
-  '#33FFA1', '#FFC300', '#C70039', '#900C3F', '#581845'
+  '#4B0082', '#8A2BE2', '#9370DB', '#DA70D6', '#BA55D3', 
+  '#9932CC', '#800080', '#483D8B', '#6A5ACD', '#7B68EE'
 ];
 
 if (orders.length === 0) {

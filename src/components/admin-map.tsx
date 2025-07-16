@@ -19,7 +19,7 @@ function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
       map,
       suppressMarkers: true, 
       polylineOptions: {
-        strokeColor: order.routeColor || '#1a73e8',
+        strokeColor: order.routeColor || '#8A2BE2', // Default to a shade of purple
         strokeOpacity: isFaded ? 0.3 : 0.8,
         strokeWeight: 6,
       },
@@ -32,7 +32,7 @@ function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
     // Update polyline options when isFaded or color changes
     directionsRenderer.setOptions({
         polylineOptions: {
-            strokeColor: order.routeColor || '#1a73e8',
+            strokeColor: order.routeColor || '#8A2BE2',
             strokeOpacity: isFaded ? 0.3 : 0.8,
             strokeWeight: 6,
         }
@@ -153,7 +153,8 @@ function FleetMap() {
              map.setCenter({ lat: 7.9465, lng: -1.0232 }); // Center of Ghana
              map.setZoom(7);
         } else {
-            map.fitBounds(bounds);
+            // Add padding to the bounds to give markers some space
+            map.fitBounds(bounds, {top: 50, bottom: 50, left: 50, right: 50});
         }
     }, [orders, map, activeMarkerId]);
   
