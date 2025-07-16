@@ -48,7 +48,6 @@ import { Skeleton } from "./ui/skeleton";
 const newOrderSchema = z.object({
   itemDescription: z.string().min(3, "Item description must be at least 3 characters."),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
-  weight: z.coerce.number().min(0, "Weight cannot be negative.").optional(),
   pickupAddress: z.string().min(1, "Please set a pickup address on the map."),
   deliveryAddress: z.string().min(1, "Please set a delivery address on the map."),
   paymentMethod: z.enum(["Pay on Delivery", "Paid"], {
@@ -81,7 +80,6 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
             pickupAddress: "",
             deliveryAddress: "",
             quantity: 1,
-            weight: 0,
         }
     });
     
@@ -265,19 +263,6 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
                                                 <FormLabel>Quantity</FormLabel>
                                                 <FormControl>
                                                     <Input type="number" placeholder="e.g., 20" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name="weight"
-                                        render={({ field }) => (
-                                            <FormItem className="flex-1">
-                                                <FormLabel>Total Weight (kg)</FormLabel>
-                                                <FormControl>
-                                                    <Input type="number" placeholder="e.g., 500" {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
