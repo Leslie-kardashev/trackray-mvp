@@ -207,14 +207,14 @@ export function AdminMap() {
                 Real-time locations of all trucks currently active in Ghana.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="p-0 h-full min-h-[500px]">
+            <CardContent className="p-0 h-[500px]">
                 {apiKey && apiKey !== 'YOUR_API_KEY_HERE' ? (
                     <APIProvider apiKey={apiKey}>
                         <Map
                         defaultCenter={initialCenter}
                         defaultZoom={7}
                         gestureHandling="greedy"
-                        className="h-full rounded-b-lg"
+                        className="h-full w-full rounded-b-lg"
                         >
                             <FleetMap />
                         </Map>
