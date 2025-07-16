@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -16,7 +17,7 @@ export function DashboardNav() {
       case "admin":
         return [];
       case "driver":
-        return [{ href: "/driver", label: "Driver Tools", icon: Truck }];
+        return [];
       case "customer":
         return [{ href: "/customer", label: "Order Center", icon: ShoppingCart }];
       default:
