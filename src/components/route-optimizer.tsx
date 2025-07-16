@@ -88,7 +88,7 @@ function Directions({ origin, destination }: { origin?: LatLngLiteral; destinati
         }, (result, status) => {
             if (status === google.maps.DirectionsStatus.OK) {
                 directionsRenderer.setDirections(result);
-            } else {
+            } else if (status !== 'ZERO_RESULTS') {
                 console.error(`Directions request failed due to ${status}`);
             }
         });
@@ -104,10 +104,9 @@ function Directions({ origin, destination }: { origin?: LatLngLiteral; destinati
     return null;
 }
 
-function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination?: LatLngLiteral }) {
-    const [activeMarker, setActiveMarker] = useState<'origin' | 'destination' | null>(null);
+function MapInner({ origin, destination }: { origin?: LatLngLiteral, destination?: LatLngLiteral }) {
     const map = useMap();
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    const [activeMarker, setActiveMarker] = useState<'origin' | 'destination' | null>(null);
 
     useEffect(() => {
         if(!map) return;
@@ -115,10 +114,52 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
         if (origin) bounds.extend(origin);
         if (destination) bounds.extend(destination);
         if (!bounds.isEmpty()) {
-            map.fitBounds(bounds);
+            map.fitBounds(bounds, 50);
+        } else {
+             const defaultCenter = { lat: 7.9465, lng: -1.0232 }; // Default to Ghana
+             map.setCenter(defaultCenter);
+             map.setZoom(7);
         }
     }, [origin, destination, map]);
+    
+    const defaultCenter = { lat: 7.9465, lng: -1.0232 }; // Default to Ghana
 
+    return (
+        <Map
+            defaultCenter={origin || defaultCenter}
+            defaultZoom={8}
+            gestureHandling={'greedy'}
+            className="w-full h-full"
+        >
+            {origin && <Marker position={origin} onClick={() => setActiveMarker('origin')} >
+                    <div className="bg-background p-2 rounded-full shadow-md border-2 border-red-500">
+                    <Warehouse className="w-5 h-5 text-red-600" />
+                </div>
+            </Marker>}
+            {activeMarker === 'origin' && origin && (
+                <InfoWindow position={origin} onCloseClick={() => setActiveMarker(null)}>
+                    <p className="font-semibold p-1">Origin</p>
+                </InfoWindow>
+            )}
+
+            {destination && <Marker position={destination} onClick={() => setActiveMarker('destination')}>
+                <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
+                    <Package className="w-5 h-5 text-green-600" />
+                </div>
+            </Marker>}
+            {activeMarker === 'destination' && destination && (
+                <InfoWindow position={destination} onCloseClick={() => setActiveMarker(null)}>
+                        <p className="font-semibold p-1">Destination</p>
+                </InfoWindow>
+            )}
+            
+            <Directions origin={origin} destination={destination} />
+        </Map>
+    );
+}
+
+function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination?: LatLngLiteral }) {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
         return (
@@ -132,41 +173,10 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
         )
     }
 
-    const defaultCenter = { lat: 7.9465, lng: -1.0232 }; // Default to Ghana
-
     return (
         <div className="relative w-full aspect-video rounded-t-lg overflow-hidden">
             <APIProvider apiKey={apiKey}>
-                <Map
-                    defaultCenter={origin || defaultCenter}
-                    defaultZoom={8}
-                    gestureHandling={'greedy'}
-                    className="w-full h-full"
-                >
-                    {origin && <Marker position={origin} onClick={() => setActiveMarker('origin')} >
-                         <div className="bg-background p-2 rounded-full shadow-md border-2 border-red-500">
-                            <Warehouse className="w-5 h-5 text-red-600" />
-                        </div>
-                    </Marker>}
-                    {activeMarker === 'origin' && origin && (
-                        <InfoWindow position={origin} onCloseClick={() => setActiveMarker(null)}>
-                            <p className="font-semibold p-1">Origin</p>
-                        </InfoWindow>
-                    )}
-
-                    {destination && <Marker position={destination} onClick={() => setActiveMarker('destination')}>
-                        <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
-                            <Package className="w-5 h-5 text-green-600" />
-                        </div>
-                    </Marker>}
-                    {activeMarker === 'destination' && destination && (
-                        <InfoWindow position={destination} onCloseClick={() => setActiveMarker(null)}>
-                             <p className="font-semibold p-1">Destination</p>
-                        </InfoWindow>
-                    )}
-                    
-                    <Directions origin={origin} destination={destination} />
-                </Map>
+                <MapInner origin={origin} destination={destination} />
             </APIProvider>
         </div>
     )
@@ -284,18 +294,17 @@ export function RouteOptimizer() {
             const destinationOrder = orders.find(o => o.destination.address === value.destination);
             
             const newCoords: {origin?: LatLngLiteral, destination?: LatLngLiteral} = {};
-            if(originOrder) newCoords.origin = originOrder.pickup.coords;
-            else if (name === 'currentLocation' && typeof value.currentLocation === 'string' && value.currentLocation.startsWith('Lat:')) {
+            if(originOrder) {
+                newCoords.origin = originOrder.pickup.coords;
+            } else if (name === 'currentLocation' && typeof value.currentLocation === 'string' && value.currentLocation.startsWith('Lat:')) {
                 // handle manual lat/lng entry
-            }
-            else {
+            } else {
                 newCoords.origin = undefined;
             }
 
             if(destinationOrder) {
                 newCoords.destination = destinationOrder.destination.coords;
-            }
-            else {
+            } else {
                 newCoords.destination = undefined;
             }
             
