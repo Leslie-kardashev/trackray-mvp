@@ -5,16 +5,7 @@ import Image from 'next/image';
 export default function Home() {
   return (
     <main className="grid grid-cols-1 md:grid-cols-2 min-h-screen w-full font-sans antialiased">
-      <div className="hidden md:flex flex-col items-center justify-center p-10 text-center relative overflow-hidden">
-          <Image 
-              src="https://storage.googleapis.com/project-os-prod/images/47743d57-37a5-4277-9a84-884814d43615.jpg"
-              alt="Vintage red race car cockpit"
-              fill
-              style={{objectFit: "cover"}}
-              className="object-center"
-              priority
-          />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+      <div className="hidden md:flex flex-col items-center justify-center p-10 text-center relative overflow-hidden bg-gradient-to-br from-purple-900 to-blue-900">
            <div className="relative z-10 mt-auto max-w-md text-white text-left">
             <h1 className="font-headline text-4xl font-bold tracking-tight">
                 Engineered for Performance.
