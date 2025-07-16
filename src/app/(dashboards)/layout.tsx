@@ -5,12 +5,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Truck } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { DashboardNav } from "@/components/dashboard-nav";
 
 const AppLogo = () => (
-    <Truck className="h-8 w-8 text-primary" />
+    <svg role="img" aria-label="TrackRay Logo" className="w-8 h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 70 L25 30 L40 70 L55 30 L70 70 L85 30 L95 40" stroke="#333333" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M10 65 L25 25 L40 65 L55 25 L70 65 L85 25 L95 35" stroke="#E633E6" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
 );
 
 export default function DashboardLayout({
