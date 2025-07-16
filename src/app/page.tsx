@@ -1,43 +1,33 @@
 
 import { LoginForm } from '@/components/login-form';
-import Image from 'next/image';
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <div className="relative w-full max-w-4xl grid-cols-1 md:grid-cols-2 lg:grid rounded-2xl border shadow-lg overflow-hidden">
-        <div className="relative hidden lg:block">
-            <Image
-                src="https://placehold.co/600x800.png"
-                alt="Truck on a highway"
-                data-ai-hint="delivery truck highway"
-                width={600}
-                height={800}
-                className="h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-             <div className="absolute bottom-8 left-8">
-                <h1 className="font-headline text-5xl font-bold tracking-tighter text-white">
-                    TrackRay
-                </h1>
-                <p className="mt-2 text-white/90 max-w-sm">
-                    The future of fleet management, powered by AI.
-                </p>
-            </div>
-        </div>
+    <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background p-4">
+      {/* Background Shapes */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute -top-20 -left-24 h-64 w-64 rounded-full bg-gradient-to-br from-primary/30 to-purple-400/30 opacity-50 blur-3xl"></div>
+        <div className="absolute -bottom-24 -right-12 h-72 w-72 rounded-full bg-gradient-to-br from-violet-500/30 to-indigo-600/30 opacity-60 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-pink-400/30 to-primary/30 opacity-40 blur-3xl"></div>
+      </div>
 
-        <div className="flex flex-col items-center justify-center p-8 md:p-12 animate-fade-in">
-             <div className="w-full max-w-sm space-y-6">
-                <div className="text-center lg:hidden">
-                    <h1 className="font-headline text-5xl font-bold tracking-tighter text-primary">
-                        TrackRay
-                    </h1>
-                </div>
-                <LoginForm />
-                <p className="text-center text-xs text-muted-foreground">
-                    Select a role and click Sign In to enter a dashboard.
-                </p>
+      {/* Glassmorphism Card */}
+      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/10 p-8 shadow-2xl backdrop-blur-lg">
+        <div className="flex flex-col items-center justify-center animate-fade-in">
+          <div className="w-full max-w-sm space-y-6">
+            <div className="text-center">
+              <h1 className="font-headline text-5xl font-bold tracking-tighter text-white drop-shadow-md">
+                TrackRay
+              </h1>
+              <p className="mt-2 text-white/80">
+                The future of fleet management, powered by AI.
+              </p>
             </div>
+            <LoginForm />
+            <p className="text-center text-xs text-white/60">
+              Select a role and click Sign In to enter a dashboard.
+            </p>
+          </div>
         </div>
       </div>
     </main>
