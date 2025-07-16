@@ -123,6 +123,23 @@ export async function updateOrder(updatedOrder: Order): Promise<Order> {
     return Promise.resolve(updatedOrder);
 }
 
+export async function updateOrderStatus(orderId: string, newStatus: Order['status']): Promise<Order> {
+    let updatedOrder: Order | undefined;
+    orders = orders.map(order => {
+        if (order.id === orderId) {
+            // When starting delivery, set current location to the pickup point
+            const currentLocation = newStatus === 'Moving' ? order.pickup.coords : order.currentLocation;
+            updatedOrder = { ...order, status: newStatus, currentLocation };
+            return updatedOrder;
+        }
+        return order;
+    });
+    if (updatedOrder) {
+        return Promise.resolve(updatedOrder);
+    }
+    return Promise.reject(new Error("Order not found"));
+}
+
 export async function getOrderById(id: string): Promise<Order | undefined> {
     return Promise.resolve(orders.find(order => order.id === id));
 }
