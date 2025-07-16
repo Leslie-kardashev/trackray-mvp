@@ -1,6 +1,5 @@
 
 import { LoginForm } from '@/components/login-form';
-import Image from 'next/image';
 
 export default function Home() {
   return (
@@ -17,19 +16,13 @@ export default function Home() {
       </div>
 
       <div className="flex items-center justify-center p-6 animate-fade-in bg-background">
-        <div className="w-full max-w-sm">
-            <div className="text-left mb-8">
+        <div className="w-full max-w-sm space-y-8">
+            <div className="text-center">
               <h1 className="font-headline text-4xl font-bold tracking-tighter">
                 TrackRay
               </h1>
-              <p className="mt-2 text-muted-foreground">
-                Welcome back. Sign in to your dashboard.
-              </p>
             </div>
             <LoginForm />
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              Select a role and click Sign In to enter.
-            </p>
         </div>
       </div>
     </main>
