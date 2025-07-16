@@ -41,6 +41,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+  } from "@/components/ui/accordion";
 
 const formSchema = z.object({
   currentLocation: z.string().min(1, "Current location is required."),
@@ -470,10 +476,14 @@ export function RouteOptimizer() {
                     </>
                 )}
                 <Separator />
-                 <div className="space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map-pin w-5 h-5 text-primary"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Turn-by-turn Directions</h3>
-                    <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">{result.optimizedRoute}</p>
-                </div>
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger className="text-sm font-semibold">View Turn-by-turn Directions</AccordionTrigger>
+                        <AccordionContent>
+                             <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">{result.optimizedRoute}</p>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
               </div>
             </div>
           ) : (
@@ -489,3 +499,5 @@ export function RouteOptimizer() {
     </div>
   );
 }
+
+    
