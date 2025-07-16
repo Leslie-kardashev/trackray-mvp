@@ -14,8 +14,19 @@ export type InventoryItem = {
   lastUpdated: string;
 };
 
+export type Customer = {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  location: Location;
+  customerType: 'Retailer' | 'Wholesaler' | 'Other';
+  paymentPreference: 'Cash' | 'Credit';
+};
+
 export type Order = {
   id: string;
+  customerId: string; // Link to Customer
   customerName: string;
   item: string;
   status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
@@ -25,4 +36,7 @@ export type Order = {
   orderDate: string;
   currentLocation: { lat: number, lng: number } | null;
   routeColor?: string;
+  orderValue?: number;
+  deliveryTime?: string;
+  specialInstructions?: string;
 };

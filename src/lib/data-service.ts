@@ -1,7 +1,7 @@
 
 'use server';
 
-import { type InventoryItem, type Order } from './types';
+import { type InventoryItem, type Order, type Customer } from './types';
 
 // In-memory data stores to simulate a database
 let inventory: InventoryItem[] = [
@@ -13,8 +13,10 @@ let inventory: InventoryItem[] = [
 ];
 
 let orders: Order[] = [];
+let customers: Customer[] = [];
 
-// Initialize with some mock orders if the list is empty
+
+// Initialize with some mock data if the lists are empty
 const ghanaLocations = {
     "Accra": { lat: 5.6037, lng: -0.1870 },
     "Kumasi": { lat: 6.6886, lng: -1.6244 },
@@ -34,27 +36,41 @@ const routeColors = [
   '#9932CC', '#800080', '#483D8B', '#6A5ACD', '#7B68EE'
 ];
 
+if (customers.length === 0) {
+    customers = Array.from({ length: 5 }, (_, i) => {
+        const customerTypes: Customer['customerType'][] = ['Retailer', 'Wholesaler', 'Other'];
+        const paymentPreferences: Customer['paymentPreference'][] = ['Cash', 'Credit'];
+        return {
+            id: `CUS-${101 + i}`,
+            name: `Customer ${101 + i}`,
+            phone: `+233 24 123 45${60+i}`,
+            email: `customer${101+i}@example.com`,
+            location: getRandomLocation(),
+            customerType: customerTypes[i % 3],
+            paymentPreference: paymentPreferences[i % 2],
+        };
+    });
+}
+
+
 if (orders.length === 0) {
     orders = Array.from({ length: 20 }, (_, i) => {
+        const customer = customers[i % customers.length];
         const id = `ORD-${101 + i}`;
         const pickup = getRandomLocation();
-        let destination = getRandomLocation();
-        while (destination.address === pickup.address) {
-            destination = getRandomLocation();
-        }
+        let destination = customer.location;
+
         const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         const paymentStatus: Order['paymentStatus'] = 'Paid';
 
         let currentLocation: { lat: number, lng: number } | null = null;
           if (status === 'Moving' || status === 'Returning') {
-            // Start somewhere between pickup and destination
             currentLocation = {
               lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
-              lng: pickup.coords.lng + (destination.coords.lng - pickup.coords.lng) * Math.random(),
+              lng: pickup.coords.lng + (destination.coords.lng - destination.coords.lng) * Math.random(),
             };
           } else if (status === 'Idle') {
-            // Idle somewhere near pickup
             currentLocation = {
               lat: pickup.coords.lat + (Math.random() - 0.5) * 0.1,
               lng: pickup.coords.lng + (Math.random() - 0.5) * 0.1,
@@ -63,10 +79,10 @@ if (orders.length === 0) {
             currentLocation = destination.coords;
           }
 
-
         return {
             id,
-            customerName: `Customer ${101 + i}`,
+            customerId: customer.id,
+            customerName: customer.name,
             item: `ITM-00${(i % 5) + 1}`,
             status,
             paymentStatus,
@@ -100,19 +116,37 @@ export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status'
   return Promise.resolve(newItem);
 }
 
+// == CUSTOMERS ==
+export async function getCustomers(): Promise<Customer[]> {
+  return Promise.resolve(customers);
+}
+
+export async function addCustomer(customer: Omit<Customer, 'id'>): Promise<Customer> {
+  const newId = `CUS-${String(101 + customers.length)}`;
+  const newCustomer: Customer = { id: newId, ...customer };
+  customers = [newCustomer, ...customers];
+  return Promise.resolve(newCustomer);
+}
+
+
 // == ORDERS ==
 export async function getOrders(): Promise<Order[]> {
   return Promise.resolve(orders);
 }
 
-export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status'>): Promise<Order> {
+export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'pickup'>): Promise<Order> {
     const newId = `ORD-${String(101 + orders.length)}`;
     const today = new Date().toISOString().split('T')[0];
+    const customer = customers.find(c => c.id === newOrderData.customerId);
+    if (!customer) throw new Error("Customer not found");
+
     const newOrder: Order = {
         ...newOrderData,
         id: newId,
         orderDate: today,
-        status: 'Pending', // All new orders start as pending
+        status: 'Pending',
+        currentLocation: null,
+        pickup: getRandomLocation(), // Simulate pickup from a random warehouse
     };
     orders = [newOrder, ...orders];
     return Promise.resolve(newOrder);
@@ -127,7 +161,6 @@ export async function updateOrderStatus(orderId: string, newStatus: Order['statu
     let updatedOrder: Order | undefined;
     orders = orders.map(order => {
         if (order.id === orderId) {
-            // When starting delivery, set current location to the pickup point
             const currentLocation = newStatus === 'Moving' ? order.pickup.coords : order.currentLocation;
             updatedOrder = { ...order, status: newStatus, currentLocation };
             return updatedOrder;
