@@ -10,8 +10,11 @@ export type InventoryItem = {
   id: string;
   name: string;
   quantity: number;
-  status: 'In Stock' | 'Inbound' | 'Outbound';
+  status: 'In Stock' | 'Inbound' | 'Outbound' | 'Low Stock';
   lastUpdated: string;
+  unitCost: number;
+  minThreshold: number;
+  category: string;
 };
 
 export type Customer = {

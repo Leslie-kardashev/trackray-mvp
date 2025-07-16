@@ -5,11 +5,12 @@ import { type InventoryItem, type Order, type Customer } from './types';
 
 // In-memory data stores to simulate a database
 let inventory: InventoryItem[] = [
-  { id: 'ITM-001', name: 'Cocoa Beans (Grade A)', quantity: 50, status: 'In Stock', lastUpdated: '2024-05-20' },
-  { id: 'ITM-002', name: 'Kente Cloth Rolls', quantity: 200, status: 'In Stock', lastUpdated: '2024-05-21' },
-  { id: 'ITM-003', name: 'Shea Butter Tubs', quantity: 0, status: 'Outbound', lastUpdated: '2024-05-22' },
-  { id: 'ITM-004', name: 'Imported Electronics', quantity: 150, status: 'Inbound', lastUpdated: '2024-05-23' },
-  { id: 'ITM-005', name: 'Vehicle Spare Parts', quantity: 80, status: 'In Stock', lastUpdated: '2024-05-19' },
+  { id: 'ITM-001', name: 'Cocoa Beans (Grade A)', category: "Produce", quantity: 50, status: 'In Stock', lastUpdated: '2024-05-20', unitCost: 12.50, minThreshold: 20 },
+  { id: 'ITM-002', name: 'Kente Cloth Rolls', category: "Textiles", quantity: 200, status: 'In Stock', lastUpdated: '2024-05-21', unitCost: 75.00, minThreshold: 50 },
+  { id: 'ITM-003', name: 'Shea Butter Tubs', category: "Cosmetics", quantity: 15, status: 'Low Stock', lastUpdated: '2024-05-22', unitCost: 25.00, minThreshold: 20 },
+  { id: 'ITM-004', name: 'Imported Electronics', category: "Electronics", quantity: 150, status: 'Inbound', lastUpdated: '2024-05-23', unitCost: 150.00, minThreshold: 30 },
+  { id: 'ITM-005', name: 'Vehicle Spare Parts', category: "Automotive", quantity: 80, status: 'In Stock', lastUpdated: '2024-05-19', unitCost: 55.00, minThreshold: 40 },
+  { id: 'ITM-006', name: 'Tomato Paste (400g)', category: "FMCG", quantity: 850, status: 'In Stock', lastUpdated: '2024-05-24', unitCost: 4.50, minThreshold: 200 },
 ];
 
 let orders: Order[] = [];
@@ -100,7 +101,11 @@ if (orders.length === 0) {
 
 // == INVENTORY ==
 export async function getInventory(): Promise<InventoryItem[]> {
-  return Promise.resolve(inventory);
+  const updatedInventory = inventory.map(item => ({
+    ...item,
+    status: item.quantity <= item.minThreshold && item.status !== 'Inbound' && item.status !== 'Outbound' ? 'Low Stock' : item.status
+  }));
+  return Promise.resolve(updatedInventory);
 }
 
 export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated'>): Promise<InventoryItem> {
@@ -109,7 +114,7 @@ export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status'
   const newItem: InventoryItem = {
     ...item,
     id: newId,
-    status: 'In Stock',
+    status: item.quantity <= item.minThreshold ? 'Low Stock' : 'In Stock',
     lastUpdated: today,
   };
   inventory = [...inventory, newItem];

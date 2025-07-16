@@ -3,7 +3,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Truck, ShoppingCart, Landmark, Briefcase } from "lucide-react";
+import { ShieldCheck, Truck, ShoppingCart, Landmark, Briefcase, Warehouse } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +36,7 @@ export function LoginForm() {
     customer: { icon: ShoppingCart, label: "Customer" },
     finance: { icon: Landmark, label: "Finance" },
     sales: { icon: Briefcase, label: "Sales" },
+    warehouse: { icon: Warehouse, label: "Warehouse" },
   };
   
   const SelectedIcon = roleConfig[role as keyof typeof roleConfig].icon;
