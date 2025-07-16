@@ -14,7 +14,7 @@ export function DashboardNav() {
   const getNavItems = () => {
     switch (role) {
       case "admin":
-        return [{ href: "/admin", label: "Admin Hub", icon: ShieldCheck }];
+        return [];
       case "driver":
         return [{ href: "/driver", label: "Driver Tools", icon: Truck }];
       case "customer":
