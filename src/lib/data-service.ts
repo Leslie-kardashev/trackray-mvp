@@ -35,19 +35,34 @@ const routeColors = [
 ];
 
 if (orders.length === 0) {
-    orders = Array.from({ length: 5 }, (_, i) => {
+    orders = Array.from({ length: 20 }, (_, i) => {
         const id = `ORD-${101 + i}`;
         const pickup = getRandomLocation();
         let destination = getRandomLocation();
         while (destination.address === pickup.address) {
             destination = getRandomLocation();
         }
-        const status: Order['status'] = 'Moving';
+        const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled'];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
         const paymentStatus: Order['paymentStatus'] = 'Paid';
-        const currentLocation = {
-            lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
-            lng: pickup.coords.lng + (destination.coords.lng - pickup.coords.lng) * Math.random(),
-        };
+
+        let currentLocation: { lat: number, lng: number } | null = null;
+          if (status === 'Moving' || status === 'Returning') {
+            // Start somewhere between pickup and destination
+            currentLocation = {
+              lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
+              lng: pickup.coords.lng + (destination.coords.lng - pickup.coords.lng) * Math.random(),
+            };
+          } else if (status === 'Idle') {
+            // Idle somewhere near pickup
+            currentLocation = {
+              lat: pickup.coords.lat + (Math.random() - 0.5) * 0.1,
+              lng: pickup.coords.lng + (Math.random() - 0.5) * 0.1,
+            };
+          } else if (status === 'Delivered') {
+            currentLocation = destination.coords;
+          }
+
 
         return {
             id,

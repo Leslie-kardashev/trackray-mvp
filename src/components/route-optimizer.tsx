@@ -106,6 +106,17 @@ function Directions({ origin, destination }: { origin?: LatLngLiteral; destinati
 
 function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination?: LatLngLiteral }) {
     const [activeMarker, setActiveMarker] = useState<'origin' | 'destination' | null>(null);
+    const map = useMap();
+
+    useEffect(() => {
+        if(!map) return;
+        const bounds = new google.maps.LatLngBounds();
+        if (origin) bounds.extend(origin);
+        if (destination) bounds.extend(destination);
+        if (!bounds.isEmpty()) {
+            map.fitBounds(bounds);
+        }
+    }, [origin, destination, map]);
 
     if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
         return <div className="flex items-center justify-center h-full bg-muted rounded-t-lg"><p>Google Maps API Key not configured.</p></div>
@@ -120,7 +131,7 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
                     defaultCenter={origin || defaultCenter}
                     defaultZoom={8}
                     gestureHandling={'greedy'}
-                    key={JSON.stringify(origin) + JSON.stringify(destination)} // Force re-render on prop change
+                    className="w-full h-full"
                 >
                     {origin && <Marker position={origin} onClick={() => setActiveMarker('origin')} >
                          <div className="bg-background p-2 rounded-full shadow-md border-2 border-red-500">
@@ -174,7 +185,7 @@ export function RouteOptimizer() {
     const fetchInitialData = async () => {
         const liveOrders = await getOrders();
         setOrders(liveOrders);
-        const firstOrder = liveOrders[0];
+        const firstOrder = liveOrders.find(o => o.status !== 'Delivered' && o.status !== 'Cancelled');
         if (firstOrder) {
             form.setValue("currentLocation", firstOrder.pickup.address);
             form.setValue("destination", firstOrder.destination.address);
@@ -264,10 +275,19 @@ export function RouteOptimizer() {
             
             const newCoords: {origin?: LatLngLiteral, destination?: LatLngLiteral} = {};
             if(originOrder) newCoords.origin = originOrder.pickup.coords;
-            else if (name === 'currentLocation') newCoords.origin = undefined;
+            else if (name === 'currentLocation' && typeof value.currentLocation === 'string' && value.currentLocation.startsWith('Lat:')) {
+                // handle manual lat/lng entry
+            }
+            else {
+                newCoords.origin = undefined;
+            }
 
-            if(destinationOrder) newCoords.destination = destinationOrder.destination.coords;
-            else if (name === 'destination') newCoords.destination = undefined;
+            if(destinationOrder) {
+                newCoords.destination = destinationOrder.destination.coords;
+            }
+            else {
+                newCoords.destination = undefined;
+            }
             
             setRouteCoords(prev => ({...prev, ...newCoords}));
         }

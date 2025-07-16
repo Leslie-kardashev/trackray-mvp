@@ -9,7 +9,7 @@ import { getOrders, addOrder } from "@/lib/data-service";
 import { type Order, type Location } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Map, Marker, APIProvider, useMap, InfoWindow } from "@vis.gl/react-google-maps";
-import { Truck, Warehouse, Package, Pin, LocateFixed } from "lucide-react";
+import { Truck, Warehouse, Package, LocateFixed } from "lucide-react";
 
 import {
   Card,

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { APIProvider, Map, Marker, useMap, InfoWindow } from "@vis.gl/react-google-maps";
 import { getOrders, updateTruckLocations } from "@/lib/data-service";
 import { type Order } from "@/lib/types";
-import { Truck, Warehouse, Package, CirclePause, Undo2 } from "lucide-react";
+import { Truck, CirclePause, Undo2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +57,9 @@ function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
       if (status === google.maps.DirectionsStatus.OK) {
         directionsRenderer.setDirections(result);
       } else {
-        console.error(`Directions request failed for order ${order.id} due to ${status}`);
+        if (status !== 'ZERO_RESULTS') {
+            console.error(`Directions request failed for order ${order.id} due to ${status}`);
+        }
       }
     });
     
@@ -101,7 +103,7 @@ const TruckMarker = ({ order, isFaded, onClick, onMouseOver, onMouseOut }: { ord
         }
     };
 
-    if (!order.currentLocation) return null;
+    if (!order.currentLocation || !['Moving', 'Idle', 'Returning'].includes(order.status)) return null;
 
     return (
         <Marker position={order.currentLocation} onClick={onClick} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
@@ -135,7 +137,11 @@ function FleetMap() {
     useEffect(() => {
         if (!map || activeMarkerId) return;
         const activeOrders = orders.filter(order => ['Moving', 'Idle', 'Returning'].includes(order.status) && order.currentLocation);
-        if (activeOrders.length === 0) return;
+        if (activeOrders.length === 0) {
+            map.setCenter({ lat: 7.9465, lng: -1.0232 }); // Center of Ghana
+            map.setZoom(7);
+            return;
+        };
 
         const bounds = new google.maps.LatLngBounds();
         activeOrders.forEach(order => {
@@ -159,16 +165,12 @@ function FleetMap() {
       </div>
     );
   }
-
-  const activeOrders = orders.filter(
-    (order) => ['Moving', 'Idle', 'Returning'].includes(order.status) && order.currentLocation
-  );
   
-  const activeOrderForInfoWindow = activeOrders.find(o => o.id === activeMarkerId);
+  const activeOrderForInfoWindow = orders.find(o => o.id === activeMarkerId);
   
   return (
       <>
-        {activeOrders.map((order) => {
+        {orders.map((order) => {
             const isFaded = hoveredOrderId !== null && hoveredOrderId !== order.id;
             return (
               <React.Fragment key={order.id}>
@@ -184,9 +186,9 @@ function FleetMap() {
             );
         })}
 
-        {activeMarkerId && activeOrderForInfoWindow && (
+        {activeMarkerId && activeOrderForInfoWindow && activeOrderForInfoWindow.currentLocation && (
              <InfoWindow
-                position={activeOrderForInfoWindow.currentLocation!}
+                position={activeOrderForInfoWindow.currentLocation}
                 onCloseClick={() => setActiveMarkerId(null)}
                 >
                 <div className="p-2 font-semibold">
