@@ -72,6 +72,7 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
     const { toast } = useToast();
     const [pickupLocation, setPickupLocation] = useState<Location | null>(null);
     const [deliveryLocation, setDeliveryLocation] = useState<Location | null>(null);
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     const form = useForm<NewOrderValues>({
         resolver: zodResolver(newOrderSchema),
@@ -191,8 +192,44 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
         }
     }
 
-    if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-        return <div className="p-6"><p>Google Maps API Key not configured for ordering.</p></div>
+    const MapArea = () => {
+       if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+            return (
+                 <div className="flex items-center justify-center h-full w-full bg-muted rounded-b-lg">
+                    <p className="text-center text-muted-foreground p-4">
+                        Google Maps API Key is missing or invalid.
+                        <br />
+                        Please add it to the <code className="font-mono bg-muted-foreground/20 p-1 rounded">.env</code> file.
+                    </p>
+                </div>
+            )
+        }
+        return (
+            <APIProvider apiKey={apiKey}>
+                <Map
+                    defaultCenter={{ lat: 7.9465, lng: -1.0232 }}
+                    defaultZoom={7}
+                    gestureHandling={'greedy'}
+                    onClick={handleMapClick}
+                    className="h-full w-full"
+                >
+                    {pickupLocation && (
+                        <Marker position={pickupLocation.coords}>
+                            <div className="bg-background p-2 rounded-full shadow-md border-2 border-primary">
+                                <Warehouse className="w-5 h-5 text-primary" />
+                            </div>
+                        </Marker>
+                    )}
+                     {deliveryLocation && (
+                        <Marker position={deliveryLocation.coords}>
+                            <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
+                                <Package className="w-5 h-5 text-green-600" />
+                            </div>
+                        </Marker>
+                    )}
+                </Map>
+            </APIProvider>
+        )
     }
 
     return (
@@ -307,30 +344,7 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="h-[400px] w-full p-0 rounded-b-lg overflow-hidden">
-                                <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
-                                    <Map
-                                        defaultCenter={{ lat: 7.9465, lng: -1.0232 }}
-                                        defaultZoom={7}
-                                        gestureHandling={'greedy'}
-                                        onClick={handleMapClick}
-                                        className="h-full w-full"
-                                    >
-                                        {pickupLocation && (
-                                            <Marker position={pickupLocation.coords}>
-                                                <div className="bg-background p-2 rounded-full shadow-md border-2 border-primary">
-                                                    <Warehouse className="w-5 h-5 text-primary" />
-                                                </div>
-                                            </Marker>
-                                        )}
-                                         {deliveryLocation && (
-                                            <Marker position={deliveryLocation.coords}>
-                                                <div className="bg-background p-2 rounded-full shadow-md border-2 border-green-500">
-                                                    <Package className="w-5 h-5 text-green-600" />
-                                                </div>
-                                            </Marker>
-                                        )}
-                                    </Map>
-                                </APIProvider>
+                                <MapArea />
                             </CardContent>
                         </Card>
                     </div>
@@ -400,15 +414,16 @@ function Directions({ order }: { order: Order }) {
 
 function CustomerMap({ order }: { order: Order }) {
     const [activeMarker, setActiveMarker] = useState<string | null>(null);
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-    if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-        return <div className="flex items-center justify-center h-full bg-muted rounded-lg"><p>Google Maps API Key not configured.</p></div>
+    if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+        return <div className="flex items-center justify-center h-full bg-muted rounded-lg"><p className="text-center text-muted-foreground p-4">Could not load map. <br/> API Key is missing or invalid.</p></div>
     }
 
     const center = order.currentLocation || order.destination.coords;
     
     return (
-        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+        <APIProvider apiKey={apiKey}>
             <Map
                 defaultCenter={center}
                 defaultZoom={10}

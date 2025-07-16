@@ -107,6 +107,7 @@ function Directions({ origin, destination }: { origin?: LatLngLiteral; destinati
 function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination?: LatLngLiteral }) {
     const [activeMarker, setActiveMarker] = useState<'origin' | 'destination' | null>(null);
     const map = useMap();
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     useEffect(() => {
         if(!map) return;
@@ -118,15 +119,24 @@ function RouteMap({ origin, destination }: { origin?: LatLngLiteral, destination
         }
     }, [origin, destination, map]);
 
-    if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-        return <div className="flex items-center justify-center h-full bg-muted rounded-t-lg"><p>Google Maps API Key not configured.</p></div>
+
+    if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+        return (
+            <div className="flex items-center justify-center h-full bg-muted rounded-t-lg">
+                <p className="text-center text-muted-foreground p-4">
+                    Google Maps API Key is missing or invalid.
+                    <br />
+                    Please add it to the <code className="font-mono bg-muted-foreground/20 p-1 rounded">.env</code> file.
+                </p>
+            </div>
+        )
     }
 
     const defaultCenter = { lat: 7.9465, lng: -1.0232 }; // Default to Ghana
 
     return (
         <div className="relative w-full aspect-video rounded-t-lg overflow-hidden">
-            <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+            <APIProvider apiKey={apiKey}>
                 <Map
                     defaultCenter={origin || defaultCenter}
                     defaultZoom={8}

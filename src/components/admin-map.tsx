@@ -156,15 +156,6 @@ function FleetMap() {
             map.fitBounds(bounds);
         }
     }, [orders, map, activeMarkerId]);
-
-
-  if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-    return (
-      <div className="flex items-center justify-center h-full bg-muted rounded-lg">
-        <p>Google Maps API Key not configured.</p>
-      </div>
-    );
-  }
   
   const activeOrderForInfoWindow = orders.find(o => o.id === activeMarkerId);
   
@@ -203,6 +194,8 @@ function FleetMap() {
 
 export function AdminMap() {
     const initialCenter = { lat: 7.9465, lng: -1.0232 }; // Center of Ghana
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
     return (
         <Card className="shadow-sm h-full">
             <CardHeader>
@@ -215,8 +208,8 @@ export function AdminMap() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-0 h-full min-h-[500px]">
-                {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
-                    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+                {apiKey && apiKey !== 'YOUR_API_KEY_HERE' ? (
+                    <APIProvider apiKey={apiKey}>
                         <Map
                         defaultCenter={initialCenter}
                         defaultZoom={7}
@@ -228,7 +221,11 @@ export function AdminMap() {
                     </APIProvider>
                 ) : (
                     <div className="flex items-center justify-center h-full bg-muted rounded-b-lg">
-                        <p>Google Maps API Key not configured.</p>
+                        <p className="text-center text-muted-foreground p-4">
+                            Google Maps API Key is missing or invalid.
+                            <br />
+                            Please add it to the <code className="font-mono bg-muted-foreground/20 p-1 rounded">.env</code> file.
+                        </p>
                     </div>
                 )}
             </CardContent>
