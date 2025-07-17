@@ -107,7 +107,14 @@ function CreateOrderForm({ customers, onOrderCreated, closeDialog }: { customers
   const { toast } = useToast();
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
-    defaultValues: { item: "", specialInstructions: "" },
+    defaultValues: {
+        customerId: "",
+        item: "",
+        orderValue: 0,
+        paymentStatus: "Pending",
+        deliveryTime: "",
+        specialInstructions: "",
+    },
   });
 
   async function onSubmit(values: OrderFormValues) {
