@@ -32,6 +32,7 @@ export type Driver = {
     name: string;
     vehicleType: 'Motorbike' | 'Standard Cargo Van' | 'Heavy Duty Truck';
     status: 'Available' | 'On-trip' | 'Offline';
+    phone: string;
 };
 
 export type Order = {
@@ -52,4 +53,13 @@ export type Order = {
   specialInstructions?: string;
   driverId?: string | null;
   driverName?: string | null;
+};
+
+export type SOSMessage = {
+  id: string;
+  driverId: string;
+  driverName: string;
+  timestamp: string;
+  message: string;
+  location?: string;
 };

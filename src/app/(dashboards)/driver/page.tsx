@@ -1,4 +1,5 @@
 import { DriverDeliveries } from "@/components/driver-deliveries";
+import { DriverSOS } from "@/components/driver-sos";
 import { RouteOptimizer } from "@/components/route-optimizer";
 
 export default function DriverDashboard() {
@@ -11,8 +12,15 @@ export default function DriverDashboard() {
         </p>
       </div>
 
-      <DriverDeliveries />
-      <RouteOptimizer />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="lg:col-span-2 space-y-8">
+            <DriverDeliveries />
+            <RouteOptimizer />
+        </div>
+        <div className="lg:col-span-1">
+            <DriverSOS />
+        </div>
+      </div>
     </div>
   );
 }

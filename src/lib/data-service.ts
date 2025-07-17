@@ -1,7 +1,7 @@
 
 'use server';
 
-import { type InventoryItem, type Order, type Customer, type Driver } from './types';
+import { type InventoryItem, type Order, type Customer, type Driver, type SOSMessage } from './types';
 
 // In-memory data stores to simulate a database
 let inventory: InventoryItem[] = [
@@ -16,6 +16,7 @@ let inventory: InventoryItem[] = [
 let orders: Order[] = [];
 let customers: Customer[] = [];
 let drivers: Driver[] = [];
+let sosMessages: SOSMessage[] = [];
 
 
 // Initialize with some mock data if the lists are empty
@@ -40,10 +41,10 @@ const routeColors = [
 
 if (drivers.length === 0) {
     drivers = [
-        { id: 'DRV-001', name: 'Kofi Mensah', vehicleType: 'Standard Cargo Van', status: 'Available' },
-        { id: 'DRV-002', name: 'Abeiku Acquah', vehicleType: 'Motorbike', status: 'Available' },
-        { id: 'DRV-003', name: 'Esi Prah', vehicleType: 'Heavy Duty Truck', status: 'On-trip' },
-        { id: 'DRV-004', name: 'Yaw Asante', vehicleType: 'Standard Cargo Van', status: 'Available' },
+        { id: 'DRV-001', name: 'Kofi Mensah', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233555111222' },
+        { id: 'DRV-002', name: 'Abeiku Acquah', vehicleType: 'Motorbike', status: 'Available', phone: '+233555333444' },
+        { id: 'DRV-003', name: 'Esi Prah', vehicleType: 'Heavy Duty Truck', status: 'On-trip', phone: '+233555555666' },
+        { id: 'DRV-004', name: 'Yaw Asante', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233555777888' },
     ];
 }
 
@@ -86,7 +87,7 @@ if (orders.length === 0) {
         if (status === 'Moving' || status === 'Returning') {
             currentLocation = {
                 lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
-                lng: pickup.coords.lng + (destination.coords.lng - destination.coords.lng) * Math.random(),
+                lng: pickup.coords.lng + (destination.coords.lng - pickup.coords.lng) * Math.random(),
             };
         } else if (status === 'Idle') {
             currentLocation = {
@@ -245,6 +246,10 @@ export async function getDrivers(): Promise<Driver[]> {
     return Promise.resolve(drivers);
 }
 
+export async function getDriverById(id: string): Promise<Driver | undefined> {
+    return Promise.resolve(drivers.find(driver => driver.id === id));
+}
+
 export async function assignDriver(orderId: string, driverId: string): Promise<Order> {
     const driver = drivers.find(d => d.id === driverId);
     if (!driver) return Promise.reject(new Error("Driver not found"));
@@ -309,4 +314,20 @@ export async function updateTruckLocations(): Promise<Order[]> {
         return order;
     });
     return Promise.resolve(orders.filter(o => o.status !== 'Archived'));
+}
+
+// == SOS MESSAGES ==
+export async function getSOSMessages(): Promise<SOSMessage[]> {
+    // Return messages sorted by newest first
+    return Promise.resolve(sosMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+}
+
+export async function sendSOS(message: Omit<SOSMessage, 'id' | 'timestamp'>): Promise<SOSMessage> {
+    const newSOS: SOSMessage = {
+        ...message,
+        id: `SOS-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+    };
+    sosMessages = [newSOS, ...sosMessages];
+    return Promise.resolve(newSOS);
 }
