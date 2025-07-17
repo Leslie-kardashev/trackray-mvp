@@ -50,7 +50,7 @@ export function AdminSosAlerts() {
 
   useEffect(() => {
     fetchAlerts(true);
-    const interval = setInterval(() => fetchAlerts(false), 3000); // Poll every 3 seconds for urgency
+    const interval = setInterval(() => fetchAlerts(false), 1000); // Poll every 1 second for urgency
     return () => clearInterval(interval);
   }, []);
 
