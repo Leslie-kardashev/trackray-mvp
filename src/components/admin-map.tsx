@@ -15,16 +15,13 @@ function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
 
   useEffect(() => {
     if (!map) return;
-    setDirectionsRenderer(new google.maps.DirectionsRenderer({
-      map,
-      suppressMarkers: true, 
-      polylineOptions: {
-        strokeColor: order.routeColor || '#8A2BE2', // Default to a shade of purple
-        strokeOpacity: isFaded ? 0.3 : 0.8,
-        strokeWeight: 6,
-      },
-    }));
-  }, [map, order.routeColor]);
+    if (!directionsRenderer) {
+        setDirectionsRenderer(new google.maps.DirectionsRenderer({
+          map,
+          suppressMarkers: true, 
+        }));
+    }
+  }, [map, directionsRenderer]);
 
   useEffect(() => {
     if (!directionsRenderer) return;
@@ -63,11 +60,9 @@ function Directions({ order, isFaded }: { order: Order, isFaded: boolean }) {
       }
     });
     
-    return () => {
-      if (directionsRenderer) {
-        directionsRenderer.setDirections({routes: []});
-      }
-    };
+    // Do not clear renderer here to avoid flicker. 
+    // It will be updated or cleared on next render.
+  
   // We only want to run this once when the component mounts and the order is available.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [directionsRenderer]);
@@ -121,14 +116,19 @@ function FleetMap() {
 
     useEffect(() => {
         const fetchAndUpdateLocations = async () => {
+            // This function now just updates the locations in the background
             const updatedOrders = await updateTruckLocations();
             setOrders(updatedOrders);
         };
         
-        // Fetch initial data
-        getOrders().then(setOrders);
+        // Fetch initial data once
+        getOrders().then(initialOrders => {
+            setOrders(initialOrders);
+            // Simulate truck movement immediately after initial load
+            updateTruckLocations().then(setOrders);
+        });
 
-        // Update every second
+        // Update every second without a loading state flicker
         const interval = setInterval(fetchAndUpdateLocations, 1000); 
 
         return () => clearInterval(interval);

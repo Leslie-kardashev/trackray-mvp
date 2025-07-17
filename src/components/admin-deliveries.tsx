@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getOrders } from "@/lib/data-service";
+import { getOrders, getCustomers } from "@/lib/data-service";
 import {
   Card,
   CardContent,
@@ -19,9 +19,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { type Order } from "@/lib/types";
+import { type Order, type Customer } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Truck, MoreHorizontal } from "lucide-react";
+import { Truck, MoreHorizontal, Package, User, Phone, MapPin, Calendar, DollarSign } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import {
     DropdownMenu,
@@ -31,8 +31,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog"
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
+import { Separator } from "./ui/separator";
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -49,31 +58,117 @@ const paymentStatusStyles: { [key in Order['paymentStatus']]: string } = {
     'Pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
 };
 
+const OrderDetailsDialog = ({ order, customer }: { order: Order; customer: Customer | undefined }) => {
+    return (
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            Order Details <span className="font-mono text-primary">{order.id}</span>
+          </DialogTitle>
+          <DialogDescription>
+            A complete overview of the delivery.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2 text-sm">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-muted-foreground" />
+                    <span>{order.item}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span>{order.orderDate}</span>
+                </div>
+                 <div className="flex items-center gap-2">
+                     <Badge variant="outline" className={cn("border-0 font-semibold", statusStyles[order.status])}>
+                        {order.status}
+                      </Badge>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={cn("border-0 font-semibold", paymentStatusStyles[order.paymentStatus])}>
+                        {order.paymentStatus}
+                      </Badge>
+                </div>
+                 {order.orderValue && <div className="flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-muted-foreground" />
+                    <span>GHS {order.orderValue.toFixed(2)}</span>
+                </div>}
+            </div>
+            
+            <Separator />
+            
+            <h3 className="font-semibold text-base">Customer Information</h3>
+            {customer ? (
+                <div className="grid grid-cols-2 gap-4">
+                     <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <span>{customer.name}</span>
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <a href={`tel:${customer.phone}`} className="hover:underline">{customer.phone}</a>
+                    </div>
+                </div>
+            ): <p>Customer details not available.</p>}
+           
+            <Separator />
+            
+            <h3 className="font-semibold text-base">Route Information</h3>
+            <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground mt-1" />
+                    <div>
+                        <p className="font-medium">Pickup</p>
+                        <p className="text-muted-foreground">{order.pickup.address}</p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground mt-1" />
+                     <div>
+                        <p className="font-medium">Destination</p>
+                        <p className="text-muted-foreground">{order.destination.address}</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+      </DialogContent>
+    )
+}
+
 export function AdminDeliveries() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAndSetOrders = async () => {
+    const fetchAndSetData = async (isInitialLoad = false) => {
+      if (isInitialLoad) setIsLoading(true);
       try {
-        setIsLoading(true);
-        const fetchedOrders = await getOrders();
+        const [fetchedOrders, fetchedCustomers] = await Promise.all([
+          getOrders(),
+          getCustomers(),
+        ]);
         setOrders(fetchedOrders);
+        setCustomers(fetchedCustomers);
       } catch (error) {
-        console.error("Failed to fetch orders:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
-        setIsLoading(false);
+        if (isInitialLoad) setIsLoading(false);
       }
     };
 
-    fetchAndSetOrders();
+    // Initial fetch with loading state
+    fetchAndSetData(true);
 
-    // Set up an interval to refresh the orders every 5 seconds
-    const interval = setInterval(fetchAndSetOrders, 5000);
+    // Set up an interval to refresh data without setting loading state
+    const interval = setInterval(() => fetchAndSetData(false), 5000);
 
     // Clean up the interval on component unmount
     return () => clearInterval(interval);
   }, []);
+  
+  const getCustomerForOrder = (order: Order) => customers.find(c => c.id === order.customerId);
 
   return (
     <Card className="shadow-sm h-full">
@@ -124,21 +219,33 @@ export function AdminDeliveries() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>View Order Details</DropdownMenuItem>
-                              <DropdownMenuItem>Contact Customer</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
-                          </DropdownMenuContent>
-                      </DropdownMenu>
+                        <Dialog>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Open menu</span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                    <DialogTrigger asChild>
+                                        <DropdownMenuItem>View Order Details</DropdownMenuItem>
+                                    </DialogTrigger>
+                                    <DropdownMenuItem onClick={() => {
+                                        const customer = getCustomerForOrder(order);
+                                        if (customer?.email) {
+                                            window.location.href = `mailto:${customer.email}?subject=Regarding Order ${order.id}`;
+                                        }
+                                    }}>
+                                        Contact Customer
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                           <OrderDetailsDialog order={order} customer={getCustomerForOrder(order)} />
+                        </Dialog>
                     </TableCell>
                   </TableRow>
                 ))
