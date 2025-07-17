@@ -1,5 +1,6 @@
 
 import { WarehouseInventory } from "@/components/warehouse-inventory";
+import { WarehousePickups } from "@/components/warehouse-pickups";
 
 export default function WarehouseDashboard() {
   return (
@@ -11,7 +12,14 @@ export default function WarehouseDashboard() {
         </p>
       </div>
 
-      <WarehouseInventory />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-2">
+            <WarehouseInventory />
+        </div>
+        <div className="xl:col-span-1">
+            <WarehousePickups />
+        </div>
+      </div>
     </div>
   );
 }

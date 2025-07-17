@@ -71,14 +71,14 @@ if (orders.length === 0) {
         const pickup = getRandomLocation();
         let destination = customer.location;
 
-        const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled'];
+        const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled', 'Ready for Pickup'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         
         const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Delivery', 'Pending'];
         const paymentStatus = paymentStatuses[i % 3];
         
         let assignedDriver: Driver | undefined;
-        if (status === 'Moving' || status === 'Returning' || status === 'Idle' || status === 'Delivered') {
+        if (['Moving', 'Idle', 'Returning', 'Delivered', 'Ready for Pickup'].includes(status)) {
             assignedDriver = drivers.find(d => d.id === `DRV-00${(i % 3) + 1}`);
         }
 
@@ -95,6 +95,8 @@ if (orders.length === 0) {
             };
           } else if (status === 'Delivered') {
             currentLocation = destination.coords;
+          } else if (status === 'Ready for Pickup') {
+              currentLocation = pickup.coords;
           }
 
         return {
@@ -218,8 +220,8 @@ export async function assignDriver(orderId: string, driverId: string): Promise<O
                 ...order, 
                 driverId: driver.id,
                 driverName: driver.name,
-                status: 'Moving', // Automatically set to moving on assignment
-                currentLocation: order.pickup.coords, // Start trip from pickup location
+                status: 'Ready for Pickup', // Change status to indicate it's waiting for pickup
+                currentLocation: order.pickup.coords, // Location is now the pickup point
             };
             return updatedOrder;
         }
