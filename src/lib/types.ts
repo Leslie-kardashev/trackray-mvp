@@ -27,6 +27,13 @@ export type Customer = {
   paymentPreference: 'Cash' | 'Credit';
 };
 
+export type Driver = {
+    id: string;
+    name: string;
+    vehicleType: 'Motorbike' | 'Standard Cargo Van' | 'Heavy Duty Truck';
+    status: 'Available' | 'On-trip' | 'Offline';
+};
+
 export type Order = {
   id: string;
   customerId: string; // Link to Customer
@@ -42,4 +49,6 @@ export type Order = {
   orderValue?: number;
   deliveryTime?: string;
   specialInstructions?: string;
+  driverId?: string | null;
+  driverName?: string | null;
 };

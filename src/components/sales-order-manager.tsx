@@ -2,12 +2,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { getCustomers, getOrders, addOrder } from "@/lib/data-service";
-import { type Customer, type Order } from "@/lib/types";
+import { getCustomers, getOrders, addOrder, getDrivers, assignDriver } from "@/lib/data-service";
+import { type Customer, type Order, type Driver } from "@/lib/types";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "./ui/textarea";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, UserPlus } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,75 @@ const orderSchema = z.object({
 });
 
 type OrderFormValues = z.infer<typeof orderSchema>;
+
+const assignDriverSchema = z.object({
+    driverId: z.string({ required_error: "Please select a driver." }),
+});
+
+
+function AssignDriverDialog({ order, drivers, onAssign, onOpenChange }: { order: Order; drivers: Driver[]; onAssign: () => void; onOpenChange: (open: boolean) => void; }) {
+    const { toast } = useToast();
+    const { control, handleSubmit, formState: { isSubmitting } } = useForm({
+        resolver: zodResolver(assignDriverSchema)
+    });
+
+    const onSubmit = async (data: { driverId: string }) => {
+        try {
+            await assignDriver(order.id, data.driverId);
+            toast({ title: "Driver Assigned", description: `Driver has been assigned to order ${order.id}.` });
+            onAssign();
+            onOpenChange(false);
+        } catch (error) {
+            toast({ variant: "destructive", title: "Assignment Failed", description: "Could not assign driver to the order." });
+        }
+    };
+    
+    const availableDrivers = drivers.filter(d => d.status === 'Available');
+
+    return (
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Assign Driver to Order {order.id}</DialogTitle>
+          <DialogDescription>Select an available driver from the list below.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)}>
+            {availableDrivers.length > 0 ? (
+                <div className="py-4">
+                     <Controller
+                        name="driverId"
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select an available driver" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableDrivers.map(driver => (
+                                        <SelectItem key={driver.id} value={driver.id}>
+                                            {driver.name} ({driver.vehicleType})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+            ) : (
+                <p className="py-4 text-muted-foreground">No drivers are currently available.</p>
+            )}
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="ghost">Cancel</Button>
+                </DialogClose>
+                <Button type="submit" disabled={isSubmitting || availableDrivers.length === 0}>
+                    {isSubmitting ? "Assigning..." : "Assign Driver"}
+                </Button>
+            </DialogFooter>
+        </form>
+      </DialogContent>
+    )
+}
+
 
 function CreateOrderForm({ customers, onOrderCreated, closeDialog }: { customers: Customer[], onOrderCreated: () => void; closeDialog: () => void }) {
   const { toast } = useToast();
@@ -145,15 +214,20 @@ const statusStyles: { [key in Order['status']]: string } = {
 export function SalesOrderManager() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [drivers, setDrivers] = useState<Driver[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isDialogOpen, setDialogOpen] = useState(false);
+    const [isCreateOrderDialogOpen, setCreateOrderDialogOpen] = useState(false);
+    const [isAssignDriverDialogOpen, setAssignDriverDialogOpen] = useState(false);
+    const [selectedOrderForAssignment, setSelectedOrderForAssignment] = useState<Order | null>(null);
+
 
     const fetchData = useCallback(async () => {
         try {
             setIsLoading(true);
-            const [ordersData, customersData] = await Promise.all([getOrders(), getCustomers()]);
+            const [ordersData, customersData, driversData] = await Promise.all([getOrders(), getCustomers(), getDrivers()]);
             setOrders(ordersData);
             setCustomers(customersData);
+            setDrivers(driversData);
         } catch (error) {
             console.error(error);
         } finally {
@@ -165,6 +239,10 @@ export function SalesOrderManager() {
         fetchData();
     }, [fetchData]);
 
+    const handleAssignDriverClick = (order: Order) => {
+        setSelectedOrderForAssignment(order);
+        setAssignDriverDialogOpen(true);
+    };
 
   return (
     <Card>
@@ -174,7 +252,7 @@ export function SalesOrderManager() {
                 <CardTitle className="font-headline text-2xl">Orders</CardTitle>
                 <CardDescription>Create new orders for customers and track their status.</CardDescription>
             </div>
-             <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+             <Dialog open={isCreateOrderDialogOpen} onOpenChange={setCreateOrderDialogOpen}>
               <DialogTrigger asChild>
                 <Button><PlusCircle className="mr-2" />Create New Order</Button>
               </DialogTrigger>
@@ -183,7 +261,7 @@ export function SalesOrderManager() {
                   <DialogTitle>Create New Order</DialogTitle>
                   <DialogDescription>Fill in the details for a new customer delivery.</DialogDescription>
                 </DialogHeader>
-                <CreateOrderForm customers={customers} onOrderCreated={fetchData} closeDialog={() => setDialogOpen(false)} />
+                <CreateOrderForm customers={customers} onOrderCreated={fetchData} closeDialog={() => setCreateOrderDialogOpen(false)} />
               </DialogContent>
             </Dialog>
         </div>
@@ -196,8 +274,9 @@ export function SalesOrderManager() {
                         <TableHead>Order ID</TableHead>
                         <TableHead>Customer</TableHead>
                         <TableHead>Item</TableHead>
-                        <TableHead>Destination</TableHead>
+                        <TableHead>Assigned Driver</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -207,8 +286,9 @@ export function SalesOrderManager() {
                                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                                 <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                <TableCell><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
                             </TableRow>
                         ))
                     ) : (
@@ -217,11 +297,19 @@ export function SalesOrderManager() {
                                 <TableCell className="font-mono">{order.id}</TableCell>
                                 <TableCell className="font-medium">{order.customerName}</TableCell>
                                 <TableCell>{order.item}</TableCell>
-                                <TableCell>{order.destination.address}</TableCell>
+                                <TableCell>{order.driverName || "N/A"}</TableCell>
                                 <TableCell>
                                     <Badge variant="outline" className={cn("border-0", statusStyles[order.status])}>
                                         {order.status}
                                     </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {order.status === 'Pending' && (
+                                        <Button variant="outline" size="sm" onClick={() => handleAssignDriverClick(order)}>
+                                            <UserPlus className="mr-2 h-4 w-4" />
+                                            Assign Driver
+                                        </Button>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))
@@ -229,6 +317,18 @@ export function SalesOrderManager() {
                 </TableBody>
             </Table>
         </ScrollArea>
+
+         {selectedOrderForAssignment && (
+            <Dialog open={isAssignDriverDialogOpen} onOpenChange={setAssignDriverDialogOpen}>
+                <AssignDriverDialog 
+                    order={selectedOrderForAssignment} 
+                    drivers={drivers}
+                    onAssign={fetchData}
+                    onOpenChange={setAssignDriverDialogOpen}
+                />
+            </Dialog>
+        )}
+
       </CardContent>
     </Card>
   );

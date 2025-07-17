@@ -1,7 +1,7 @@
 
 'use server';
 
-import { type InventoryItem, type Order, type Customer } from './types';
+import { type InventoryItem, type Order, type Customer, type Driver } from './types';
 
 // In-memory data stores to simulate a database
 let inventory: InventoryItem[] = [
@@ -15,6 +15,7 @@ let inventory: InventoryItem[] = [
 
 let orders: Order[] = [];
 let customers: Customer[] = [];
+let drivers: Driver[] = [];
 
 
 // Initialize with some mock data if the lists are empty
@@ -36,6 +37,15 @@ const routeColors = [
   '#4B0082', '#8A2BE2', '#9370DB', '#DA70D6', '#BA55D3', 
   '#9932CC', '#800080', '#483D8B', '#6A5ACD', '#7B68EE'
 ];
+
+if (drivers.length === 0) {
+    drivers = [
+        { id: 'DRV-001', name: 'Kofi Mensah', vehicleType: 'Standard Cargo Van', status: 'Available' },
+        { id: 'DRV-002', name: 'Abeiku Acquah', vehicleType: 'Motorbike', status: 'Available' },
+        { id: 'DRV-003', name: 'Esi Prah', vehicleType: 'Heavy Duty Truck', status: 'On-trip' },
+        { id: 'DRV-004', name: 'Yaw Asante', vehicleType: 'Standard Cargo Van', status: 'Available' },
+    ];
+}
 
 if (customers.length === 0) {
     customers = Array.from({ length: 5 }, (_, i) => {
@@ -64,6 +74,11 @@ if (orders.length === 0) {
         const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         const paymentStatus: Order['paymentStatus'] = 'Paid';
+        
+        let assignedDriver: Driver | undefined;
+        if (status === 'Moving' || status === 'Returning' || status === 'Idle' || status === 'Delivered') {
+            assignedDriver = drivers.find(d => d.id === `DRV-00${(i % 3) + 1}`);
+        }
 
         let currentLocation: { lat: number, lng: number } | null = null;
           if (status === 'Moving' || status === 'Returning') {
@@ -91,7 +106,9 @@ if (orders.length === 0) {
             destination,
             orderDate: `2024-05-${20 + (i % 10)}`,
             currentLocation,
-            routeColor: routeColors[i % routeColors.length]
+            routeColor: routeColors[i % routeColors.length],
+            driverId: assignedDriver?.id,
+            driverName: assignedDriver?.name,
         };
     });
 }
@@ -182,6 +199,39 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
     return Promise.resolve(orders.find(order => order.id === id));
 }
 
+// == DRIVERS ==
+export async function getDrivers(): Promise<Driver[]> {
+    return Promise.resolve(drivers);
+}
+
+export async function assignDriver(orderId: string, driverId: string): Promise<Order> {
+    const driver = drivers.find(d => d.id === driverId);
+    if (!driver) return Promise.reject(new Error("Driver not found"));
+    
+    let updatedOrder: Order | undefined;
+    orders = orders.map(order => {
+        if (order.id === orderId) {
+            updatedOrder = { 
+                ...order, 
+                driverId: driver.id,
+                driverName: driver.name,
+                status: 'Moving', // Automatically set to moving on assignment
+                currentLocation: order.pickup.coords, // Start trip from pickup location
+            };
+            return updatedOrder;
+        }
+        return order;
+    });
+    
+    if (updatedOrder) {
+        // Also update the driver's status
+        drivers = drivers.map(d => d.id === driverId ? { ...d, status: 'On-trip' } : d);
+        return Promise.resolve(updatedOrder);
+    }
+    
+    return Promise.reject(new Error("Order not found"));
+}
+
 // Function to simulate truck movement for the admin map
 export async function updateTruckLocations(): Promise<Order[]> {
     orders = orders.map(order => {
@@ -194,10 +244,15 @@ export async function updateTruckLocations(): Promise<Order[]> {
             const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
 
             if (distance < speed) {
+                const newStatus = order.status === 'Moving' ? 'Delivered' : 'Idle';
+                // Make driver available again
+                if (order.driverId) {
+                    drivers = drivers.map(d => d.id === order.driverId ? { ...d, status: 'Available'} : d);
+                }
                 return { 
                     ...order, 
                     currentLocation: destination, 
-                    status: order.status === 'Moving' ? 'Delivered' : 'Idle' 
+                    status: newStatus,
                 };
             }
 
