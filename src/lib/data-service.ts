@@ -48,7 +48,7 @@ if (drivers.length === 0) {
 }
 
 if (customers.length === 0) {
-    customers = Array.from({ length: 5 }, (_, i) => {
+    customers = Array.from({ length: 15 }, (_, i) => {
         const customerTypes: Customer['customerType'][] = ['Retailer', 'Wholesaler', 'Other'];
         const paymentPreferences: Customer['paymentPreference'][] = ['Cash', 'Credit'];
         return {
@@ -65,7 +65,7 @@ if (customers.length === 0) {
 
 
 if (orders.length === 0) {
-    orders = Array.from({ length: 20 }, (_, i) => {
+    orders = Array.from({ length: 30 }, (_, i) => {
         const customer = customers[i % customers.length];
         const id = `ORD-${101 + i}`;
         const pickup = getRandomLocation();
@@ -73,7 +73,9 @@ if (orders.length === 0) {
 
         const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
-        const paymentStatus: Order['paymentStatus'] = 'Paid';
+        
+        const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Delivery', 'Pending'];
+        const paymentStatus = paymentStatuses[i % 3];
         
         let assignedDriver: Driver | undefined;
         if (status === 'Moving' || status === 'Returning' || status === 'Idle' || status === 'Delivered') {
@@ -104,11 +106,12 @@ if (orders.length === 0) {
             paymentStatus,
             pickup,
             destination,
-            orderDate: `2024-05-${20 + (i % 10)}`,
+            orderDate: `2024-05-${1 + (i % 28)}`,
             currentLocation,
             routeColor: routeColors[i % routeColors.length],
             driverId: assignedDriver?.id,
             driverName: assignedDriver?.name,
+            orderValue: (Math.random() * 2000) + 100, // Random order value between 100 and 2100
         };
     });
 }
