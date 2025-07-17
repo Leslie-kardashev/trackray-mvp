@@ -180,7 +180,7 @@ export async function getArchivedOrders(): Promise<Order[]> {
     return Promise.resolve(orders.filter(o => ['Delivered', 'Cancelled', 'Archived'].includes(o.status)));
 }
 
-export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'pickup'>): Promise<Order> {
+export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation'>): Promise<Order> {
     const newId = `ORD-${String(101 + orders.length)}`;
     const today = new Date().toISOString().split('T')[0];
     const customer = customers.find(c => c.id === newOrderData.customerId);
@@ -192,7 +192,11 @@ export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 's
         orderDate: today,
         status: 'Pending',
         currentLocation: null,
-        pickup: getRandomLocation(), // Simulate pickup from a random warehouse
+        // If pickup isn't provided (e.g. Sales creating order), use random warehouse.
+        // If it is provided (e.g. Customer creating order), use that.
+        pickup: newOrderData.pickup || getRandomLocation(),
+        // Make sure destination is set from the customer profile.
+        destination: newOrderData.destination || customer.location,
     };
     orders = [newOrder, ...orders];
     return Promise.resolve(newOrder);

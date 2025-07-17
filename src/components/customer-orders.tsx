@@ -172,13 +172,13 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
 
         try {
             await addOrder({
-                customerName: "Customer 123", // Placeholder
-                item: values.itemDescription,
+                customerId: 'CUS-101', // This is the demo customer
+                customerName: "Customer 101", // This is the demo customer
+                item: `${values.quantity}x ${values.itemDescription}`,
                 pickup: pickupLocation,
                 destination: deliveryLocation,
                 paymentStatus: values.paymentMethod,
-                currentLocation: null, // Starts with no truck assigned
-                routeColor: '#FF5733', // Default color
+                orderValue: Math.round(Math.random() * 500 + 50) // Dummy order value
             });
             toast({
                 title: "Order Submitted!",
