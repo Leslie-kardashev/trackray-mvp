@@ -9,7 +9,7 @@ import { getOrders, addOrder } from "@/lib/data-service";
 import { type Order, type Location } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Map, Marker, APIProvider, useMap, InfoWindow } from "@vis.gl/react-google-maps";
-import { Truck, Warehouse, Package, LocateFixed } from "lucide-react";
+import { Truck, Warehouse, Package, LocateFixed, FileText } from "lucide-react";
 
 import {
   Card,
@@ -44,6 +44,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "./ui/separator";
 import { Skeleton } from "./ui/skeleton";
+import { InvoiceDialog } from "./invoice-dialog";
 
 const newOrderSchema = z.object({
   itemDescription: z.string().min(3, "Item description must be at least 3 characters."),
@@ -60,11 +61,13 @@ type LatLngLiteral = google.maps.LatLngLiteral;
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
+  'Ready for Pickup': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
   'Moving': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
   'Idle': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
   'Returning': 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300',
   'Delivered': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
+  'Archived': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
 };
 
 function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
@@ -462,22 +465,25 @@ export function CustomerOrders() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("history");
+    const [invoiceOrderId, setInvoiceOrderId] = useState<string | null>(null);
 
     const fetchOrders = useCallback(async () => {
         try {
-            setIsLoading(true);
+            if (activeTab === 'history') setIsLoading(true);
             const fetchedOrders = await getOrders();
-            setOrders(fetchedOrders);
+            // Assuming customer ID 'CUS-101' for this demo
+            const customerOrders = fetchedOrders.filter(o => o.customerId === 'CUS-101');
+            setOrders(customerOrders);
             // If no order is selected, or the selected one is gone, select the first one.
-            if (!selectedOrder || !fetchedOrders.find(o => o.id === selectedOrder.id)) {
-                 setSelectedOrder(fetchedOrders.find(o => ['Moving', 'Idle', 'Returning'].includes(o.status)) || fetchedOrders[0] || null);
+            if (!selectedOrder || !customerOrders.find(o => o.id === selectedOrder.id)) {
+                 setSelectedOrder(customerOrders.find(o => ['Moving', 'Idle', 'Returning'].includes(o.status)) || customerOrders[0] || null);
             }
         } catch (error) {
             console.error("Failed to fetch orders:", error);
         } finally {
             setIsLoading(false);
         }
-    }, [selectedOrder]);
+    }, [selectedOrder, activeTab]);
 
     useEffect(() => {
         fetchOrders();
@@ -492,6 +498,7 @@ export function CustomerOrders() {
     };
 
   return (
+    <>
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
       <Card className="shadow-sm">
         <CardHeader>
@@ -521,7 +528,7 @@ export function CustomerOrders() {
                                 <TableRow>
                                     <TableHead>Order ID</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Date</TableHead>
+                                    <TableHead>Action</TableHead>
                                 </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -530,7 +537,7 @@ export function CustomerOrders() {
                                         <TableRow key={i}>
                                             <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                             <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
-                                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                            <TableCell><Skeleton className="h-8 w-24" /></TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
@@ -542,7 +549,11 @@ export function CustomerOrders() {
                                                     {order.status}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell>{order.orderDate}</TableCell>
+                                            <TableCell>
+                                                 <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setInvoiceOrderId(order.id); }}>
+                                                    <FileText className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 )}
@@ -575,6 +586,18 @@ export function CustomerOrders() {
         </TabsContent>
     </Card>
     </Tabs>
+    {invoiceOrderId && (
+        <InvoiceDialog
+            orderId={invoiceOrderId}
+            open={!!invoiceOrderId}
+            onOpenChange={(open) => {
+                if (!open) {
+                    setInvoiceOrderId(null);
+                }
+            }}
+        />
+     )}
+    </>
   );
 }
 

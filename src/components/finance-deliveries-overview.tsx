@@ -22,10 +22,11 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
-import { FileDown, Search } from "lucide-react";
+import { FileText, Search } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { Skeleton } from "./ui/skeleton";
 import { cn } from "@/lib/utils";
+import { InvoiceDialog } from "./invoice-dialog";
 
 const paymentStatusStyles: { [key in Order['paymentStatus']]: string } = {
     'Paid': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
@@ -35,17 +36,20 @@ const paymentStatusStyles: { [key in Order['paymentStatus']]: string } = {
 
 const deliveryStatusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
+  'Ready for Pickup': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
   'Moving': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
   'Idle': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
   'Returning': 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300',
   'Delivered': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
+  'Archived': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
 };
 
 export function FinanceDeliveriesOverview() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState("");
+    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
     const fetchOrders = async (isInitialLoad = false) => {
         if (isInitialLoad) setIsLoading(true);
@@ -71,6 +75,7 @@ export function FinanceDeliveriesOverview() {
     );
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -139,8 +144,8 @@ export function FinanceDeliveriesOverview() {
                         </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                           <Button variant="outline" size="sm">
-                                <FileDown className="mr-2 h-4 w-4" /> Export Invoice
+                           <Button variant="outline" size="sm" onClick={() => setSelectedOrderId(delivery.id)}>
+                                <FileText className="mr-2 h-4 w-4" /> View Invoice
                            </Button>
                         </TableCell>
                     </TableRow>
@@ -151,5 +156,17 @@ export function FinanceDeliveriesOverview() {
         </ScrollArea>
       </CardContent>
     </Card>
+    {selectedOrderId && (
+        <InvoiceDialog
+            orderId={selectedOrderId}
+            open={!!selectedOrderId}
+            onOpenChange={(open) => {
+                if (!open) {
+                    setSelectedOrderId(null);
+                }
+            }}
+        />
+     )}
+    </>
   );
 }

@@ -160,6 +160,10 @@ export async function getCustomers(): Promise<Customer[]> {
   return Promise.resolve(customers);
 }
 
+export async function getCustomerById(id: string): Promise<Customer | undefined> {
+    return Promise.resolve(customers.find(c => c.id === id));
+}
+
 export async function addCustomer(customer: Omit<Customer, 'id'>): Promise<Customer> {
   const newId = `CUS-${String(101 + customers.length)}`;
   const newCustomer: Customer = { id: newId, ...customer };
