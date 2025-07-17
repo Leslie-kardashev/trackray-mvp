@@ -39,7 +39,7 @@ export type Order = {
   customerId: string; // Link to Customer
   customerName: string;
   item: string;
-  status: 'Pending' | 'Ready for Pickup' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Ready for Pickup' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled' | 'Archived';
   paymentStatus: 'Paid' | 'Pay on Delivery' | 'Pending';
   pickup: Location;
   destination: Location;

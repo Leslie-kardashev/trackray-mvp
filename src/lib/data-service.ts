@@ -71,7 +71,7 @@ if (orders.length === 0) {
         const pickup = getRandomLocation();
         let destination = customer.location;
 
-        const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled', 'Ready for Pickup'];
+        const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled', 'Ready for Pickup', 'Archived'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         
         const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Delivery', 'Pending'];
@@ -93,7 +93,7 @@ if (orders.length === 0) {
                 lat: pickup.coords.lat + (Math.random() - 0.5) * 0.1,
                 lng: pickup.coords.lng + (Math.random() - 0.5) * 0.1,
             };
-        } else if (status === 'Delivered') {
+        } else if (status === 'Delivered' || status === 'Archived') {
             currentLocation = destination.coords;
         } else if (status === 'Ready for Pickup') {
             currentLocation = pickup.coords;
@@ -169,7 +169,11 @@ export async function addCustomer(customer: Omit<Customer, 'id'>): Promise<Custo
 
 // == ORDERS ==
 export async function getOrders(): Promise<Order[]> {
-  return Promise.resolve(orders);
+  return Promise.resolve(orders.filter(o => o.status !== 'Archived'));
+}
+
+export async function getArchivedOrders(): Promise<Order[]> {
+    return Promise.resolve(orders.filter(o => ['Delivered', 'Cancelled', 'Archived'].includes(o.status)));
 }
 
 export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'pickup'>): Promise<Order> {
@@ -304,5 +308,5 @@ export async function updateTruckLocations(): Promise<Order[]> {
         }
         return order;
     });
-    return Promise.resolve(orders);
+    return Promise.resolve(orders.filter(o => o.status !== 'Archived'));
 }
