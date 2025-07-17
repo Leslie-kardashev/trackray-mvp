@@ -44,6 +44,7 @@ export type Order = {
   pickup: Location;
   destination: Location;
   orderDate: string;
+  scheduledPickupTime?: string; // e.g., "2024-05-25T14:00:00Z"
   currentLocation: { lat: number, lng: number } | null;
   routeColor?: string;
   orderValue?: number;

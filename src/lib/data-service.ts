@@ -83,21 +83,31 @@ if (orders.length === 0) {
         }
 
         let currentLocation: { lat: number, lng: number } | null = null;
-          if (status === 'Moving' || status === 'Returning') {
+        if (status === 'Moving' || status === 'Returning') {
             currentLocation = {
-              lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
-              lng: pickup.coords.lng + (destination.coords.lng - destination.coords.lng) * Math.random(),
+                lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
+                lng: pickup.coords.lng + (destination.coords.lng - destination.coords.lng) * Math.random(),
             };
-          } else if (status === 'Idle') {
+        } else if (status === 'Idle') {
             currentLocation = {
-              lat: pickup.coords.lat + (Math.random() - 0.5) * 0.1,
-              lng: pickup.coords.lng + (Math.random() - 0.5) * 0.1,
+                lat: pickup.coords.lat + (Math.random() - 0.5) * 0.1,
+                lng: pickup.coords.lng + (Math.random() - 0.5) * 0.1,
             };
-          } else if (status === 'Delivered') {
+        } else if (status === 'Delivered') {
             currentLocation = destination.coords;
-          } else if (status === 'Ready for Pickup') {
-              currentLocation = pickup.coords;
-          }
+        } else if (status === 'Ready for Pickup') {
+            currentLocation = pickup.coords;
+        }
+        
+        // Add scheduled pickup time for relevant orders
+        let scheduledPickupTime: string | undefined;
+        if (status === 'Ready for Pickup') {
+            const now = new Date();
+            // Schedule some for the past (late), some for now, some for the future
+            const offsetHours = (i % 5) - 2; // -2, -1, 0, 1, 2 hours from now
+            now.setHours(now.getHours() + offsetHours);
+            scheduledPickupTime = now.toISOString();
+        }
 
         return {
             id,
@@ -109,6 +119,7 @@ if (orders.length === 0) {
             pickup,
             destination,
             orderDate: `2024-05-${1 + (i % 28)}`,
+            scheduledPickupTime,
             currentLocation,
             routeColor: routeColors[i % routeColors.length],
             driverId: assignedDriver?.id,
@@ -204,6 +215,27 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
     return Promise.resolve(orders.find(order => order.id === id));
 }
 
+export async function confirmOrderPickup(orderId: string): Promise<Order> {
+  let updatedOrder: Order | undefined;
+  orders = orders.map(order => {
+    if (order.id === orderId && order.status === 'Ready for Pickup') {
+      updatedOrder = { 
+        ...order, 
+        status: 'Moving', 
+        currentLocation: order.pickup.coords 
+      };
+      return updatedOrder;
+    }
+    return order;
+  });
+
+  if (updatedOrder) {
+    return Promise.resolve(updatedOrder);
+  }
+  return Promise.reject(new Error("Order not found or not ready for pickup."));
+}
+
+
 // == DRIVERS ==
 export async function getDrivers(): Promise<Driver[]> {
     return Promise.resolve(drivers);
@@ -216,12 +248,16 @@ export async function assignDriver(orderId: string, driverId: string): Promise<O
     let updatedOrder: Order | undefined;
     orders = orders.map(order => {
         if (order.id === orderId) {
+            const pickupTime = new Date();
+            pickupTime.setHours(pickupTime.getHours() + 1); // Schedule for 1 hour from now
+
             updatedOrder = { 
                 ...order, 
                 driverId: driver.id,
                 driverName: driver.name,
                 status: 'Ready for Pickup', // Change status to indicate it's waiting for pickup
                 currentLocation: order.pickup.coords, // Location is now the pickup point
+                scheduledPickupTime: pickupTime.toISOString(),
             };
             return updatedOrder;
         }
