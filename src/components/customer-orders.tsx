@@ -51,7 +51,7 @@ const newOrderSchema = z.object({
   quantity: z.coerce.number().min(1, "Quantity must be at least 1."),
   pickupAddress: z.string().min(1, "Please set a pickup address on the map."),
   deliveryAddress: z.string().min(1, "Please set a delivery address on the map."),
-  paymentMethod: z.enum(["Pay on Delivery", "Paid"], {
+  paymentMethod: z.enum(["Pay on Credit", "Paid"], {
     required_error: "You need to select a payment method.",
   }),
 });
@@ -292,10 +292,10 @@ function NewOrderForm({ onOrderSubmitted }: { onOrderSubmitted: () => void }) {
                                         >
                                           <FormItem className="flex items-center space-x-3 space-y-0">
                                             <FormControl>
-                                              <RadioGroupItem value="Pay on Delivery" />
+                                              <RadioGroupItem value="Pay on Credit" />
                                             </FormControl>
                                             <FormLabel className="font-normal">
-                                              Pay on Delivery
+                                              Pay on Credit
                                             </FormLabel>
                                           </FormItem>
                                           <FormItem className="flex items-center space-x-3 space-y-0">

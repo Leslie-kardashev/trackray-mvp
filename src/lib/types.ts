@@ -1,3 +1,4 @@
+
 export type Location = {
   address: string;
   coords: {
@@ -41,7 +42,7 @@ export type Order = {
   customerName: string;
   item: string;
   status: 'Pending' | 'Ready for Pickup' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled' | 'Archived';
-  paymentStatus: 'Paid' | 'Pay on Delivery' | 'Pending';
+  paymentStatus: 'Paid' | 'Pay on Credit' | 'Pending';
   pickup: Location;
   destination: Location;
   orderDate: string;

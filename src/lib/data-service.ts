@@ -75,7 +75,7 @@ if (orders.length === 0) {
         const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled', 'Ready for Pickup', 'Archived'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         
-        const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Delivery', 'Pending'];
+        const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Credit', 'Pending'];
         const paymentStatus = paymentStatuses[i % 3];
         
         let assignedDriver: Driver | undefined;

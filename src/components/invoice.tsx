@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 const paymentStatusStyles: { [key in Order['paymentStatus']]: string } = {
     'Paid': 'border-green-500 bg-green-100 text-green-800',
-    'Pay on Delivery': 'border-blue-500 bg-blue-100 text-blue-800',
+    'Pay on Credit': 'border-blue-500 bg-blue-100 text-blue-800',
     'Pending': 'border-yellow-500 bg-yellow-100 text-yellow-800',
 };
 
