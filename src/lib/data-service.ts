@@ -130,6 +130,19 @@ if (orders.length === 0) {
     });
 }
 
+if (sosMessages.length === 0) {
+    sosMessages = [
+        {
+            id: 'SOS-1685022600000',
+            driverId: 'DRV-003',
+            driverName: 'Esi Prah',
+            timestamp: new Date(Date.now() - 5 * 60000).toISOString(), // 5 minutes ago
+            message: 'Engine trouble on the Accra-Tema motorway. Requesting immediate assistance.',
+            location: 'Accra-Tema Motorway, near Ashaiman exit',
+        },
+    ];
+}
+
 
 // Functions to interact with the data
 
