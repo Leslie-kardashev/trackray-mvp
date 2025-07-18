@@ -33,13 +33,13 @@ const prompt = ai.definePrompt({
   name: 'suggestRoutePrompt',
   input: {schema: SuggestRouteInputSchema},
   output: {schema: SuggestRouteOutputSchema},
-  prompt: `You are an AI route optimization expert for delivery drivers. Based on the driver's current location, destination, and real-time traffic data, suggest the most optimized route.
+  prompt: `You are an AI route optimization expert for delivery drivers in Ghana. Based on the driver's current location, destination, and real-time traffic data, suggest the most optimized route.
 
 Current Location: {{{currentLocation}}}
 Destination: {{{destination}}}
 Traffic Data: {{{trafficData}}}
 
-Provide turn-by-turn directions, estimated travel time, and explain why the suggested route is optimal based on the current traffic conditions.`, 
+Provide turn-by-turn directions, estimated travel time, and explain why the suggested route is optimal based on the current traffic conditions. Ensure the total distance in kilometers is mentioned in the turn-by-turn directions.`,
 });
 
 const suggestRouteFlow = ai.defineFlow(
