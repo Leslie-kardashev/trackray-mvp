@@ -1,6 +1,7 @@
 
 import { CustomerOrders } from "@/components/customer-orders";
 import { CustomerProfile } from "@/components/customer-profile";
+import { CustomerComplaints } from "@/components/customer-complaints";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -15,12 +16,16 @@ export default function CustomerDashboard() {
       </div>
 
       <Tabs defaultValue="orders">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="orders">My Orders</TabsTrigger>
+          <TabsTrigger value="complaints">Support & Complaints</TabsTrigger>
           <TabsTrigger value="profile">My Profile</TabsTrigger>
         </TabsList>
         <TabsContent value="orders">
           <CustomerOrders />
+        </TabsContent>
+        <TabsContent value="complaints">
+          <CustomerComplaints />
         </TabsContent>
         <TabsContent value="profile">
           <CustomerProfile />
@@ -29,5 +34,3 @@ export default function CustomerDashboard() {
     </div>
   );
 }
-
-    

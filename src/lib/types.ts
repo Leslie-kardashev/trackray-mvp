@@ -64,3 +64,14 @@ export type SOSMessage = {
   message: string;
   location?: string;
 };
+
+export type Complaint = {
+  id: string;
+  orderId: string;
+  customerId: string;
+  customerName: string;
+  complaintType: 'Lateness' | 'Damaged Item' | 'Driver Conduct' | 'Billing Issue' | 'Other';
+  description: string;
+  status: 'Open' | 'In Progress' | 'Resolved';
+  timestamp: string;
+};

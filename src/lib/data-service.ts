@@ -1,7 +1,7 @@
 
 'use server';
 
-import { type InventoryItem, type Order, type Customer, type Driver, type SOSMessage } from './types';
+import { type InventoryItem, type Order, type Customer, type Driver, type SOSMessage, type Complaint } from './types';
 
 // In-memory data stores to simulate a database
 let inventory: InventoryItem[] = [
@@ -17,6 +17,7 @@ let orders: Order[] = [];
 let customers: Customer[] = [];
 let drivers: Driver[] = [];
 let sosMessages: SOSMessage[] = [];
+let complaints: Complaint[] = [];
 
 
 // Initialize with some mock data if the lists are empty
@@ -129,6 +130,32 @@ if (orders.length === 0) {
         };
     });
 }
+
+if (complaints.length === 0) {
+    complaints = [
+        {
+            id: 'CMP-001',
+            orderId: 'ORD-101',
+            customerId: 'CUS-101',
+            customerName: 'Customer 101',
+            complaintType: 'Lateness',
+            description: 'My package was 3 hours late and I could not reach the driver.',
+            status: 'Open',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+        },
+        {
+            id: 'CMP-002',
+            orderId: 'ORD-105',
+            customerId: 'CUS-105',
+            customerName: 'Customer 105',
+            complaintType: 'Damaged Item',
+            description: 'The box was crushed and the items inside were broken.',
+            status: 'Resolved',
+            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+        }
+    ];
+}
+
 
 // Functions to interact with the data
 
@@ -337,4 +364,24 @@ export async function sendSOS(message: Omit<SOSMessage, 'id' | 'timestamp'>): Pr
     };
     sosMessages = [newSOS, ...sosMessages];
     return Promise.resolve(newSOS);
+}
+
+// == COMPLAINTS ==
+export async function getComplaints(customerId?: string): Promise<Complaint[]> {
+    let filteredComplaints = complaints;
+    if (customerId) {
+        filteredComplaints = complaints.filter(c => c.customerId === customerId);
+    }
+    return Promise.resolve(filteredComplaints.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+}
+
+export async function addComplaint(complaintData: Omit<Complaint, 'id' | 'timestamp' | 'status'>): Promise<Complaint> {
+    const newComplaint: Complaint = {
+        ...complaintData,
+        id: `CMP-${String(complaints.length + 1).padStart(3, '0')}`,
+        timestamp: new Date().toISOString(),
+        status: 'Open',
+    };
+    complaints = [newComplaint, ...complaints];
+    return Promise.resolve(newComplaint);
 }

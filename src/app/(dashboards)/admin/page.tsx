@@ -3,6 +3,7 @@ import { AdminInventory } from "@/components/admin-inventory";
 import { AdminMap } from "@/components/admin-map";
 import { AdminOverview } from "@/components/admin-overview";
 import { AdminSosAlerts } from "@/components/admin-sos-alerts";
+import { AdminComplaints } from "@/components/admin-complaints";
 import { FinanceDeliveriesOverview } from "@/components/finance-deliveries-overview";
 import { SalesOverview } from "@/components/sales-overview";
 import {
@@ -26,10 +27,11 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
             <Tabs defaultValue="fleet">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="fleet">Fleet & Deliveries</TabsTrigger>
                 <TabsTrigger value="inventory">Inventory</TabsTrigger>
                 <TabsTrigger value="sales">Sales & Finance</TabsTrigger>
+                <TabsTrigger value="complaints">Complaints</TabsTrigger>
                 </TabsList>
                 <TabsContent value="fleet">
                 <Card>
@@ -51,6 +53,9 @@ export default function AdminDashboard() {
                 <TabsContent value="sales" className="space-y-6">
                     <SalesOverview />
                     <FinanceDeliveriesOverview />
+                </TabsContent>
+                <TabsContent value="complaints">
+                    <AdminComplaints />
                 </TabsContent>
             </Tabs>
         </div>
