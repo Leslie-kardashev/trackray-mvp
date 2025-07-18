@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
 import { format } from "date-fns";
+import { Phone } from "lucide-react";
 
 const complaintSchema = z.object({
   orderId: z.string({ required_error: "Please select the relevant order." }),
@@ -35,6 +36,35 @@ const statusStyles: { [key in Complaint['status']]: string } = {
     'In Progress': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
     'Resolved': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
 };
+
+const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <path d="M12.06 10.84c-.2.2-.48.3-1.09.05-.6-.25-1.28-.75-1.88-1.36-.6-.6-1.1-1.28-1.35-1.88-.25-.6.05-.9.25-1.1.2-.2.43-.25.6-.25h.3c.18 0 .36.05.5.25l.89.89c.15.15.2.35.05.55l-.3.48c-.15.2-.15.4.05.55l.68.68c.2.2.45.2.6.05l.48-.3c.2-.15.4-.1.55.05l.89.89c.2.2.25.38.25.55v.3c0 .2-.05.4-.25.6zM12 2a10 10 0 1 0 10 10 10 10 0 0 0-10-10zm0 18.2a8.2 8.2 0 1 1 8.2-8.2 8.2 8.2 0 0 1-8.2 8.2zm4.5-6.04c-.38-.2-2.23-1.1-2.58-1.22-.35-.12-.6-.2-1 .2-.38.38-.98.98-1.2 1.2-.22.22-.43.25-.8.05-1.6-1-2.93-2.33-3.93-3.93-.2-.35-.05-.58.12-.78.15-.18.35-.38.5-.55.12-.15.2-.25.3-.4.1-.15.05-.3-.02-.42l-1.22-2.9c-.12-.3-.25-.38-.42-.38h-.42c-.2 0-.45.05-.65.25-.2.2-.78.78-.78 1.88 0 1.1.8 2.18 1.2 2.55.38.35 2.48 3.98 6.02 5.3 3.55 1.32 3.55.9 4.2.88.65-.02 2.02-.82 2.3-1.6.28-.78.28-1.45.2-1.58-.08-.13-.28-.2-.55-.38z"/>
+    </svg>
+)
+
+function DirectSupportCard() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Need Immediate Help?</CardTitle>
+                <CardDescription>Use the buttons below to contact our support team directly.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button asChild size="lg" className="h-16 text-lg">
+                    <a href="tel:+233240000000">
+                        <Phone className="mr-4" /> Call Us Now
+                    </a>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="h-16 text-lg border-green-600 text-green-700 hover:bg-green-50 hover:text-green-800">
+                    <a href="https://wa.me/233240000000" target="_blank" rel="noopener noreferrer">
+                        <WhatsAppIcon className="mr-4 h-6 w-6 fill-current" /> Chat on WhatsApp
+                    </a>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
 
 function ComplaintForm({ orders, onComplaintSubmitted }: { orders: Order[], onComplaintSubmitted: () => void }) {
   const { toast } = useToast();
@@ -67,8 +97,8 @@ function ComplaintForm({ orders, onComplaintSubmitted }: { orders: Order[], onCo
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardHeader>
-            <CardTitle className="text-xl">Submit a New Complaint</CardTitle>
-            <CardDescription>We're sorry you had an issue. Please provide details below.</CardDescription>
+            <CardTitle className="text-xl">Submit a Complaint Online</CardTitle>
+            <CardDescription>If your issue is not urgent, please provide details below.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -218,6 +248,7 @@ export function CustomerComplaints() {
 
   return (
     <div className="space-y-6">
+      <DirectSupportCard />
       <ComplaintForm orders={orders} onComplaintSubmitted={fetchData} />
       <ComplaintHistory complaints={complaints} isLoading={isLoading} />
     </div>
