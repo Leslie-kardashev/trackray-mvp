@@ -15,37 +15,37 @@ const ghanaLocations = {
     "Takoradi": { lat: 4.9048, lng: -1.7553 },
     "Tema": { lat: 5.6667, lng: -0.0167 },
 };
-const locationNames = Object.keys(ghanaLocations);
-const getRandomLocation = () => {
-  const name = locationNames[Math.floor(Math.random() * locationNames.length)];
-  return { address: name, coords: ghanaLocations[name as keyof typeof ghanaLocations] };
-};
 
 if (orders.length === 0) {
     orders = [
         {
             id: 'ORD-101',
             itemDescription: '20 boxes of Grade A Cocoa Beans',
+            quantity: 20,
             status: 'Pending',
             pickup: { address: 'Tema', coords: ghanaLocations['Tema'] },
             destination: { address: 'Accra', coords: ghanaLocations['Accra'] },
             recipientName: 'Ama Serwaa',
             recipientPhone: '+233 24 111 2222',
             confirmationMethod: 'SIGNATURE',
+            requestedDeliveryTime: '2024-07-25T14:00:00Z',
         },
         {
             id: 'ORD-102',
             itemDescription: '50 Kente Cloth Rolls',
+            quantity: 50,
             status: 'Pending',
             pickup: { address: 'Kumasi', coords: ghanaLocations['Kumasi'] },
             destination: { address: 'Takoradi', coords: ghanaLocations['Takoradi'] },
             recipientName: 'Kwesi Jones',
             recipientPhone: '+233 20 333 4444',
             confirmationMethod: 'PHOTO',
+            requestedDeliveryTime: '2024-07-25T17:00:00Z',
         },
         {
             id: 'ORD-103',
             itemDescription: 'Emergency Medical Supplies',
+            quantity: 5,
             status: 'Pending',
             pickup: { address: 'Accra', coords: ghanaLocations['Accra'] },
             destination: { address: 'Kumasi', coords: ghanaLocations['Kumasi'] },
@@ -58,6 +58,15 @@ if (orders.length === 0) {
 
 
 // == MOCK API FUNCTIONS ==
+
+/**
+ * Simulates fetching a single order by its ID.
+ */
+export async function getOrderById(orderId: string): Promise<Order | undefined> {
+    console.log(`Fetching order by ID: ${orderId}`);
+    return Promise.resolve(orders.find(o => o.id === orderId));
+}
+
 
 /**
  * Simulates fetching the list of orders assigned to the logged-in driver.
@@ -109,9 +118,10 @@ export async function confirmDelivery(orderId: string, confirmationData: string,
     if (!order) return Promise.reject(new Error("Order not found"));
 
     console.log(`Confirming delivery for order ${orderId} via ${method}.`);
-    console.log(`Confirmation data: ${confirmationData.substring(0, 50)}...`);
+    // In a real app, you would probably not log the full base64 string.
+    console.log(`Confirmation data length: ${confirmationData.length}`);
     
-    updateOrderStatus(orderId, 'Delivered');
+    await updateOrderStatus(orderId, 'Delivered');
 
     // In a real app, this would be a POST request to a confirmation endpoint:
     // await fetch(`https://your-django-api.com/orders/${orderId}/confirm`, {

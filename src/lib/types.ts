@@ -11,6 +11,7 @@ export type Location = {
 export type Order = {
   id: string; // e.g., "ORD-123"
   itemDescription: string; // e.g., "20 boxes of Grade A Cocoa Beans"
+  quantity: number;
   status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
   
   pickup: Location;
@@ -18,6 +19,7 @@ export type Order = {
 
   recipientName: string;
   recipientPhone: string;
+  requestedDeliveryTime?: string; // e.g., "2024-07-18T14:00:00Z"
 
   // Defines what the driver needs to collect upon delivery
   confirmationMethod: 'PHOTO' | 'SIGNATURE' | 'OTP';

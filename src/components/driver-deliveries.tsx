@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAssignedOrders, updateOrderStatus } from "@/lib/data-service";
+import { getAssignedOrders } from "@/lib/data-service";
 import { type Order } from "@/lib/types";
 import {
   Card,
@@ -22,9 +22,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
-import { CheckCircle, Package, PlayCircle, Truck } from "lucide-react";
+import { ChevronRight, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -62,25 +63,6 @@ export function DriverDeliveries() {
     fetchDriverOrders();
   }, []);
 
-  const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
-    try {
-        await updateOrderStatus(orderId, newStatus);
-        toast({
-            title: "Success",
-            description: `Order ${orderId} has been updated to ${newStatus}.`
-        });
-        // Refresh the list to show the change
-        fetchDriverOrders();
-    } catch (error) {
-        console.error("Failed to update order status:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: `Could not update order ${orderId}.`
-        });
-    }
-  };
-
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -88,7 +70,7 @@ export function DriverDeliveries() {
             <Package className="w-6 h-6" /> My Deliveries
         </CardTitle>
         <CardDescription>
-          Your list of assigned deliveries. Start or complete them from here.
+          Your list of assigned deliveries. Tap an order to view details.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -99,7 +81,7 @@ export function DriverDeliveries() {
               <TableHead>Item</TableHead>
               <TableHead>Destination</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -110,31 +92,34 @@ export function DriverDeliveries() {
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
+                  <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                 </TableRow>
               ))
             ) : orders.length > 0 ? (
               orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-mono">{order.id}</TableCell>
-                  <TableCell className="font-medium">{order.itemDescription}</TableCell>
-                  <TableCell>{order.destination.address}</TableCell>
+                <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-mono">
+                    <Link href={`/driver/${order.id}`} className="block w-full">{order.id}</Link>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    <Link href={`/driver/${order.id}`} className="block w-full">{order.itemDescription}</Link>
+                  </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status])}>
-                      {order.status}
-                    </Badge>
+                    <Link href={`/driver/${order.id}`} className="block w-full">{order.destination.address}</Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/driver/${order.id}`} className="block w-full">
+                        <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status])}>
+                        {order.status}
+                        </Badge>
+                    </Link>
                   </TableCell>
                   <TableCell className="text-right">
-                    {order.status === 'Pending' && (
-                        <Button size="sm" onClick={() => handleStatusUpdate(order.id, 'Moving')}>
-                            <PlayCircle /> Start Delivery
+                    <Link href={`/driver/${order.id}`} className="block w-full">
+                        <Button variant="ghost" size="icon">
+                            <ChevronRight className="w-4 h-4" />
                         </Button>
-                    )}
-                    {order.status === 'Moving' && (
-                        <Button size="sm" variant="outline" onClick={() => handleStatusUpdate(order.id, 'Delivered')}>
-                            <CheckCircle /> Mark as Complete
-                        </Button>
-                    )}
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))
