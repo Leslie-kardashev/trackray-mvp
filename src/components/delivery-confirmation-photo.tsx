@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Check, RefreshCw, Send } from 'lucide-react';
+import { Camera, RefreshCw, Send } from 'lucide-react';
 import { confirmDelivery } from '@/lib/data-service';
 import { Skeleton } from './ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
@@ -58,7 +58,7 @@ export function DeliveryConfirmationPhoto({ orderId, onConfirmed }: { orderId: s
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [hasCameraPermission]);
+  }, [hasCameraPermission, toast]);
 
   const takePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;

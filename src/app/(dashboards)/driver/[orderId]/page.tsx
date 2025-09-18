@@ -4,16 +4,18 @@
 import { useEffect, useState } from 'react';
 import { getOrderById, updateOrderStatus } from '@/lib/data-service';
 import { type Order } from '@/lib/types';
+import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock, MapPin, Package, Phone, PlayCircle, User } from 'lucide-react';
-import { DeliveryConfirmationPhoto } from '@/components/delivery-confirmation-photo';
+import { ArrowLeft, Check, CheckCircle, Clock, MapPin, Package, Phone, PlayCircle, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { DeliveryMap } from '@/components/delivery-map';
+import { APIProvider } from '@vis.gl/react-google-maps';
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -92,87 +94,88 @@ export default function OrderDetailsPage() {
   if (isLoading || !order) {
     return (
         <div className="space-y-6">
-            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-12 w-48" />
             <Skeleton className="h-64 w-full" />
             <Skeleton className="h-96 w-full" />
         </div>
     );
   }
 
-  const getConfirmationComponent = () => {
-    switch (order.confirmationMethod) {
-      case 'PHOTO':
-        return <DeliveryConfirmationPhoto orderId={order.id} onConfirmed={fetchOrderDetails} />;
-      case 'SIGNATURE':
-        return <Card><CardContent className="p-6">Signature pad will be here.</CardContent></Card>;
-      case 'OTP':
-        return <Card><CardContent className="p-6">OTP input will be here.</CardContent></Card>;
-      default:
-        return null;
-    }
-  };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline text-3xl flex justify-between items-center">
-            <span>Order #{order.id}</span>
-             <Badge variant="outline" className={cn("text-lg font-semibold", statusStyles[order.status])}>
-                {order.status}
-            </Badge>
-          </CardTitle>
-          <CardDescription>
-            View and manage this delivery.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-8">
-            <OrderDetailItem icon={Package} label="Item Description">
-                {order.itemDescription} (x{order.quantity})
-            </OrderDetailItem>
-            <OrderDetailItem icon={MapPin} label="Destination">
-                {order.destination.address}
-            </OrderDetailItem>
-             <OrderDetailItem icon={User} label="Recipient Name">
-                {order.recipientName}
-            </OrderDetailItem>
-            <OrderDetailItem icon={Phone} label="Recipient Phone">
-                <a href={`tel:${order.recipientPhone}`} className="text-primary hover:underline">{order.recipientPhone}</a>
-            </OrderDetailItem>
-            {order.requestedDeliveryTime && (
-                 <OrderDetailItem icon={Clock} label="Requested Delivery Time">
-                    {format(new Date(order.requestedDeliveryTime), "PPP 'at' p")}
-                </OrderDetailItem>
-            )}
-        </CardContent>
-      </Card>
-      
-      {order.status === 'Pending' && (
-        <Button size="lg" className="w-full text-lg font-bold" onClick={() => handleStatusUpdate(order.id, 'Moving')}>
-            <PlayCircle className="mr-2" /> Start Delivery
-        </Button>
-      )}
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+        <div className="space-y-6">
+            <Link href="/driver" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="w-4 h-4" />
+                Back to Deliveries
+            </Link>
 
-      {order.status === 'Moving' && (
-        <>
-            <h2 className="text-2xl font-headline font-bold">Delivery Confirmation</h2>
-            {getConfirmationComponent()}
-        </>
-      )}
-
-      {order.status === 'Delivered' && (
-        <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-            <CardHeader className="text-center">
-                <CardTitle className="text-green-700 dark:text-green-300 flex items-center justify-center gap-2">
-                    <CheckCircle /> Delivery Complete
+            <Card>
+                <CardHeader>
+                <CardTitle className="font-headline text-3xl flex justify-between items-center">
+                    <span>Order #{order.id}</span>
+                    <Badge variant="outline" className={cn("text-lg font-semibold", statusStyles[order.status])}>
+                        {order.status}
+                    </Badge>
                 </CardTitle>
                 <CardDescription>
-                    This order has been successfully delivered.
+                    {order.status === 'Moving' ? 'Active delivery. Navigate to the destination.' : 'View and manage this delivery.'}
                 </CardDescription>
-            </CardHeader>
-        </Card>
-      )}
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-8">
+                    <OrderDetailItem icon={Package} label="Item Description">
+                        {order.itemDescription} (x{order.quantity})
+                    </OrderDetailItem>
+                    <OrderDetailItem icon={MapPin} label="Destination">
+                        {order.destination.address}
+                    </OrderDetailItem>
+                    <OrderDetailItem icon={User} label="Recipient Name">
+                        {order.recipientName}
+                    </OrderDetailItem>
+                    <OrderDetailItem icon={Phone} label="Recipient Phone">
+                        <a href={`tel:${order.recipientPhone}`} className="text-primary hover:underline">{order.recipientPhone}</a>
+                    </OrderDetailItem>
+                    {order.requestedDeliveryTime && (
+                        <OrderDetailItem icon={Clock} label="Requested Delivery Time">
+                            {format(new Date(order.requestedDeliveryTime), "PPP 'at' p")}
+                        </OrderDetailItem>
+                    )}
+                </CardContent>
+            </Card>
 
-    </div>
+            {order.status === 'Moving' && order.pickup && order.destination && (
+                <DeliveryMap 
+                    origin={order.pickup.coords} 
+                    destination={order.destination.coords}
+                />
+            )}
+            
+            {order.status === 'Pending' && (
+                <Button size="lg" className="w-full text-lg font-bold" onClick={() => handleStatusUpdate(order.id, 'Moving')}>
+                    <PlayCircle className="mr-2" /> Start Delivery
+                </Button>
+            )}
+
+            {order.status === 'Moving' && (
+                <Button size="lg" className="w-full text-lg font-bold bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(order.id, 'Delivered')}>
+                    <Check className="mr-2" /> Mark as Delivered
+                </Button>
+            )}
+
+            {order.status === 'Delivered' && (
+                <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                    <CardHeader className="text-center">
+                        <CardTitle className="text-green-700 dark:text-green-300 flex items-center justify-center gap-2">
+                            <CheckCircle /> Delivery Complete
+                        </CardTitle>
+                        <CardDescription>
+                            This order has been successfully delivered.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            )}
+
+        </div>
+    </APIProvider>
   );
 }
