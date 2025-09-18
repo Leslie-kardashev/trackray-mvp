@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { DeliveryMap } from '@/components/delivery-map';
 import { APIProvider } from '@vis.gl/react-google-maps';
+import { DeliveryConfirmationPhoto } from '@/components/delivery-confirmation-photo';
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -101,9 +102,17 @@ export default function OrderDetailsPage() {
     );
   }
 
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  if (!apiKey) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-red-500">Google Maps API key is missing. Please add it to your .env file.</p>
+      </div>
+    )
+  }
 
   return (
-    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+    <APIProvider apiKey={apiKey}>
         <div className="space-y-6">
             <Link href="/driver" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="w-4 h-4" />
@@ -156,7 +165,11 @@ export default function OrderDetailsPage() {
                 </Button>
             )}
 
-            {order.status === 'Moving' && (
+            {order.status === 'Moving' && order.confirmationMethod === 'PHOTO' && (
+                <DeliveryConfirmationPhoto orderId={order.id} onConfirmed={fetchOrderDetails} />
+            )}
+
+            {order.status === 'Moving' && order.confirmationMethod !== 'PHOTO' && (
                 <Button size="lg" className="w-full text-lg font-bold bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(order.id, 'Delivered')}>
                     <Check className="mr-2" /> Mark as Delivered
                 </Button>
