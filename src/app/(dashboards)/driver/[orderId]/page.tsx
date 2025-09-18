@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { getOrderById, updateOrderStatus } from '@/lib/data-service';
 import { type Order } from '@/lib/types';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Clock, MapPin, Package, Phone, PlayCircle, User } from 'lucide-react';
@@ -37,15 +37,18 @@ const OrderDetailItem = ({ icon, label, children }: { icon: React.ElementType, l
     );
 }
 
-export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
+export default function OrderDetailsPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const params = useParams();
+  const orderId = params.orderId as string;
 
   const fetchOrderDetails = async () => {
+    if (!orderId) return;
     try {
         setIsLoading(true);
-        const fetchedOrder = await getOrderById(params.orderId);
+        const fetchedOrder = await getOrderById(orderId);
         if (fetchedOrder) {
             setOrder(fetchedOrder);
         } else {
@@ -65,7 +68,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
 
   useEffect(() => {
     fetchOrderDetails();
-  }, [params.orderId]);
+  }, [orderId]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     try {
