@@ -1,4 +1,5 @@
 
+
 export type Location = {
   address: string;
   coords: {
@@ -7,54 +8,34 @@ export type Location = {
   };
 };
 
-export type InventoryItem = {
-  id: string;
-  name: string;
-  quantity: number;
-  status: 'In Stock' | 'Inbound' | 'Outbound' | 'Low Stock';
-  lastUpdated: string;
-  unitCost: number;
-  minThreshold: number;
-  category: string;
-};
-
-export type Customer = {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  location: Location;
-  customerType: 'Retailer' | 'Wholesaler' | 'Other';
-  paymentPreference: 'Cash' | 'Credit';
-};
-
-export type Driver = {
-    id: string;
-    name: string;
-    vehicleType: 'Motorbike' | 'Standard Cargo Van' | 'Heavy Duty Truck';
-    status: 'Available' | 'On-trip' | 'Offline';
-    phone: string;
-};
-
 export type Order = {
-  id: string;
-  customerId: string; // Link to Customer
-  customerName: string;
-  item: string;
-  status: 'Pending' | 'Ready for Pickup' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled' | 'Archived';
-  paymentStatus: 'Paid' | 'Pay on Credit' | 'Pending';
+  id: string; // e.g., "ORD-123"
+  itemDescription: string; // e.g., "20 boxes of Grade A Cocoa Beans"
+  status: 'Assigned' | 'En Route' | 'Delivered' | 'Cancelled';
+  
   pickup: Location;
   destination: Location;
-  orderDate: string;
-  scheduledPickupTime?: string; // e.g., "2024-05-25T14:00:00Z"
-  currentLocation: { lat: number, lng: number } | null;
-  routeColor?: string;
-  orderValue?: number;
-  deliveryTime?: string;
-  specialInstructions?: string;
-  driverId?: string | null;
-  driverName?: string | null;
+
+  recipientName: string;
+  recipientPhone: string;
+
+  // Defines what the driver needs to collect upon delivery
+  confirmationMethod: 'PHOTO' | 'SIGNATURE' | 'OTP';
+
+  // Fields from your Django API can be added here
+  // For example:
+  // estimatedDeliveryTime: string;
+  // specialInstructions?: string;
+  // orderValue?: number;
 };
+
+// This represents the data payload for confirming a delivery
+export type DeliveryConfirmation = {
+  orderId: string;
+  status: 'Delivered';
+  confirmationData: string; // Base64 string for photo/signature, or the OTP string
+  timestamp: string;
+}
 
 export type SOSMessage = {
   id: string;
@@ -63,15 +44,4 @@ export type SOSMessage = {
   timestamp: string;
   message: string;
   location?: string;
-};
-
-export type Complaint = {
-  id: string;
-  orderId: string;
-  customerId: string;
-  customerName: string;
-  complaintType: 'Lateness' | 'Damaged Item' | 'Driver Conduct' | 'Billing Issue' | 'Other';
-  description: string;
-  status: 'Open' | 'In Progress' | 'Resolved';
-  timestamp: string;
 };
