@@ -26,7 +26,7 @@ if (orders.length === 0) {
         {
             id: 'ORD-101',
             itemDescription: '20 boxes of Grade A Cocoa Beans',
-            status: 'Assigned',
+            status: 'Pending',
             pickup: { address: 'Tema', coords: ghanaLocations['Tema'] },
             destination: { address: 'Accra', coords: ghanaLocations['Accra'] },
             recipientName: 'Ama Serwaa',
@@ -36,7 +36,7 @@ if (orders.length === 0) {
         {
             id: 'ORD-102',
             itemDescription: '50 Kente Cloth Rolls',
-            status: 'Assigned',
+            status: 'Pending',
             pickup: { address: 'Kumasi', coords: ghanaLocations['Kumasi'] },
             destination: { address: 'Takoradi', coords: ghanaLocations['Takoradi'] },
             recipientName: 'Kwesi Jones',
@@ -46,7 +46,7 @@ if (orders.length === 0) {
         {
             id: 'ORD-103',
             itemDescription: 'Emergency Medical Supplies',
-            status: 'Assigned',
+            status: 'Pending',
             pickup: { address: 'Accra', coords: ghanaLocations['Accra'] },
             destination: { address: 'Kumasi', coords: ghanaLocations['Kumasi'] },
             recipientName: 'Dr. Evelyn Adjei',
@@ -71,7 +71,7 @@ export async function getAssignedOrders(driverId: string): Promise<Order[]> {
   // return data;
 
   // For now, return the mock data.
-  return Promise.resolve(orders.filter(o => o.status === 'Assigned'));
+  return Promise.resolve(orders.filter(o => o.status === 'Pending' || o.status === 'Moving'));
 }
 
 /**

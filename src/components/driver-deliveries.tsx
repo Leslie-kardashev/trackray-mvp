@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getOrders, updateOrderStatus } from "@/lib/data-service";
+import { getAssignedOrders, updateOrderStatus } from "@/lib/data-service";
 import { type Order } from "@/lib/types";
 import {
   Card,
@@ -43,11 +43,8 @@ export function DriverDeliveries() {
   const fetchDriverOrders = async () => {
     try {
       setIsLoading(true);
-      const allOrders = await getOrders();
-      // Drivers only see orders that need action or are in progress
-      const driverOrders = allOrders.filter(
-        (order) => order.status === "Pending" || order.status === "Moving"
-      );
+      // In a real app, driverId would come from auth state
+      const driverOrders = await getAssignedOrders("DRV-001");
       setOrders(driverOrders);
     } catch (error) {
       console.error("Failed to fetch driver orders:", error);
@@ -120,7 +117,7 @@ export function DriverDeliveries() {
               orders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-mono">{order.id}</TableCell>
-                  <TableCell className="font-medium">{order.item}</TableCell>
+                  <TableCell className="font-medium">{order.itemDescription}</TableCell>
                   <TableCell>{order.destination.address}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status])}>

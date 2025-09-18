@@ -11,7 +11,7 @@ export type Location = {
 export type Order = {
   id: string; // e.g., "ORD-123"
   itemDescription: string; // e.g., "20 boxes of Grade A Cocoa Beans"
-  status: 'Assigned' | 'En Route' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
   
   pickup: Location;
   destination: Location;
