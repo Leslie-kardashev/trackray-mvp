@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getAssignedOrders } from "@/lib/data-service";
 import { type Order } from "@/lib/types";
 import {
@@ -22,7 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
-import { ChevronRight, Package } from "lucide-react";
+import { ChevronRight, Package, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -46,7 +46,15 @@ export function DriverDeliveries() {
       setIsLoading(true);
       // In a real app, driverId would come from auth state
       const driverOrders = await getAssignedOrders("DRV-001");
-      setOrders(driverOrders);
+      
+      // Sort orders: 'Moving' status comes first, then by ID
+      const sortedOrders = driverOrders.sort((a, b) => {
+        if (a.status === 'Moving' && b.status !== 'Moving') return -1;
+        if (a.status !== 'Moving' && b.status === 'Moving') return 1;
+        return a.id.localeCompare(b.id);
+      });
+
+      setOrders(sortedOrders);
     } catch (error) {
       console.error("Failed to fetch driver orders:", error);
       toast({
@@ -63,6 +71,51 @@ export function DriverDeliveries() {
     fetchDriverOrders();
   }, []);
 
+  const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
+
+  const OrderRow = ({ order, index }: { order: Order, index: number }) => {
+    const isLocked = activeOrder && activeOrder.id !== order.id;
+    const isCurrent = activeOrder && activeOrder.id === order.id;
+
+    const rowContent = (
+      <>
+        <TableCell className="font-bold text-center w-12">{index + 1}</TableCell>
+        <TableCell className="font-mono">{order.id}</TableCell>
+        <TableCell className="font-medium">{order.itemDescription}</TableCell>
+        <TableCell>{order.destination.address}</TableCell>
+        <TableCell>
+            <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status], {
+                'border-2 border-blue-400 dark:border-blue-600': isCurrent
+            })}>
+            {order.status}
+            </Badge>
+        </TableCell>
+        <TableCell className="text-right">
+            <Button variant="ghost" size="icon" disabled={isLocked}>
+                {isLocked ? <Lock className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </Button>
+        </TableCell>
+      </>
+    );
+
+    if (isLocked) {
+      return (
+        <TableRow className="opacity-50 pointer-events-none cursor-not-allowed">
+          {rowContent}
+        </TableRow>
+      );
+    }
+
+    return (
+        <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50">
+            <Link href={`/driver/${order.id}`} className="contents">
+                {rowContent}
+            </Link>
+        </TableRow>
+    );
+  };
+
+
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -70,13 +123,14 @@ export function DriverDeliveries() {
             <Package className="w-6 h-6" /> My Deliveries
         </CardTitle>
         <CardDescription>
-          Your list of assigned deliveries. Tap an order to view details.
+          Your prioritized list of assigned deliveries. Complete the active order to unlock the next.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="text-center">#</TableHead>
               <TableHead>Order ID</TableHead>
               <TableHead>Item</TableHead>
               <TableHead>Destination</TableHead>
@@ -88,6 +142,7 @@ export function DriverDeliveries() {
             {isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
+                  <TableCell className="text-center"><Skeleton className="h-4 w-4 mx-auto" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
@@ -96,36 +151,12 @@ export function DriverDeliveries() {
                 </TableRow>
               ))
             ) : orders.length > 0 ? (
-              orders.map((order) => (
-                <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell className="font-mono">
-                    <Link href={`/driver/${order.id}`} className="block w-full">{order.id}</Link>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    <Link href={`/driver/${order.id}`} className="block w-full">{order.itemDescription}</Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/driver/${order.id}`} className="block w-full">{order.destination.address}</Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link href={`/driver/${order.id}`} className="block w-full">
-                        <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status])}>
-                        {order.status}
-                        </Badge>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link href={`/driver/${order.id}`} className="block w-full">
-                        <Button variant="ghost" size="icon">
-                            <ChevronRight className="w-4 h-4" />
-                        </Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
+              orders.map((order, index) => (
+                <OrderRow key={order.id} order={order} index={index} />
               ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24">
+                    <TableCell colSpan={6} className="text-center h-24">
                         No active deliveries assigned.
                     </TableCell>
                 </TableRow>
@@ -136,3 +167,4 @@ export function DriverDeliveries() {
     </Card>
   );
 }
+
