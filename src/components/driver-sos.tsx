@@ -1,75 +1,104 @@
 
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "./ui/button";
-import { AlertTriangle, Send } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { sendSOS } from "@/lib/data-service";
-import { Textarea } from "./ui/textarea";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from './ui/button';
+import { AlertTriangle, Send } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { sendSOS } from '@/lib/data-service';
+import { cn } from '@/lib/utils';
+import { type SOSMessage } from '@/lib/types';
 
-const sosSchema = z.object({
-  message: z.string().optional(),
-});
+type ProblemCode = SOSMessage['problemCode'];
 
-type SosFormValues = z.infer<typeof sosSchema>;
+const tcasCategories = {
+  critical: {
+    label: 'Critical Emergency',
+    color: 'bg-red-500 hover:bg-red-600',
+    icon: '🔴',
+    codes: [
+      { code: 'BT', description: 'Burst/Flat Tire' },
+      { code: 'MF', description: 'Mechanical Fault' },
+      { code: 'FS', description: 'Fuel Shortage' },
+      { code: 'SOS', description: 'Robbery/Attack/Medical' },
+    ],
+  },
+  blockage: {
+    label: 'Movement Blockage',
+    color: 'bg-orange-500 hover:bg-orange-600',
+    icon: '🟠',
+    codes: [
+      { code: 'TR', description: 'Heavy Traffic' },
+      { code: 'NP', description: 'No Parking' },
+      { code: 'AC', description: 'Accident on Route' },
+    ],
+  },
+  external: {
+    label: 'External Delays',
+    color: 'bg-yellow-500 hover:bg-yellow-600 text-black',
+    icon: '🟡',
+    codes: [
+      { code: 'PD', description: 'Police/Customs Delay' },
+      { code: 'BW', description: 'Bad Weather/Road' },
+    ],
+  },
+  customer: {
+    label: 'Customer Issue',
+    color: 'bg-blue-500 hover:bg-blue-600',
+    icon: '🔵',
+    codes: [
+      { code: 'CU', description: 'Customer Unavailable' },
+      { code: 'SC', description: 'Site Closed' },
+    ],
+  },
+};
 
 export function DriverSOS() {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
-  const { register, handleSubmit, reset } = useForm<SosFormValues>({
-    resolver: zodResolver(sosSchema),
-  });
 
-  const handleSendSOS = async (data: SosFormValues) => {
+  const handleSendSOS = async (problemCode: ProblemCode, message: string) => {
     setIsSending(true);
     try {
-      // In a real app, you'd get the real driver ID from auth state.
-      // We'll use a placeholder for now.
-      const driverId = "DRV-002"; // Placeholder: Abeiku Acquah
-      const driverName = "Abeiku Acquah";
+      const driverId = 'DRV-001'; // Placeholder
+      const driverName = 'Kofi Anan'; // Placeholder
 
       await sendSOS({
         driverId,
         driverName,
-        message: data.message || "Requesting immediate assistance!",
-        location: "Last known location: N1 Highway, near Tema", // Placeholder location
+        message,
+        problemCode,
+        location: 'Last known location: N1 Highway, near Tema', // Placeholder
       });
 
       toast({
-        title: "SOS Sent!",
-        description: "Help is on the way. The admin team has been notified.",
+        title: 'Alert Sent!',
+        description: `HQ has been notified of the issue: ${message}.`,
       });
-      reset();
       setDialogOpen(false);
     } catch (error) {
-      console.error("Failed to send SOS:", error);
+      console.error('Failed to send SOS:', error);
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not send SOS signal. Please try again or call support.",
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not send alert. Please try again or call support.',
       });
     } finally {
       setIsSending(false);
@@ -77,50 +106,60 @@ export function DriverSOS() {
   };
 
   return (
-    <Card className="shadow-sm sticky top-24 bg-destructive/5 border-destructive">
+    <Card className="shadow-sm sticky top-24">
       <CardHeader>
         <CardTitle className="font-headline text-2xl flex items-center gap-2 text-destructive">
-          <AlertTriangle className="w-6 h-6" /> Emergency SOS
+          <AlertTriangle className="w-6 h-6" /> Report an Issue
         </CardTitle>
-        <CardDescription className="text-destructive/80">
-          Use only in a genuine emergency. This will immediately alert the admin team.
+        <CardDescription>
+          Use the TrackRay Color Alert System (TCAS) to report problems.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <AlertDialog open={isDialogOpen} onOpenChange={setDialogOpen}>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="w-full h-24 text-2xl font-bold animate-pulse">
-              <AlertTriangle className="w-8 h-8 mr-4" />
-              SEND SOS
+        <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="destructive" className="w-full h-16 text-lg font-bold">
+              <AlertTriangle className="w-6 h-6 mr-3" />
+              REPORT ISSUE
             </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <form onSubmit={handleSubmit(handleSendSOS)}>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Emergency SOS</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action will send an urgent alert to the admin team with your location. Are you sure you want to proceed?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <div className="my-4">
-                <Textarea
-                  {...register("message")}
-                  placeholder="Optional: Briefly describe the emergency..."
-                />
-              </div>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction type="submit" disabled={isSending}>
-                  {isSending ? "Sending..." : <>
-                    <Send className="mr-2 h-4 w-4" />
-                    Confirm & Send
-                  </>
-                  }
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </form>
-          </AlertDialogContent>
-        </AlertDialog>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>TrackRay Color Alert System (TCAS)</DialogTitle>
+              <DialogDescription>
+                Select the category and specific problem you are facing.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {Object.values(tcasCategories).map(category => (
+                <div key={category.label}>
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    {category.icon} {category.label}
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {category.codes.map(item => (
+                      <Button
+                        key={item.code}
+                        variant="default"
+                        className={cn('h-16 text-base font-semibold flex-col', category.color)}
+                        onClick={() => handleSendSOS(item.code as ProblemCode, item.description)}
+                        disabled={isSending}
+                      >
+                        <span className="text-2xl font-bold">{item.code}</span>
+                        <span className="text-xs font-light">{item.description}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                    Cancel
+                </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

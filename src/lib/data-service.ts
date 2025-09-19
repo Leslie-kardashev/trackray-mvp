@@ -157,7 +157,7 @@ export async function sendSOS(message: Omit<SOSMessage, 'id' | 'timestamp'>): Pr
     
     // In a real app, this would be a POST request to the backend
     // The backend would then handle sending this to the admin dashboard via websockets or push notifications.
-    console.log('Sending SOS to backend:', newSOS);
+    console.log('Sending TCAS Alert to backend:', newSOS);
 
     return Promise.resolve(newSOS);
 }
