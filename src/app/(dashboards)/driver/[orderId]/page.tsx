@@ -59,6 +59,7 @@ const OrderDetailItem = ({ icon, label, children, className }: { icon: React.Ele
 }
 
 export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
+  const { orderId } = params;
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
@@ -70,7 +71,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
     const fetchOrder = async () => {
       setIsLoading(true);
       try {
-        const fetchedOrder = await getOrderById(params.orderId);
+        const fetchedOrder = await getOrderById(orderId);
         if (fetchedOrder) {
           setOrder(fetchedOrder);
         } else {
@@ -86,7 +87,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
     };
 
     fetchOrder();
-  }, [params.orderId, router, toast]);
+  }, [orderId, router, toast]);
 
   const handleStatusUpdate = async (newStatus: Order['status'], reason?: string) => {
     if (!order) return;
@@ -94,7 +95,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
     try {
         await updateOrderStatus(order.id, newStatus, reason);
         
-        setOrder(prev => prev ? { ...prev, status: newStatus, returnReason: reason } : null);
+        setOrder(prev => prev ? { ...prev, status: newStatus, returnReason: reason, completedAt: new Date().toISOString() } : null);
 
         toast({
             title: "Success",
@@ -107,12 +108,9 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
         
         const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
         if(isTerminalStatus) {
-            // For returning, we wait for the photo submission before redirecting.
-            // For other terminal statuses, we can redirect immediately after a delay.
-            if (newStatus !== 'Returning' || (order.returnPhotoUrl || photoSubmitted)) {
-                setTimeout(() => {
+            if (newStatus !== 'Returning') {
+                 setTimeout(() => {
                     router.push('/driver');
-                    // Force a reload to ensure the dashboard reflects the change from the mock data service
                     setTimeout(() => window.location.reload(), 100); 
                 }, 1500);
             }
