@@ -1,8 +1,6 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { getAssignedOrders } from "@/lib/data-service";
 import { type Order } from "@/lib/types";
 import {
   Card,
@@ -20,8 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "./ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
 import { History } from "lucide-react";
@@ -35,43 +31,8 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-export function DriverOrderHistory() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-
-  const fetchDriverOrders = async () => {
-    try {
-      setIsLoading(true);
-      const driverOrders = await getAssignedOrders("DRV-001");
-      
-      const completedOrders = driverOrders.filter(
-        o => o.status === 'Delivered' || o.status === 'Cancelled' || o.status === 'Returning'
-      );
-
-      // Sort by most recent first
-      const sortedOrders = completedOrders.sort((a, b) => {
-        const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
-        const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-        return dateB - dateA;
-      });
-
-      setOrders(sortedOrders);
-    } catch (error) {
-      console.error("Failed to fetch driver order history:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not fetch your order history.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDriverOrders();
-  }, []);
+// This is now a "dumb" component that just receives props
+export function DriverOrderHistory({ orders }: { orders: Order[] }) {
 
   return (
     <Card className="shadow-sm">
@@ -95,17 +56,7 @@ export function DriverOrderHistory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-4 w-28 ml-auto" /></TableCell>
-                </TableRow>
-              ))
-            ) : orders.length > 0 ? (
+            {orders.length > 0 ? (
               orders.map((order) => (
                 <TableRow key={order.id}>
                     <TableCell className="font-mono">{order.id}</TableCell>

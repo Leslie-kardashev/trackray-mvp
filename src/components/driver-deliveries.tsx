@@ -1,8 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { getAssignedOrders } from "@/lib/data-service";
+import { useMemo } from "react";
 import { type Order } from "@/lib/types";
 import {
   Card,
@@ -21,9 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
 import { ChevronRight, Package, Lock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -36,47 +33,9 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-export function DriverDeliveries() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-
-  const fetchDriverOrders = async () => {
-    try {
-      setIsLoading(true);
-      // In a real app, driverId would come from auth state
-      const driverOrders = await getAssignedOrders("DRV-001");
-      
-      const activeOrders = driverOrders.filter(
-        o => o.status === 'Moving' || o.status === 'Pending'
-      );
-
-      // Sort orders: 'Moving' status comes first, then 'Pending', then by ID
-      const sortedOrders = activeOrders.sort((a, b) => {
-        if (a.status === 'Moving' && b.status !== 'Moving') return -1;
-        if (a.status !== 'Moving' && b.status === 'Moving') return 1;
-        if (a.status === 'Pending' && b.status !== 'Pending') return -1;
-        if (a.status !== 'Pending' && b.status === 'Pending') return 1;
-        return a.id.localeCompare(b.id);
-      });
-
-      setOrders(sortedOrders);
-    } catch (error) {
-      console.error("Failed to fetch driver orders:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not fetch your deliveries.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDriverOrders();
-  }, []);
-
+// This is now a "dumb" component that just receives props
+export function DriverDeliveries({ orders }: { orders: Order[] }) {
+  
   const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
 
   const OrderRow = ({ order, index }: { order: Order, index: number }) => {
@@ -111,7 +70,6 @@ export function DriverDeliveries() {
     );
   };
 
-
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -135,18 +93,7 @@ export function DriverDeliveries() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell className="text-center"><Skeleton className="h-4 w-4 mx-auto" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                  <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
-                </TableRow>
-              ))
-            ) : orders.length > 0 ? (
+            {orders.length > 0 ? (
               orders.map((order, index) => (
                 <OrderRow key={order.id} order={order} index={index} />
               ))
