@@ -98,6 +98,8 @@ export default function OrderDetailsPage() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status'], reason?: string) => {
     try {
+        // This function is now just for show in a demo environment.
+        // It doesn't actually persist the change on the backend.
         await updateOrderStatus(orderId, newStatus, reason);
         toast({
             title: "Success",
@@ -325,3 +327,5 @@ export default function OrderDetailsPage() {
     </APIProvider>
   );
 }
+
+    

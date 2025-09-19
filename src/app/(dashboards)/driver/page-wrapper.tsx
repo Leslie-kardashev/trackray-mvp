@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { type Order } from '@/lib/types';
 import { fetchAllOrders } from '@/lib/data-service';
 import { DriverDeliveries } from "@/components/driver-deliveries";
@@ -11,12 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListTodo, History } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSearchParams } from 'next/navigation';
 
 export default function DriverDashboard() {
-  const [activeOrders, setActiveOrders] = useState<Order[]>([]);
-  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const searchParams = useSearchParams(); // Keep track of navigation
 
   const driverId = "DRV-001"; // Hardcoded for now
 
@@ -24,32 +25,9 @@ export default function DriverDashboard() {
     console.log('Fetching orders...');
     setIsLoading(true);
     try {
-      const allOrders = await fetchAllOrders(); // Using the server action
-      
-      const driverOrders = allOrders.filter(o => o.driverId === driverId);
-
-      const active = driverOrders.filter(
-        o => o.status === 'Moving' || o.status === 'Pending'
-      );
-
-      const history = driverOrders.filter(
-        o => o.status === 'Delivered' || o.status === 'Cancelled' || o.status === 'Returning'
-      );
-
-      const sortedActive = active.sort((a, b) => {
-        if (a.status === 'Moving' && b.status !== 'Moving') return -1;
-        if (a.status !== 'Moving' && b.status === 'Moving') return 1;
-        return a.id.localeCompare(b.id);
-      });
-
-      const sortedHistory = history.sort((a, b) => {
-        const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
-        const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
-        return dateB - dateA;
-      });
-
-      setActiveOrders(sortedActive);
-      setHistoryOrders(sortedHistory);
+      const fetchedOrders = await fetchAllOrders(); 
+      const driverOrders = fetchedOrders.filter(o => o.driverId === driverId);
+      setAllOrders(driverOrders);
     } catch (error) {
       console.error("Failed to fetch driver orders:", error);
       toast({
@@ -64,7 +42,28 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     getOrders();
-  }, [getOrders]);
+  }, [getOrders, searchParams]); // Re-fetch when navigating back to the page
+
+  const { activeOrders, historyOrders } = useMemo(() => {
+    const active = allOrders.filter(
+      o => o.status === 'Moving' || o.status === 'Pending'
+    ).sort((a, b) => {
+        if (a.status === 'Moving' && b.status !== 'Moving') return -1;
+        if (a.status !== 'Moving' && b.status === 'Moving') return 1;
+        return a.id.localeCompare(b.id);
+      });
+
+    const history = allOrders.filter(
+      o => o.status === 'Delivered' || o.status === 'Cancelled' || o.status === 'Returning'
+    ).sort((a, b) => {
+        const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+        const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+        return dateB - dateA;
+      });
+
+    return { activeOrders: active, historyOrders: history };
+  }, [allOrders]);
+
 
   return (
     <div className="space-y-8">
@@ -101,3 +100,5 @@ export default function DriverDashboard() {
     </div>
   );
 }
+
+    
