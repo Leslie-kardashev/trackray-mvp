@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { getOrderById, updateOrderStatus, confirmDelivery } from '@/lib/data-service';
 import { type Order } from '@/lib/types';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,7 +58,8 @@ const OrderDetailItem = ({ icon, label, children, className }: { icon: React.Ele
     );
 }
 
-export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
+export default function OrderDetailsPage() {
+  const params = useParams<{ orderId: string }>();
   const { orderId } = params;
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,6 +70,7 @@ export default function OrderDetailsPage({ params }: { params: { orderId: string
 
   useEffect(() => {
     const fetchOrder = async () => {
+      if (!orderId) return;
       setIsLoading(true);
       try {
         const fetchedOrder = await getOrderById(orderId);
