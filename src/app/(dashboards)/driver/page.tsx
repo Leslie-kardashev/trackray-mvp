@@ -1,10 +1,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase-config';
+import { useState, useEffect, useCallback } from 'react';
 import { type Order } from '@/lib/types';
+import { fetchAllOrders } from '@/lib/data-service';
 import { DriverDeliveries } from "@/components/driver-deliveries";
 import { DriverOrderHistory } from "@/components/driver-order-history";
 import { DriverSOS } from "@/components/driver-sos";
@@ -17,32 +16,23 @@ export default function DriverDashboard() {
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const driverId = "DRV-001"; // Hardcoded for now
-    const ordersCollection = collection(db, 'orders');
-    // In a real app, you would have the driverId from authentication
-    const q = query(ordersCollection, where("driverId", "==", driverId));
+  const driverId = "DRV-001"; // Hardcoded for now
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const allOrders: Order[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        allOrders.push({ 
-          id: doc.id,
-          ...data,
-          // Convert Firestore Timestamps to ISO strings if they exist
-          requestedDeliveryTime: (data.requestedDeliveryTime as Timestamp)?.toDate().toISOString(),
-          completedAt: (data.completedAt as Timestamp)?.toDate().toISOString(),
-        } as Order);
-      });
+  const getOrders = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const allOrders = await fetchAllOrders(); // Using the server action
+      
+      const driverOrders = allOrders.filter(o => o.driverId === driverId);
 
-      const active = allOrders.filter(
+      const active = driverOrders.filter(
         o => o.status === 'Moving' || o.status === 'Pending'
       );
 
-      const history = allOrders.filter(
+      const history = driverOrders.filter(
         o => o.status === 'Delivered' || o.status === 'Cancelled' || o.status === 'Returning'
       );
 
@@ -60,21 +50,33 @@ export default function DriverDashboard() {
 
       setActiveOrders(sortedActive);
       setHistoryOrders(sortedHistory);
-      setIsLoading(false);
-    }, (error) => {
+    } catch (error) {
       console.error("Failed to fetch driver orders:", error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Could not fetch your deliveries. Please check your connection.",
       });
+    } finally {
       setIsLoading(false);
-    });
+    }
+  }, [toast, driverId]);
 
-    // Cleanup subscription on component unmount
-    return () => unsubscribe();
-  }, [toast]);
+  useEffect(() => {
+    getOrders();
+  }, [getOrders, refreshKey]);
 
+  useEffect(() => {
+    const handleFocus = () => {
+      setRefreshKey(prev => prev + 1);
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -104,7 +106,7 @@ export default function DriverDashboard() {
                 </TabsContent>
             </Tabs>
         </div>
-        <div className="lg:col-span-1 w-full">
+        <div className="lg:col-span-1 w-full lg:sticky lg:top-24">
             <DriverSOS />
         </div>
       </div>

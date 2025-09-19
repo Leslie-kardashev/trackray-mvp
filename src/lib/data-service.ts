@@ -65,6 +65,28 @@ export async function getAssignedOrders(driverId: string): Promise<Order[]> {
   }
 }
 
+export async function fetchAllOrders(): Promise<Order[]> {
+    console.log(`Fetching all orders`);
+    try {
+        const q = query(collection(db, ORDERS_COLLECTION));
+        const querySnapshot = await getDocs(q);
+        const orders: Order[] = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            orders.push({
+                id: doc.id,
+                ...data,
+                requestedDeliveryTime: (data.requestedDeliveryTime as Timestamp)?.toDate().toISOString(),
+                completedAt: (data.completedAt as Timestamp)?.toDate().toISOString(),
+            } as Order);
+        });
+        return orders;
+    } catch (error) {
+        console.error("Error fetching all orders:", error);
+        throw error;
+    }
+}
+
 /**
  * Updates an order's status in Firestore.
  */
