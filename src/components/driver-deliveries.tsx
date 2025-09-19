@@ -85,32 +85,29 @@ export function DriverDeliveries() {
         <TableCell>{order.destination.address}</TableCell>
         <TableCell>
             <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status], {
-                'border-2 border-blue-400 dark:border-blue-600': isCurrent
+                'border-2 border-primary': isCurrent
             })}>
             {order.status}
             </Badge>
         </TableCell>
         <TableCell className="text-right">
-            <Button variant="ghost" size="icon" disabled={isLocked}>
-                {isLocked ? <Lock className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            <Button variant="ghost" size="icon" disabled={isLocked} asChild={!isLocked}>
+                {isLocked ? <Lock className="w-4 h-4" /> : 
+                    <Link href={`/driver/${order.id}`}>
+                        <ChevronRight className="w-4 h-4" />
+                    </Link>
+                }
             </Button>
         </TableCell>
       </>
     );
 
-    if (isLocked) {
-      return (
-        <TableRow className="opacity-50 pointer-events-none cursor-not-allowed">
-          {rowContent}
-        </TableRow>
-      );
-    }
-
     return (
-        <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50">
-            <Link href={`/driver/${order.id}`} className="contents">
-                {rowContent}
-            </Link>
+        <TableRow key={order.id} className={cn("transition-colors", {
+            "cursor-pointer hover:bg-muted/50": !isLocked,
+            "opacity-50 cursor-not-allowed": isLocked,
+        })}>
+           {rowContent}
         </TableRow>
     );
   };
@@ -130,7 +127,7 @@ export function DriverDeliveries() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center">#</TableHead>
+              <TableHead className="text-center w-12">#</TableHead>
               <TableHead>Order ID</TableHead>
               <TableHead>Item</TableHead>
               <TableHead>Destination</TableHead>
@@ -167,4 +164,3 @@ export function DriverDeliveries() {
     </Card>
   );
 }
-
