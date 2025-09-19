@@ -15,7 +15,7 @@ import { useSearchParams } from 'next/navigation';
 
 export default function DriverDashboard() {
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
-  const [historyOrders, setHistoryOrders]_ = useState<Order[]>([]);
+  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const searchParams = useSearchParams();
