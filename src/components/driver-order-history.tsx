@@ -69,7 +69,7 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
           <TableHeader>
             <TableRow>
               <TableHead>Order ID</TableHead>
-              <TableHead>Item(s)</TableHead>
+              <TableHead className="hidden sm:table-cell">Item(s)</TableHead>
               <TableHead>Destination</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Completed On</TableHead>
@@ -80,7 +80,7 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
               orders.map((order) => (
                 <TableRow key={order.id}>
                     <TableCell className="font-mono">{order.id}</TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium hidden sm:table-cell">
                        <ItemDescription items={order.items} />
                     </TableCell>
                     <TableCell>{order.destination.address}</TableCell>

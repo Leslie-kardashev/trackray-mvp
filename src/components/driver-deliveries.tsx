@@ -53,7 +53,7 @@ const ItemDescription = ({ items }: { items: string[] }) => {
 };
 
 
-export function DriverDeliveries({ orders }: { orders: Order[] }) {
+export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], onSelectOrder: (order: Order) => void }) {
   
   const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
 
@@ -62,9 +62,14 @@ export function DriverDeliveries({ orders }: { orders: Order[] }) {
     const isCurrent = activeOrder && activeOrder.id === order.id;
 
     return (
-        <TableRow key={order.id} className={cn("transition-colors", {
-            "cursor-not-allowed opacity-50": isLocked,
-        })}>
+        <TableRow 
+            key={order.id} 
+            className={cn("transition-colors", {
+                "cursor-not-allowed opacity-50": isLocked,
+                "cursor-pointer": !isLocked,
+            })}
+            onClick={() => !isLocked && onSelectOrder(order)}
+        >
           <TableCell className="font-bold text-center w-12 hidden sm:table-cell">{index + 1}</TableCell>
           <TableCell className="font-mono text-xs">{order.id}</TableCell>
           <TableCell className="hidden md:table-cell">
@@ -81,9 +86,9 @@ export function DriverDeliveries({ orders }: { orders: Order[] }) {
           <TableCell className="text-right">
               <Button variant="ghost" size="icon" disabled={isLocked} asChild>
                   {isLocked ? <Lock className="w-4 h-4" /> : 
-                      <Link href={`/driver/${order.id}`}>
+                      <div onClick={(e) => { e.stopPropagation(); onSelectOrder(order); }}>
                           <ChevronRight className="w-4 h-4" />
-                      </Link>
+                      </div>
                   }
               </Button>
           </TableCell>
