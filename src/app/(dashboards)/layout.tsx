@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { DashboardNav } from "@/components/dashboard-nav";
+import { Badge } from "@/components/ui/badge";
 
 const AppLogo = () => (
     <svg role="img" aria-label="TrackRay Logo" className="w-auto h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -31,6 +32,7 @@ export default function DashboardLayout({
           >
             <AppLogo />
             <span className="font-headline text-xl font-bold tracking-tighter">TrackRay</span>
+            <Badge variant="outline" className="text-xs">Driver</Badge>
           </Link>
           <DashboardNav />
         </nav>
@@ -52,7 +54,8 @@ export default function DashboardLayout({
                 className="flex items-center gap-2 text-lg font-semibold"
               >
                 <AppLogo />
-                <span className="font-headline text-xl font-bold tracking-tighter">TrackRay</span>
+                 <span className="font-headline text-xl font-bold tracking-tighter">TrackRay</span>
+                 <Badge variant="outline" className="text-xs">Driver</Badge>
               </Link>
               <DashboardNav />
             </nav>
