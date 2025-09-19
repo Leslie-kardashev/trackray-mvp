@@ -60,7 +60,6 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
     
     // The rest of this function demonstrates the logic that *would* run if we had a database.
     const completedOrder = orders[orderIndex];
-    const driverId = completedOrder.driverId;
     completedOrder.status = status;
 
     const isCompleted = status === 'Delivered' || status === 'Cancelled' || status === 'Returning';
@@ -72,13 +71,6 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
             completedOrder.returnReason = returnReason;
         }
 
-        const nextPendingOrder = orders
-            .filter(o => o.driverId === driverId && o.status === 'Pending')
-            .sort((a, b) => a.id.localeCompare(b.id))[0];
-
-        if (nextPendingOrder) {
-             console.log(`[SIMULATION] Next order ${nextPendingOrder.id} would be activated.`);
-        }
     }
     
     console.log(`Order ${orderId} status change simulated.`);
