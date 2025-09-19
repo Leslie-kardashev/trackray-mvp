@@ -21,15 +21,15 @@ const getRandomLocation = () => {
 }
 
 const itemDescriptions = [
-    "Grade A Cocoa Beans", "Kente Cloth Rolls", "Shea Butter Tubs", 
-    "Imported Electronics", "Vehicle Spare Parts", "Fresh Pineapples",
-    "Frozen Fish", "Bags of Cement", "University Textbooks", "Medical Supplies"
+    "Cases of Nestlé Milo", "Boxes of Gino Tomato Mix", "Sacks of Cowbell Milk Powder", 
+    "Cartons of Frytol Cooking Oil", "Pallets of Ideal Milk", "Boxes of Indomie Noodles",
+    "Sacks of Omo Detergent", "Cases of Club Beer", "Crates of Coca-Cola", "Bags of Royal Aroma Rice"
 ];
 
 const recipientNames = [
-    "Global Exporters Ltd", "Cultural Heritage Shop", "Nature's Gold",
-    "Tech Parts Inc.", "AutoFix Ghana", "Fresh Fruits Co.",
-    "Ocean's Best", "BuildRight Construction", "UG Bookshop", "Korle Bu Pharmacy"
+    "Shoprite Accra Mall", "Melcom Plus - Kumasi", "MaxMart - 37",
+    "Palace Supermarket", "Koala Shopping Center", "CityDia - Tema",
+    "Distributor - Koforidua", "Wholesale Supply - Takoradi", "Jumia Warehouse", "Local Market - Tamale"
 ];
 
 export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
