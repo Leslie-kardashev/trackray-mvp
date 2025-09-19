@@ -21,6 +21,7 @@ export default function DriverDashboard() {
   const driverId = "DRV-001"; // Hardcoded for now
 
   const getOrders = useCallback(async () => {
+    console.log('Fetching orders...');
     setIsLoading(true);
     try {
       const allOrders = await fetchAllOrders(); // Using the server action
