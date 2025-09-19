@@ -98,7 +98,6 @@ export default function OrderDetailsPage() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status'], reason?: string) => {
     try {
-        // Call the mock backend function. Note: this doesn't persist the change.
         await updateOrderStatus(orderId, newStatus, reason);
 
         toast({
@@ -108,7 +107,6 @@ export default function OrderDetailsPage() {
         
         const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
 
-        // Update local state to reflect the change immediately
         if (order) {
             const updatedOrder = { ...order, status: newStatus, returnReason: reason };
             if (isTerminalStatus) {
@@ -117,17 +115,12 @@ export default function OrderDetailsPage() {
             setOrder(updatedOrder);
         }
         
-        // If the status is one that ends the delivery, redirect back to the dashboard.
-        // The reload will force the dashboard to fetch the "new" state from the server.
         if (isTerminalStatus) {
             setTimeout(() => {
                 router.push('/driver');
-                // A short delay before reload to ensure navigation completes
-                setTimeout(() => window.location.reload(), 100); 
             }, 1500);
         }
         
-        // Close the dialog if it was open
         if (newStatus === 'Returning') {
             setReturnDialogOpen(false);
         }
@@ -306,8 +299,6 @@ export default function OrderDetailsPage() {
                                         variant="default"
                                         className={cn('h-16 text-base font-semibold', reason.color)}
                                         onClick={() => {
-                                            // For returns, we just set the reason and update the status locally first.
-                                            // The final 'handleStatusUpdate' call happens after the photo is submitted.
                                             if (order) {
                                                 setOrder({ ...order, status: 'Returning', returnReason: reason.description });
                                             }

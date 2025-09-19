@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { type Order } from '@/lib/types';
-import { fetchAllOrders } from '@/lib/data-service';
+import { fetchAllOrders, updateOrderStatus as apiUpdateOrderStatus } from '@/lib/data-service';
 import { DriverDeliveries } from "@/components/driver-deliveries";
 import { DriverOrderHistory } from "@/components/driver-order-history";
 import { DriverSOS } from "@/components/driver-sos";
@@ -41,6 +41,42 @@ export default function DriverDashboard() {
   useEffect(() => {
     getOrders();
   }, [getOrders]);
+  
+  const handleStatusUpdate = useCallback(async (orderId: string, newStatus: Order['status'], reason?: string) => {
+    try {
+        // Call the mock API to simulate the backend call
+        await apiUpdateOrderStatus(orderId, newStatus, reason);
+
+        toast({
+            title: "Success",
+            description: `Order ${orderId} has been updated to ${newStatus}.`
+        });
+
+        // Update local state to reflect the change immediately
+        setAllOrders(currentOrders => {
+            return currentOrders.map(order => {
+                if (order.id === orderId) {
+                    const updatedOrder = { ...order, status: newStatus, returnReason: reason };
+                    const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
+                    if (isTerminalStatus) {
+                        updatedOrder.completedAt = new Date().toISOString();
+                    }
+                    return updatedOrder;
+                }
+                return order;
+            });
+        });
+
+    } catch (error) {
+        console.error("Failed to update order status:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: `Could not update order ${orderId}.`
+        });
+    }
+  }, [toast]);
+
 
   const { activeOrders, historyOrders } = useMemo(() => {
     const active = allOrders.filter(
@@ -80,10 +116,10 @@ export default function DriverDashboard() {
             <Tabs defaultValue="active">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="active">
-                        <ListTodo className="mr-2 h-4 w-4" /> Active Deliveries
+                        <ListTodo className="mr-2 h-4 w-4" /> Active Deliveries ({activeOrders.length})
                     </TabsTrigger>
                     <TabsTrigger value="history">
-                        <History className="mr-2 h-4 w-4" /> Order History
+                        <History className="mr-2 h-4 w-4" /> Order History ({historyOrders.length})
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="active">
