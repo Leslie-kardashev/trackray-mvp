@@ -59,35 +59,23 @@ const OrderDetailItem = ({ icon, label, children, className }: { icon: React.Ele
 
 // This component is now "controlled" by the parent `DriverDashboard`
 export default function OrderDetailsPage({ 
-    order: initialOrder, 
+    order, 
     onStatusUpdate 
 }: { 
     order: Order; // Now expecting a non-null order
     onStatusUpdate: (orderId: string, newStatus: Order['status'], reason?: string) => void;
 }) {
-  const [order, setOrder] = useState<Order>(initialOrder);
   const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
   const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
-  // If the initial order prop changes (e.g., due to parent state update), update the local state.
-  useEffect(() => {
-    setOrder(initialOrder);
-  }, [initialOrder]);
 
   const handleStatusUpdate = async (newStatus: Order['status'], reason?: string) => {
     if (!order) return;
 
     // Call the parent's update function to modify the central state
     onStatusUpdate(order.id, newStatus, reason);
-
-    // Update local state to reflect the change instantly in the UI
-    const updatedOrder = { ...order, status: newStatus, returnReason: reason };
-    if (newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled') {
-        updatedOrder.completedAt = new Date().toISOString();
-    }
-    setOrder(updatedOrder);
 
     toast({
         title: "Success",
@@ -100,7 +88,9 @@ export default function OrderDetailsPage({
     
     const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
     if(isTerminalStatus) {
-        if (newStatus !== 'Returning' || photoSubmitted || order.returnPhotoUrl) {
+        // For returning, we wait for the photo submission before redirecting.
+        // For other terminal statuses, we can redirect immediately after a delay.
+        if (newStatus !== 'Returning' || (order.returnPhotoUrl || photoSubmitted)) {
             setTimeout(() => {
                 router.push('/driver');
             }, 1500);
@@ -304,3 +294,5 @@ export default function OrderDetailsPage({
     </APIProvider>
   );
 }
+
+    

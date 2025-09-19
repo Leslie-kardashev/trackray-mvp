@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { type Order } from '@/lib/types';
 import { fetchAllOrders } from '@/lib/data-service';
 import { DriverDeliveries } from "@/components/driver-deliveries";
@@ -69,11 +69,8 @@ export default function DriverDashboard() {
   }, [toast, driverId]);
 
   useEffect(() => {
-    // We only need to fetch orders once on initial load.
-    if (allOrders.length === 0) {
-      getOrders();
-    }
-  }, [getOrders, allOrders.length]);
+    getOrders();
+  }, [getOrders]);
   
   const handleStatusUpdate = useCallback((updatedOrderId: string, newStatus: Order['status'], reason?: string) => {
     setAllOrders(currentOrders => 
@@ -171,3 +168,5 @@ export default function DriverDashboard() {
     </div>
   );
 }
+
+    
