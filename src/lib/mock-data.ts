@@ -34,7 +34,7 @@ const itemBases = [
 ];
 
 const recipientNames = [
-    "Shoprite Accra Mall", "Melcom Plus - Kumasi", "MaxMart - 37",
+    "Shoprite Accra Mall", "Melcome Shop", "MaxMart - 37",
     "Palace Supermarket", "Koala Shopping Center", "CityDia - Tema",
     "Distributor - Koforidua", "Wholesale Supply - Takoradi", "Jumia Warehouse", "Local Market - Tamale"
 ];
