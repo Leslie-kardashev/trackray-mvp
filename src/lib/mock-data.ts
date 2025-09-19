@@ -1,13 +1,5 @@
 
-import { type InventoryItem, type Order } from './types';
-
-export const mockInventory: InventoryItem[] = [
-  { id: 'ITM-001', name: 'Cocoa Beans (Grade A)', quantity: 50, status: 'In Stock', lastUpdated: '2024-05-20' },
-  { id: 'ITM-002', name: 'Kente Cloth Rolls', quantity: 200, status: 'In Stock', lastUpdated: '2024-05-21' },
-  { id: 'ITM-003', name: 'Shea Butter Tubs', quantity: 0, status: 'Outbound', lastUpdated: '2024-05-22' },
-  { id: 'ITM-004', name: 'Imported Electronics', quantity: 150, status: 'Inbound', lastUpdated: '2024-05-23' },
-  { id: 'ITM-005', name: 'Vehicle Spare Parts', quantity: 80, status: 'In Stock', lastUpdated: '2024-05-19' },
-];
+import { type Order } from './types';
 
 const ghanaLocations = {
   "Accra": { lat: 5.6037, lng: -0.1870 },
@@ -28,54 +20,64 @@ const getRandomLocation = () => {
   return { address: name, coords: ghanaLocations[name as keyof typeof ghanaLocations] };
 }
 
-const routeColors = [
-  '#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF',
-  '#33FFA1', '#FFC300', '#FF5733', '#C70039', '#900C3F',
-  '#581845', '#1B4F72', '#2E86C1', '#17A589', '#229954',
-  '#D4AC0D', '#CA6F1E', '#BA4A00', '#A93226', '#884EA0'
+const itemDescriptions = [
+    "Grade A Cocoa Beans", "Kente Cloth Rolls", "Shea Butter Tubs", 
+    "Imported Electronics", "Vehicle Spare Parts", "Fresh Pineapples",
+    "Frozen Fish", "Bags of Cement", "University Textbooks", "Medical Supplies"
+];
+
+const recipientNames = [
+    "Global Exporters Ltd", "Cultural Heritage Shop", "Nature's Gold",
+    "Tech Parts Inc.", "AutoFix Ghana", "Fresh Fruits Co.",
+    "Ocean's Best", "BuildRight Construction", "UG Bookshop", "Korle Bu Pharmacy"
 ];
 
 export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
   const id = `ORD-${101 + i}`;
   const pickup = getRandomLocation();
   let destination = getRandomLocation();
-  // Ensure pickup and destination are not the same
   while (destination.address === pickup.address) {
     destination = getRandomLocation();
   }
-  const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled'];
-  const status = statuses[Math.floor(Math.random() * statuses.length)];
   
-  const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Delivery', 'Pending'];
-  const paymentStatus = paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)];
-
-  let currentLocation: { lat: number, lng: number } | null = null;
-  if (status === 'Moving' || status === 'Returning') {
-    // Start somewhere between pickup and destination
-    currentLocation = {
-      lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
-      lng: pickup.coords.lng + (destination.coords.lng - pickup.coords.lng) * Math.random(),
-    };
-  } else if (status === 'Idle') {
-    // Idle somewhere near pickup
-    currentLocation = {
-      lat: pickup.coords.lat + (Math.random() - 0.5) * 0.1,
-      lng: pickup.coords.lng + (Math.random() - 0.5) * 0.1,
-    };
-  } else if (status === 'Delivered') {
-    currentLocation = destination.coords;
+  const statuses: Order['status'][] = ['Pending', 'Moving', 'Delivered', 'Returning', 'Cancelled'];
+  let status: Order['status'];
+  if (i < 2) {
+    status = 'Moving'; // Ensure at least one is active
+  } else if (i < 5) {
+    status = 'Pending';
+  } else if (i < 15) {
+    status = 'Delivered';
+  } else {
+    status = statuses[Math.floor(Math.random() * statuses.length)];
   }
+
+  const confirmationMethods: Order['confirmationMethod'][] = ['PHOTO', 'SIGNATURE', 'OTP'];
+
+  let completedAt: string | undefined = undefined;
+  if (status === 'Delivered' || status === 'Cancelled' || status === 'Returning') {
+      const date = new Date();
+      date.setDate(date.getDate() - (i % 10)); // Stagger completion dates
+      completedAt = date.toISOString();
+  }
+
+  const driverId = (i % 3 === 0) ? 'DRV-002' : 'DRV-001'; // Assign to different drivers
 
   return {
     id,
-    customerName: `Customer ${101 + i}`,
-    item: `ITM-00${(i % 5) + 1}`,
+    driverId: driverId,
+    itemDescription: itemDescriptions[i % itemDescriptions.length],
+    quantity: Math.floor(Math.random() * 50) + 5,
     status,
-    paymentStatus,
     pickup,
     destination,
-    orderDate: `2024-05-${20 + (i % 10)}`,
-    currentLocation,
-    routeColor: routeColors[i % routeColors.length]
+    recipientName: recipientNames[i % recipientNames.length],
+    recipientPhone: `0${Math.floor(200000000 + Math.random() * 100000000)}`,
+    requestedDeliveryTime: new Date(Date.now() + Math.random() * 1000 * 60 * 60 * 24 * 3).toISOString(),
+    confirmationMethod: confirmationMethods[i % confirmationMethods.length],
+    productPrice: status === 'Pending' ? Math.floor(Math.random() * 1000) + 50 : undefined,
+    completedAt,
+    returnReason: status === 'Returning' ? 'Customer Refused' : undefined,
+    returnPhotoUrl: status === 'Returning' ? `/returns/${id}-photo.jpg` : undefined
   };
 });
