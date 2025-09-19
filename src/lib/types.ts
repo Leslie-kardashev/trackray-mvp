@@ -21,6 +21,7 @@ export type Order = {
   requestedDeliveryTime?: string; // e.g., "2024-07-18T14:00:00Z"
   productPrice?: number;
   completedAt?: string; // Timestamp for when the order was delivered or cancelled
+  returnReason?: string; // Reason for the return
 
   // Defines what the driver needs to collect upon delivery
   confirmationMethod: 'PHOTO' | 'SIGNATURE' | 'OTP';

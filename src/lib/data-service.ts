@@ -84,12 +84,15 @@ export async function getAssignedOrders(driverId: string): Promise<Order[]> {
 /**
  * Simulates updating an order's status.
  */
-export async function updateOrderStatus(orderId: string, status: Order['status']): Promise<Order> {
+export async function updateOrderStatus(orderId: string, status: Order['status'], returnReason?: string): Promise<Order> {
     let updatedOrder: Order | undefined;
     orders = orders.map(order => {
         if (order.id === orderId) {
-            const completedAt = (status === 'Delivered' || status === 'Cancelled') ? new Date().toISOString() : order.completedAt;
+            const completedAt = (status === 'Delivered' || status === 'Cancelled' || status === 'Returning') ? new Date().toISOString() : order.completedAt;
             updatedOrder = { ...order, status, completedAt };
+            if (status === 'Returning' && returnReason) {
+                updatedOrder.returnReason = returnReason;
+            }
             return updatedOrder;
         }
         return order;

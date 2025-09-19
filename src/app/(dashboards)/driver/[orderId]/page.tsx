@@ -8,7 +8,16 @@ import Link from 'next/link';
 import { useParams, notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, MapPin, Package, Phone, PlayCircle, Undo2, User } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, MapPin, Package, Phone, PlayCircle, Undo2, User, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -27,6 +36,15 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
+const returnReasons = [
+    { code: 'RD', description: 'Recipient Damaged', color: 'bg-red-500 hover:bg-red-600' },
+    { code: 'IW', description: 'Incorrect Item', color: 'bg-red-500 hover:bg-red-600' },
+    { code: 'IQ', description: 'Incorrect Quantity', color: 'bg-orange-500 hover:bg-orange-600' },
+    { code: 'PF', description: 'Payment Failed', color: 'bg-orange-500 hover:bg-orange-600' },
+    { code: 'CR', description: 'Customer Refused', color: 'bg-blue-500 hover:bg-blue-600' },
+];
+
+
 const OrderDetailItem = ({ icon, label, children }: { icon: React.ElementType, label: string, children: React.ReactNode }) => {
     const Icon = icon;
     return (
@@ -43,6 +61,7 @@ const OrderDetailItem = ({ icon, label, children }: { icon: React.ElementType, l
 export default function OrderDetailsPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
   const { toast } = useToast();
   const params = useParams();
   const orderId = params.orderId as string;
@@ -75,13 +94,14 @@ export default function OrderDetailsPage() {
     }
   }, [orderId]);
 
-  const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: Order['status'], reason?: string) => {
     try {
-        await updateOrderStatus(orderId, newStatus);
+        await updateOrderStatus(orderId, newStatus, reason);
         toast({
             title: "Success",
             description: `Order ${orderId} has been updated to ${newStatus}.`
         });
+        setReturnDialogOpen(false); // Close dialog on success
         fetchOrderDetails(); // Re-fetch to update UI
     } catch (error) {
         console.error("Failed to update order status:", error);
@@ -131,6 +151,7 @@ export default function OrderDetailsPage() {
                 </CardTitle>
                 <CardDescription>
                     {order.status === 'Moving' ? 'Active delivery. Navigate to the destination.' : 'View and manage this delivery.'}
+                     {order.status === 'Returning' && ` - Reason: ${order.returnReason}`}
                 </CardDescription>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-8">
@@ -181,9 +202,39 @@ export default function OrderDetailsPage() {
                     <Button size="lg" className="w-full text-lg font-bold bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(order.id, 'Delivered')}>
                         <Check className="mr-2" /> Mark as Delivered
                     </Button>
-                    <Button size="lg" variant="outline" className="w-full text-lg font-bold border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600" onClick={() => handleStatusUpdate(order.id, 'Returning')}>
-                        <Undo2 className="mr-2" /> Initiate Return
-                    </Button>
+
+                    <AlertDialog open={isReturnDialogOpen} onOpenChange={setReturnDialogOpen}>
+                        <AlertDialogTrigger asChild>
+                             <Button size="lg" variant="outline" className="w-full text-lg font-bold border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600">
+                                <Undo2 className="mr-2" /> Initiate Return
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Select Reason for Return</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Choose the most accurate reason for returning this delivery. This will be reported to dispatch.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="grid grid-cols-2 gap-3 py-4">
+                                {returnReasons.map(reason => (
+                                    <Button
+                                        key={reason.code}
+                                        variant="default"
+                                        className={cn('h-16 text-base font-semibold', reason.color)}
+                                        onClick={() => handleStatusUpdate(order.id, 'Returning', reason.description)}
+                                    >
+                                        {reason.description}
+                                    </Button>
+                                ))}
+                            </div>
+                            <AlertDialogFooter>
+                                <Button variant="ghost" onClick={() => setReturnDialogOpen(false)}>
+                                    <X className="mr-2" /> Cancel
+                                </Button>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             )}
 
