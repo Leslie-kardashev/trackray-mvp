@@ -10,7 +10,7 @@ let sosMessages: SOSMessage[] = [];
 
 // Initialize with some mock data if the lists are empty
 const ghanaLocations = {
-    "Accra": { lat: 5.6037, lng: -0.1870 },
+    "Achimota Mall": { lat: 5.6416, lng: -0.2343 },
     "Kumasi": { lat: 6.6886, lng: -1.6244 },
     "Takoradi": { lat: 4.9048, lng: -1.7553 },
     "Tema": { lat: 5.6667, lng: -0.0167 },
@@ -24,7 +24,7 @@ if (orders.length === 0) {
             quantity: 20,
             status: 'Pending',
             pickup: { address: 'Tema', coords: ghanaLocations['Tema'] },
-            destination: { address: 'Accra', coords: ghanaLocations['Accra'] },
+            destination: { address: 'Achimota Mall', coords: ghanaLocations['Achimota Mall'] },
             recipientName: 'Ama Serwaa',
             recipientPhone: '+233 24 111 2222',
             confirmationMethod: 'SIGNATURE',
@@ -37,7 +37,7 @@ if (orders.length === 0) {
             quantity: 50,
             status: 'Pending',
             pickup: { address: 'Kumasi', coords: ghanaLocations['Kumasi'] },
-            destination: { address: 'Takoradi', coords: ghanaLocations['Takoradi'] },
+            destination: { address: 'Achimota Mall', coords: ghanaLocations['Achimota Mall'] },
             recipientName: 'Kwesi Jones',
             recipientPhone: '+233 20 333 4444',
             confirmationMethod: 'PHOTO',
@@ -49,8 +49,8 @@ if (orders.length === 0) {
             itemDescription: 'Emergency Medical Supplies',
             quantity: 5,
             status: 'Pending',
-            pickup: { address: 'Accra', coords: ghanaLocations['Accra'] },
-            destination: { address: 'Kumasi', coords: ghanaLocations['Kumasi'] },
+            pickup: { address: 'Takoradi', coords: ghanaLocations['Takoradi'] },
+            destination: { address: 'Achimota Mall', coords: ghanaLocations['Achimota Mall'] },
             recipientName: 'Dr. Evelyn Adjei',
             recipientPhone: '+233 55 555 6666',
             confirmationMethod: 'OTP',
