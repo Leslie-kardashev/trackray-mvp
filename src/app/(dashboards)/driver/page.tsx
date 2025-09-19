@@ -68,7 +68,6 @@ export default function DriverDashboard() {
   useEffect(() => {
     fetchAllOrders();
     // This effect now depends on refreshKey, so we can trigger it from anywhere.
-    // For now, it runs on mount and when coming back to the page.
   }, [refreshKey]);
 
 
