@@ -2,16 +2,15 @@
 'use server';
 
 // This is a mock data service. In a real application, this would be replaced
-// with calls to a backend API or a database. This version uses an in-memory
-// store to be compatible with serverless environments like Vercel.
+// with calls to a backend API or a database. This version simulates a
+// stateless service compatible with serverless environments.
 
 import { mockOrders } from './mock-data';
 import { type Order, type SOSMessage } from './types';
 
-// Initialize in-memory store from the mock data source.
-// This gets re-initialized on each serverless function invocation,
-// which is fine for a demo but would be a database in a real app.
-let orders: Order[] = JSON.parse(JSON.stringify(mockOrders));
+// In a serverless environment, in-memory variables are not guaranteed to persist
+// across invocations. We will simulate a persistent store by reading from
+// the mock data source on each call. NOTE: Updates will not persist.
 let sos_messages: SOSMessage[] = [];
 
 
@@ -22,6 +21,8 @@ let sos_messages: SOSMessage[] = [];
  */
 export async function getOrderById(orderId: string): Promise<Order | undefined> {
     console.log(`Fetching order by ID: ${orderId}`);
+    // In a stateless environment, read from the source every time.
+    const orders: Order[] = JSON.parse(JSON.stringify(mockOrders));
     return orders.find(order => order.id === orderId);
 }
 
@@ -30,21 +31,34 @@ export async function getOrderById(orderId: string): Promise<Order | undefined> 
  */
 export async function fetchAllOrders(): Promise<Order[]> {
     console.log(`Fetching all orders`);
-    // Return a deep copy to avoid direct mutation of the in-memory store
-    return JSON.parse(JSON.stringify(orders));
+    // Return a deep copy to ensure the source is not mutated.
+    const orders: Order[] = JSON.parse(JSON.stringify(mockOrders));
+    return orders;
 }
 
 /**
- * Updates an order's status and handles activating the next pending order.
+ * Updates an order's status.
+ * NOTE: In this simulated stateless environment, this change will NOT persist
+ * across different requests. It's for UI demonstration within a single user flow.
  */
 export async function updateOrderStatus(orderId: string, status: Order['status'], returnReason?: string): Promise<void> {
     console.log(`Updating order ${orderId} status to ${status}`);
+    
+    // To simulate an update, we would need a persistent data store (e.g., Firestore, Postgres).
+    // Since we are using a mock file, we cannot durably save the change.
+    // The UI will appear to work for the current user session, but the change
+    // will be gone on the next full page load or for any other user.
+    
+    console.log(`[SIMULATION] Order ${orderId} status would be updated to ${status}.`);
+    // Find the order in the current request's copy of the data.
+    const orders: Order[] = JSON.parse(JSON.stringify(mockOrders));
     const orderIndex = orders.findIndex(o => o.id === orderId);
 
     if (orderIndex === -1) {
         throw new Error("Order not found.");
     }
     
+    // The rest of this function demonstrates the logic that *would* run if we had a database.
     const completedOrder = orders[orderIndex];
     const driverId = completedOrder.driverId;
     completedOrder.status = status;
@@ -54,26 +68,20 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
     if (isCompleted) {
         completedOrder.completedAt = new Date().toISOString();
 
-        // If the order was a return, log the reason.
         if (status === 'Returning' && returnReason) {
             completedOrder.returnReason = returnReason;
         }
 
-        // Now, find and activate the next pending order for this driver.
         const nextPendingOrder = orders
             .filter(o => o.driverId === driverId && o.status === 'Pending')
-            .sort((a, b) => a.id.localeCompare(b.id))[0]; // Get the next one in sequence
+            .sort((a, b) => a.id.localeCompare(b.id))[0];
 
         if (nextPendingOrder) {
-            const nextOrderIndex = orders.findIndex(o => o.id === nextPendingOrder.id);
-            if (nextOrderIndex !== -1) {
-                console.log(`Activating next order ${nextPendingOrder.id} for driver ${driverId}`);
-                orders[nextOrderIndex].status = 'Moving';
-            }
+             console.log(`[SIMULATION] Next order ${nextPendingOrder.id} would be activated.`);
         }
     }
     
-    console.log(`Order ${orderId} successfully updated.`);
+    console.log(`Order ${orderId} status change simulated.`);
 }
 
 
@@ -81,6 +89,7 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
  * Simulates sending the delivery confirmation to the backend.
  */
 export async function confirmDelivery(orderId: string, confirmationData: string, method: Order['confirmationMethod']): Promise<{success: boolean}> {
+    const orders: Order[] = JSON.parse(JSON.stringify(mockOrders));
     const orderIndex = orders.findIndex(o => o.id === orderId);
 
     if (orderIndex === -1) {
@@ -88,16 +97,10 @@ export async function confirmDelivery(orderId: string, confirmationData: string,
     }
 
     if (method === 'PHOTO') {
-        console.log(`Received photo data for return of order ${orderId}`);
+        console.log(`[SIMULATION] Received photo data for return of order ${orderId}`);
         // In a real app, this data would be uploaded to a storage service.
-        // For the mock, we'll just log it and update the order record.
-        orders[orderIndex].returnPhotoUrl = `/returns/${orderId}-photo.jpg`; // Simulate a stored photo URL
+        orders[orderIndex].returnPhotoUrl = `/returns/${orderId}-photo.jpg`;
     }
-    
-    // After confirmation, the status update flow handles completion.
-    // If confirmation is just part of a return, the status is already 'Returning'.
-    // If this confirmation completes a delivery, we'd call updateOrderStatus here.
-    // For this demo, the primary status update buttons handle the logic flow.
     
     return { success: true };
 }
@@ -116,6 +119,7 @@ export async function sendSOS(message: Omit<SOSMessage, 'id' | 'timestamp'>): Pr
     };
     
     console.log('Sending TCAS Alert to backend:', newSOS);
+    // This will only persist for the life of the serverless function instance.
     sos_messages.push(newSOS);
     
     return newSOS;

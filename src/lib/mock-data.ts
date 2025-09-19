@@ -69,7 +69,7 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
   if (driverId === 'DRV-001') {
       if (i === 1) { // This is ORD-102 for DRV-001, make it the active one
           status = 'Moving';
-      } else if (i > 1 && i < 7) { // The next few orders are pending
+      } else if (i > 1 && i < 7 && i % 2 !== 0) { // The next few orders are pending
           status = 'Pending';
       } else { // The rest are completed
           status = completedStatuses[i % completedStatuses.length];
