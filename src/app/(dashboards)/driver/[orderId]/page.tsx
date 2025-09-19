@@ -194,7 +194,10 @@ export default function OrderDetailsPage() {
             )}
 
             {order.status === 'Returning' && (
-                <DeliveryConfirmationPhoto orderId={order.id} onConfirmed={fetchOrderDetails} />
+                <DeliveryConfirmationPhoto 
+                    orderId={order.id} 
+                    onConfirmed={() => handleStatusUpdate(order.id, 'Delivered')} 
+                />
             )}
 
             {order.status === 'Moving' && (

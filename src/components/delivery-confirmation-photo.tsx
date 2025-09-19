@@ -47,7 +47,7 @@ export function DeliveryConfirmationPhoto({ orderId, onConfirmed }: { orderId: s
       }
     };
 
-    if (hasCameraPermission === null) {
+    if (hasCameraPermission === null && !photoData) {
         getCameraPermission();
     }
 
@@ -58,7 +58,7 @@ export function DeliveryConfirmationPhoto({ orderId, onConfirmed }: { orderId: s
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [hasCameraPermission, toast]);
+  }, [hasCameraPermission, toast, photoData]);
 
   const takePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -74,23 +74,29 @@ export function DeliveryConfirmationPhoto({ orderId, onConfirmed }: { orderId: s
     
     const dataUrl = canvas.toDataURL('image/jpeg');
     setPhotoData(dataUrl);
+
+    // Stop video stream after taking photo
+    if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+    }
   };
 
   const retakePhoto = () => {
     setPhotoData(null);
+    setHasCameraPermission(null); // This will trigger re-requesting permission
   };
 
   const handleSubmit = async () => {
     if (!photoData) return;
     setIsSubmitting(true);
     try {
-      // For returns, we confirm delivery but the status remains 'Returning' for backend processing
       await confirmDelivery(orderId, photoData, 'PHOTO');
       toast({
         title: 'Return Photo Submitted!',
-        description: 'The photo has been submitted. Proceed with returning the goods.',
+        description: 'The photo has been submitted. The return process is now complete.',
       });
-      onConfirmed(); // Trigger refresh on parent
+      onConfirmed();
     } catch (error) {
       console.error('Failed to submit return photo:', error);
       toast({
@@ -103,7 +109,7 @@ export function DeliveryConfirmationPhoto({ orderId, onConfirmed }: { orderId: s
     }
   };
 
-  if (hasCameraPermission === null) {
+  if (hasCameraPermission === null && !photoData) {
       return <Skeleton className="h-96 w-full" />;
   }
 
