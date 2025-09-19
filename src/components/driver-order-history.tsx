@@ -31,6 +31,26 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
+const ItemDescription = ({ items }: { items: string[] }) => {
+    if (!items || items.length === 0) {
+        return <span className="text-muted-foreground">No items</span>;
+    }
+    const firstItem = items[0];
+    const remainingCount = items.length - 1;
+
+    return (
+        <>
+            {firstItem}
+            {remainingCount > 0 && (
+                <span className="text-xs text-muted-foreground ml-1">
+                    (+{remainingCount})
+                </span>
+            )}
+        </>
+    );
+};
+
+
 // This is now a "dumb" component that just receives props
 export function DriverOrderHistory({ orders }: { orders: Order[] }) {
 
@@ -49,7 +69,7 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
           <TableHeader>
             <TableRow>
               <TableHead>Order ID</TableHead>
-              <TableHead>Item</TableHead>
+              <TableHead>Item(s)</TableHead>
               <TableHead>Destination</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Completed On</TableHead>
@@ -60,7 +80,9 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
               orders.map((order) => (
                 <TableRow key={order.id}>
                     <TableCell className="font-mono">{order.id}</TableCell>
-                    <TableCell className="font-medium">{order.itemDescription}</TableCell>
+                    <TableCell className="font-medium">
+                       <ItemDescription items={order.items} />
+                    </TableCell>
                     <TableCell>{order.destination.address}</TableCell>
                     <TableCell>
                         <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status])}>

@@ -10,8 +10,7 @@ export type Location = {
 export type Order = {
   id: string; // Document ID from Firestore
   driverId: string; // ID of the assigned driver
-  itemDescription: string; // e.g., "50 Bags of Lele Rice"
-  quantity: number;
+  items: string[]; // e.g., ["50 Bags of Lele Rice", "20 Boxes of Indomie"]
   status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
   
   pickup: Location;

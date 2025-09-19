@@ -20,10 +20,17 @@ const getRandomLocation = () => {
   return { address: name, coords: ghanaLocations[name as keyof typeof ghanaLocations] };
 }
 
-const itemDescriptions = [
-    "Cases of Nestlé Milo", "Boxes of Gino Tomato Mix", "Sacks of Cowbell Milk Powder", 
-    "Cartons of Frytol Cooking Oil", "Pallets of Ideal Milk", "Boxes of Indomie Noodles",
-    "Sacks of Omo Detergent", "Cases of Club Beer", "Crates of Coca-Cola", "Bags of Royal Aroma Rice"
+const itemBases = [
+    { product: "Nestlé Milo", unit: "Cases" },
+    { product: "Gino Tomato Mix", unit: "Boxes" },
+    { product: "Cowbell Milk Powder", unit: "Sacks" },
+    { product: "Frytol Cooking Oil", unit: "Cartons" },
+    { product: "Ideal Milk", unit: "Pallets" },
+    { product: "Indomie Noodles", unit: "Boxes" },
+    { product: "Omo Detergent", unit: "Sacks" },
+    { product: "Club Beer", unit: "Cases" },
+    { product: "Coca-Cola", unit: "Crates" },
+    { product: "Royal Aroma Rice", unit: "Bags" }
 ];
 
 const recipientNames = [
@@ -31,6 +38,18 @@ const recipientNames = [
     "Palace Supermarket", "Koala Shopping Center", "CityDia - Tema",
     "Distributor - Koforidua", "Wholesale Supply - Takoradi", "Jumia Warehouse", "Local Market - Tamale"
 ];
+
+// Function to generate a random list of items for an order
+const generateItems = (count: number): string[] => {
+    const items = new Set<string>();
+    while (items.size < count) {
+        const itemBase = itemBases[Math.floor(Math.random() * itemBases.length)];
+        const quantity = Math.floor(Math.random() * 50) + 5;
+        items.add(`${quantity} ${itemBase.unit} of ${itemBase.product}`);
+    }
+    return Array.from(items);
+};
+
 
 export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
   const id = `ORD-${101 + i}`;
@@ -40,17 +59,31 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
     destination = getRandomLocation();
   }
   
-  const statuses: Order['status'][] = ['Pending', 'Moving', 'Delivered', 'Returning', 'Cancelled'];
+  const statuses: Order['status'][] = ['Pending', 'Delivered', 'Returning', 'Cancelled'];
   let status: Order['status'];
-  if (i < 2) {
-    status = 'Moving'; // Ensure at least one is active
-  } else if (i < 5) {
-    status = 'Pending';
-  } else if (i < 15) {
-    status = 'Delivered';
+  
+  // Assign driver and set status logic
+  const driverId = (i % 4 === 0) ? 'DRV-002' : 'DRV-001'; // Assign to different drivers
+  
+  if (driverId === 'DRV-001') {
+      if (i === 1) { // The first order for DRV-001
+          status = 'Moving';
+      } else if (i < 5) {
+          status = 'Pending';
+      } else if (i < 15) {
+          status = 'Delivered';
+      } else {
+          status = statuses[Math.floor(Math.random() * statuses.length)];
+      }
   } else {
-    status = statuses[Math.floor(Math.random() * statuses.length)];
+      // Logic for DRV-002 (can be different if needed)
+       if (i === 0) {
+           status = 'Pending'
+       } else {
+           status = 'Delivered';
+       }
   }
+
 
   const confirmationMethods: Order['confirmationMethod'][] = ['PHOTO', 'SIGNATURE', 'OTP'];
 
@@ -61,14 +94,14 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
       completedAt = date.toISOString();
   }
 
-  const driverId = (i % 3 === 0) ? 'DRV-002' : 'DRV-001'; // Assign to different drivers
-  const quantity = Math.floor(Math.random() * 50) + 5;
+  // Generate single or bundled items
+  const itemCount = (i % 5 === 2) ? 3 : (i % 5 === 4) ? 2 : 1; // Create some bundled orders
+  const items = generateItems(itemCount);
 
   return {
     id,
     driverId: driverId,
-    itemDescription: `${quantity} ${itemDescriptions[i % itemDescriptions.length]}`,
-    quantity: quantity,
+    items,
     status,
     pickup,
     destination,

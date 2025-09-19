@@ -33,6 +33,26 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
+const ItemDescription = ({ items }: { items: string[] }) => {
+    if (!items || items.length === 0) {
+        return <span className="text-muted-foreground">No items</span>;
+    }
+    const firstItem = items[0];
+    const remainingCount = items.length - 1;
+
+    return (
+        <div className="flex flex-col">
+            <span className="font-medium">{firstItem}</span>
+            {remainingCount > 0 && (
+                <span className="text-xs text-muted-foreground">
+                    + {remainingCount} more item{remainingCount > 1 ? 's' : ''}
+                </span>
+            )}
+        </div>
+    );
+};
+
+
 export function DriverDeliveries({ orders }: { orders: Order[] }) {
   
   const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
@@ -47,7 +67,9 @@ export function DriverDeliveries({ orders }: { orders: Order[] }) {
         })}>
           <TableCell className="font-bold text-center w-12 hidden sm:table-cell">{index + 1}</TableCell>
           <TableCell className="font-mono text-xs">{order.id}</TableCell>
-          <TableCell className="hidden md:table-cell font-medium">{order.itemDescription}</TableCell>
+          <TableCell className="hidden md:table-cell">
+            <ItemDescription items={order.items} />
+          </TableCell>
           <TableCell className="font-medium text-sm">{order.destination.address}</TableCell>
           <TableCell>
               <Badge variant="outline" className={cn("font-semibold text-xs", statusStyles[order.status], {
@@ -85,7 +107,7 @@ export function DriverDeliveries({ orders }: { orders: Order[] }) {
             <TableRow>
               <TableHead className="text-center w-12 hidden sm:table-cell">#</TableHead>
               <TableHead>Order ID</TableHead>
-              <TableHead className="hidden md:table-cell">Item</TableHead>
+              <TableHead className="hidden md:table-cell">Item(s)</TableHead>
               <TableHead>Destination</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right"></TableHead>

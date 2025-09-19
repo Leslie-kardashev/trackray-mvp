@@ -52,7 +52,7 @@ const OrderDetailItem = ({ icon, label, children }: { icon: React.ElementType, l
             <Icon className="w-5 h-5 text-muted-foreground mt-1" />
             <div>
                 <p className="font-semibold text-muted-foreground">{label}</p>
-                <p className="text-lg font-medium">{children}</p>
+                <div className="text-lg font-medium">{children}</div>
             </div>
         </div>
     );
@@ -156,8 +156,10 @@ export default function OrderDetailsPage() {
                 </CardDescription>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-8">
-                    <OrderDetailItem icon={Package} label="Item Description">
-                        {order.itemDescription}
+                    <OrderDetailItem icon={Package} label="Items">
+                        <ul className="list-disc list-inside space-y-1">
+                            {order.items.map((item, index) => <li key={index}>{item}</li>)}
+                        </ul>
                     </OrderDetailItem>
                     <OrderDetailItem icon={MapPin} label="Destination">
                         {order.destination.address}
