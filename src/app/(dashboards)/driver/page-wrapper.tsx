@@ -2,9 +2,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type Order } from '@/lib/types';
-import { fetchAllOrders } from '@/lib/data-service';
+import { fetchAllOrders, updateOrderStatus as mockUpdateOrderStatus } from '@/lib/data-service';
 import { DriverDeliveries } from "@/components/driver-deliveries";
 import { DriverOrderHistory } from "@/components/driver-order-history";
 import { DriverSOS } from "@/components/driver-sos";
@@ -42,6 +42,7 @@ export default function DriverDashboard() {
   const getOrders = useCallback(async () => {
     setIsLoading(true);
     try {
+      // Fetch initial data once
       const fetchedOrders = await fetchAllOrders(); 
       const driverOrders = fetchedOrders.filter(o => o.driverId === driverId);
       setAllOrders(driverOrders);
