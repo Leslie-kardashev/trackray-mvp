@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAssignedOrders } from '@/lib/data-service';
+import { collection, query, where, onSnapshot, Timestamp } from 'firebase/firestore';
+import { db } from '@/lib/firebase-config';
 import { type Order } from '@/lib/types';
 import { DriverDeliveries } from "@/components/driver-deliveries";
 import { DriverOrderHistory } from "@/components/driver-order-history";
@@ -18,12 +19,24 @@ export default function DriverDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const [refreshKey, setRefreshKey] = useState(0);
+  useEffect(() => {
+    const driverId = "DRV-001"; // Hardcoded for now
+    const ordersCollection = collection(db, 'orders');
+    // In a real app, you would have the driverId from authentication
+    const q = query(ordersCollection, where("driverId", "==", driverId));
 
-  const fetchAllOrders = async () => {
-    try {
-      setIsLoading(true);
-      const allOrders = await getAssignedOrders("DRV-001");
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const allOrders: Order[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        allOrders.push({ 
+          id: doc.id,
+          ...data,
+          // Convert Firestore Timestamps to ISO strings if they exist
+          requestedDeliveryTime: (data.requestedDeliveryTime as Timestamp)?.toDate().toISOString(),
+          completedAt: (data.completedAt as Timestamp)?.toDate().toISOString(),
+        } as Order);
+      });
 
       const active = allOrders.filter(
         o => o.status === 'Moving' || o.status === 'Pending'
@@ -47,31 +60,21 @@ export default function DriverDashboard() {
 
       setActiveOrders(sortedActive);
       setHistoryOrders(sortedHistory);
-    } catch (error) {
+      setIsLoading(false);
+    }, (error) => {
       console.error("Failed to fetch driver orders:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Could not fetch your deliveries.",
+        description: "Could not fetch your deliveries. Please check your connection.",
       });
-    } finally {
       setIsLoading(false);
-    }
-  };
+    });
 
-  useEffect(() => {
-    fetchAllOrders();
-  }, [refreshKey]);
+    // Cleanup subscription on component unmount
+    return () => unsubscribe();
+  }, [toast]);
 
-  useEffect(() => {
-    const handleFocus = () => {
-      setRefreshKey(prev => prev + 1);
-    };
-    window.addEventListener('focus', handleFocus);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, []);
 
   return (
     <div className="space-y-8">

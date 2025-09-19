@@ -8,7 +8,8 @@ export type Location = {
 };
 
 export type Order = {
-  id: string; // e.g., "ORD-123"
+  id: string; // Document ID from Firestore
+  driverId: string; // ID of the assigned driver
   itemDescription: string; // e.g., "20 boxes of Grade A Cocoa Beans"
   quantity: number;
   status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
@@ -18,10 +19,11 @@ export type Order = {
 
   recipientName: string;
   recipientPhone: string;
-  requestedDeliveryTime?: string; // e.g., "2024-07-18T14:00:00Z"
+  requestedDeliveryTime?: string; // ISO string
   productPrice?: number;
-  completedAt?: string; // Timestamp for when the order was delivered or cancelled
+  completedAt?: string; // ISO string
   returnReason?: string; // Reason for the return
+  returnPhotoUrl?: string; // URL to the photo of the returned item
 
   // Defines what the driver needs to collect upon delivery
   confirmationMethod: 'PHOTO' | 'SIGNATURE' | 'OTP';
