@@ -20,7 +20,6 @@ export default function DriverDashboard() {
   const driverId = "DRV-001"; // Hardcoded for now
 
   const getOrders = useCallback(async () => {
-    console.log('Fetching orders...');
     setIsLoading(true);
     try {
       const fetchedOrders = await fetchAllOrders(); 
@@ -42,9 +41,8 @@ export default function DriverDashboard() {
     getOrders();
   }, [getOrders]);
   
-  const handleStatusUpdate = useCallback(async (orderId: string, newStatus: Order['status'], reason?: string) => {
+  const handleStatusUpdate = useCallback(async (orderId: string, newStatus: Order['status'], reason?: string): Promise<boolean> => {
     try {
-        // Call the mock API to simulate the backend call
         await apiUpdateOrderStatus(orderId, newStatus, reason);
 
         toast({
@@ -52,20 +50,22 @@ export default function DriverDashboard() {
             description: `Order ${orderId} has been updated to ${newStatus}.`
         });
 
-        // Update local state to reflect the change immediately
-        setAllOrders(currentOrders => {
-            return currentOrders.map(order => {
+        setAllOrders(currentOrders => 
+            currentOrders.map(order => {
                 if (order.id === orderId) {
-                    const updatedOrder = { ...order, status: newStatus, returnReason: reason };
-                    const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
-                    if (isTerminalStatus) {
+                    const updatedOrder = { ...order, status: newStatus };
+                    if (reason) {
+                        updatedOrder.returnReason = reason;
+                    }
+                    if (newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled') {
                         updatedOrder.completedAt = new Date().toISOString();
                     }
                     return updatedOrder;
                 }
                 return order;
-            });
-        });
+            })
+        );
+        return true;
 
     } catch (error) {
         console.error("Failed to update order status:", error);
@@ -74,6 +74,7 @@ export default function DriverDashboard() {
             title: "Error",
             description: `Could not update order ${orderId}.`
         });
+        return false;
     }
   }, [toast]);
 
@@ -82,11 +83,8 @@ export default function DriverDashboard() {
     const active = allOrders.filter(
       o => o.status === 'Moving' || o.status === 'Pending'
     ).sort((a, b) => {
-        // 'Moving' status always comes first
         if (a.status === 'Moving' && b.status !== 'Moving') return -1;
         if (a.status !== 'Moving' && b.status === 'Moving') return 1;
-        
-        // Then sort by ID or creation date if available
         return a.id.localeCompare(b.id);
       });
 

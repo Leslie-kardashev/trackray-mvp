@@ -68,56 +68,55 @@ export default function OrderDetailsPage() {
   const router = useRouter();
   const orderId = params.orderId as string;
 
-  const fetchOrderDetails = async () => {
-    if (!orderId) return;
-    try {
-        setIsLoading(true);
-        const fetchedOrder = await getOrderById(orderId);
-        if (fetchedOrder) {
-            setOrder(fetchedOrder);
-        } else {
-            notFound();
-        }
-    } catch (error) {
-        console.error("Failed to fetch order details:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not fetch order details.",
-        });
-    } finally {
-        setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (orderId) {
+      const fetchOrderDetails = async () => {
+        setIsLoading(true);
+        try {
+            const fetchedOrder = await getOrderById(orderId);
+            if (fetchedOrder) {
+                setOrder(fetchedOrder);
+            } else {
+                notFound();
+            }
+        } catch (error) {
+            console.error("Failed to fetch order details:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not fetch order details.",
+            });
+        } finally {
+            setIsLoading(false);
+        }
+      };
       fetchOrderDetails();
     }
-  }, [orderId]);
+  }, [orderId, toast]);
 
-  const handleStatusUpdate = async (orderId: string, newStatus: Order['status'], reason?: string) => {
+  const handleStatusUpdate = async (newStatus: Order['status'], reason?: string) => {
+    if (!order) return;
     try {
-        await updateOrderStatus(orderId, newStatus, reason);
+        await updateOrderStatus(order.id, newStatus, reason);
 
         toast({
             title: "Success",
-            description: `Order ${orderId} has been updated to ${newStatus}.`
+            description: `Order ${order.id} has been updated to ${newStatus}.`
         });
         
         const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
-
-        if (order) {
-            const updatedOrder = { ...order, status: newStatus, returnReason: reason };
-            if (isTerminalStatus) {
-                updatedOrder.completedAt = new Date().toISOString();
-            }
-            setOrder(updatedOrder);
+        
+        const updatedOrder = { ...order, status: newStatus, returnReason: reason };
+        if (isTerminalStatus) {
+            updatedOrder.completedAt = new Date().toISOString();
         }
+        setOrder(updatedOrder);
         
         if (isTerminalStatus) {
             setTimeout(() => {
                 router.push('/driver');
+                // Force a reload to ensure the parent page re-fetches data
+                setTimeout(() => window.location.reload(), 100); 
             }, 1500);
         }
         
@@ -125,13 +124,12 @@ export default function OrderDetailsPage() {
             setReturnDialogOpen(false);
         }
 
-
     } catch (error) {
         console.error("Failed to update order status:", error);
         toast({
             variant: "destructive",
             title: "Error",
-            description: `Could not update order ${orderId}.`
+            description: `Could not update order ${order.id}.`
         });
     }
   };
@@ -244,23 +242,22 @@ export default function OrderDetailsPage() {
             )}
             
             {order.status === 'Pending' && (
-                <Button size="lg" className="w-full text-lg font-bold" onClick={() => handleStatusUpdate(order.id, 'Moving')}>
+                <Button size="lg" className="w-full text-lg font-bold" onClick={() => handleStatusUpdate('Moving')}>
                     <PlayCircle className="mr-2" /> Start Delivery
                 </Button>
             )}
 
-            {order.status === 'Returning' && !photoSubmitted && (
+            {order.status === 'Returning' && !order.returnPhotoUrl && !photoSubmitted &&(
                 <DeliveryConfirmationPhoto 
                     orderId={order.id} 
                     onConfirmed={() => {
                         setPhotoSubmitted(true);
-                        // Now trigger the final step of the update process
-                        handleStatusUpdate(order.id, 'Returning', order.returnReason);
+                        handleStatusUpdate('Returning', order.returnReason);
                     }}
                 />
             )}
             
-            {order.status === 'Returning' && photoSubmitted && (
+            {(order.status === 'Returning' && (order.returnPhotoUrl || photoSubmitted)) && (
                  <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
                     <CardHeader className="text-center">
                         <CardTitle className="text-orange-700 dark:text-orange-300 flex items-center justify-center gap-2">
@@ -275,7 +272,7 @@ export default function OrderDetailsPage() {
 
             {order.status === 'Moving' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button size="lg" className="w-full text-lg font-bold bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(order.id, 'Delivered')}>
+                    <Button size="lg" className="w-full text-lg font-bold bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate('Delivered')}>
                         <Check className="mr-2" /> Mark as Delivered
                     </Button>
 
@@ -298,12 +295,7 @@ export default function OrderDetailsPage() {
                                         key={reason.code}
                                         variant="default"
                                         className={cn('h-16 text-base font-semibold', reason.color)}
-                                        onClick={() => {
-                                            if (order) {
-                                                setOrder({ ...order, status: 'Returning', returnReason: reason.description });
-                                            }
-                                            setReturnDialogOpen(false);
-                                        }}
+                                        onClick={() => handleStatusUpdate('Returning', reason.description)}
                                     >
                                         {reason.description}
                                     </Button>
