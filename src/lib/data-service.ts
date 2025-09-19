@@ -35,7 +35,7 @@ export async function fetchAllOrders(): Promise<Order[]> {
 }
 
 /**
- * Updates an order's status.
+ * Updates an order's status and handles activating the next pending order.
  */
 export async function updateOrderStatus(orderId: string, status: Order['status'], returnReason?: string): Promise<void> {
     console.log(`Updating order ${orderId} status to ${status}`);
@@ -45,13 +45,32 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
         throw new Error("Order not found.");
     }
     
-    orders[orderIndex].status = status;
+    const completedOrder = orders[orderIndex];
+    const driverId = completedOrder.driverId;
+    completedOrder.status = status;
 
-    if (status === 'Delivered' || status === 'Cancelled' || status === 'Returning') {
-        orders[orderIndex].completedAt = new Date().toISOString();
-    }
-    if (status === 'Returning' && returnReason) {
-        orders[orderIndex].returnReason = returnReason;
+    const isCompleted = status === 'Delivered' || status === 'Cancelled' || status === 'Returning';
+
+    if (isCompleted) {
+        completedOrder.completedAt = new Date().toISOString();
+
+        // If the order was a return, log the reason.
+        if (status === 'Returning' && returnReason) {
+            completedOrder.returnReason = returnReason;
+        }
+
+        // Now, find and activate the next pending order for this driver.
+        const nextPendingOrder = orders
+            .filter(o => o.driverId === driverId && o.status === 'Pending')
+            .sort((a, b) => a.id.localeCompare(b.id))[0]; // Get the next one in sequence
+
+        if (nextPendingOrder) {
+            const nextOrderIndex = orders.findIndex(o => o.id === nextPendingOrder.id);
+            if (nextOrderIndex !== -1) {
+                console.log(`Activating next order ${nextPendingOrder.id} for driver ${driverId}`);
+                orders[nextOrderIndex].status = 'Moving';
+            }
+        }
     }
     
     console.log(`Order ${orderId} successfully updated.`);
@@ -70,10 +89,15 @@ export async function confirmDelivery(orderId: string, confirmationData: string,
 
     if (method === 'PHOTO') {
         console.log(`Received photo data for return of order ${orderId}`);
-        orders[orderIndex].returnPhotoUrl = `/returns/${orderId}-photo.jpg`;
-    } else {
-        await updateOrderStatus(orderId, 'Delivered');
+        // In a real app, this data would be uploaded to a storage service.
+        // For the mock, we'll just log it and update the order record.
+        orders[orderIndex].returnPhotoUrl = `/returns/${orderId}-photo.jpg`; // Simulate a stored photo URL
     }
+    
+    // After confirmation, the status update flow handles completion.
+    // If confirmation is just part of a return, the status is already 'Returning'.
+    // If this confirmation completes a delivery, we'd call updateOrderStatus here.
+    // For this demo, the primary status update buttons handle the logic flow.
     
     return { success: true };
 }
