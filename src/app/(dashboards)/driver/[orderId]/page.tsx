@@ -170,11 +170,11 @@ export default function OrderDetailsPage() {
                 </Button>
             )}
 
-            {order.status === 'Moving' && order.confirmationMethod === 'PHOTO' && (
+            {order.status === 'Returning' && (
                 <DeliveryConfirmationPhoto orderId={order.id} onConfirmed={fetchOrderDetails} />
             )}
 
-            {order.status === 'Moving' && order.confirmationMethod !== 'PHOTO' && (
+            {order.status === 'Moving' && (
                 <Button size="lg" className="w-full text-lg font-bold bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(order.id, 'Delivered')}>
                     <Check className="mr-2" /> Mark as Delivered
                 </Button>

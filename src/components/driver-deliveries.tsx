@@ -51,6 +51,8 @@ export function DriverDeliveries() {
       const sortedOrders = driverOrders.sort((a, b) => {
         if (a.status === 'Moving' && b.status !== 'Moving') return -1;
         if (a.status !== 'Moving' && b.status === 'Moving') return 1;
+        if (a.status === 'Pending' && b.status !== 'Pending') return -1;
+        if (a.status !== 'Pending' && b.status === 'Pending') return 1;
         return a.id.localeCompare(b.id);
       });
 
@@ -74,7 +76,7 @@ export function DriverDeliveries() {
   const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
 
   const OrderRow = ({ order, index }: { order: Order, index: number }) => {
-    const isLocked = activeOrder && activeOrder.id !== order.id;
+    const isLocked = (activeOrder && activeOrder.id !== order.id) || order.status === 'Delivered' || order.status === 'Cancelled';
     const isCurrent = activeOrder && activeOrder.id === order.id;
 
     const rowContent = (

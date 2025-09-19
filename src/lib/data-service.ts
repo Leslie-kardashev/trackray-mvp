@@ -82,8 +82,8 @@ export async function getAssignedOrders(driverId: string): Promise<Order[]> {
   // const data = await response.json();
   // return data;
 
-  // For now, return the mock data.
-  return Promise.resolve(orders.filter(o => o.status === 'Pending' || o.status === 'Moving'));
+  // For now, return all mock data for the demo.
+  return Promise.resolve(orders);
 }
 
 /**
