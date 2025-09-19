@@ -2,10 +2,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getOrderById, updateOrderStatus } from '@/lib/data-service';
 import { type Order } from '@/lib/types';
 import Link from 'next/link';
-import { useParams, notFound, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,84 +57,62 @@ const OrderDetailItem = ({ icon, label, children, className }: { icon: React.Ele
     );
 }
 
-export default function OrderDetailsPage() {
-  const [order, setOrder] = useState<Order | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// This component is now "controlled" by the parent `DriverDashboard`
+export default function OrderDetailsPage({ 
+    order: initialOrder, 
+    onStatusUpdate 
+}: { 
+    order: Order | null;
+    onStatusUpdate: (orderId: string, newStatus: Order['status'], reason?: string) => void;
+}) {
+  const [order, setOrder] = useState<Order | null>(initialOrder);
+  const [isLoading, setIsLoading] = useState(false);
   const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
   const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const { toast } = useToast();
-  const params = useParams();
   const router = useRouter();
-  const orderId = params.orderId as string;
 
+  // If the initial order prop changes (e.g., due to parent state update), update the local state.
   useEffect(() => {
-    if (orderId) {
-      const fetchOrderDetails = async () => {
-        setIsLoading(true);
-        try {
-            const fetchedOrder = await getOrderById(orderId);
-            if (fetchedOrder) {
-                setOrder(fetchedOrder);
-            } else {
-                notFound();
-            }
-        } catch (error) {
-            console.error("Failed to fetch order details:", error);
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Could not fetch order details.",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-      };
-      fetchOrderDetails();
-    }
-  }, [orderId, toast]);
+    setOrder(initialOrder);
+  }, [initialOrder]);
 
   const handleStatusUpdate = async (newStatus: Order['status'], reason?: string) => {
     if (!order) return;
-    try {
-        await updateOrderStatus(order.id, newStatus, reason);
 
-        toast({
-            title: "Success",
-            description: `Order ${order.id} has been updated to ${newStatus}.`
-        });
-        
-        const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
-        
-        const updatedOrder = { ...order, status: newStatus, returnReason: reason };
-        if (isTerminalStatus) {
-            updatedOrder.completedAt = new Date().toISOString();
-        }
-        setOrder(updatedOrder);
-        
-        if (isTerminalStatus) {
+    // Call the parent's update function to modify the central state
+    onStatusUpdate(order.id, newStatus, reason);
+
+    // Update local state to reflect the change instantly in the UI
+    const updatedOrder = { ...order, status: newStatus, returnReason: reason };
+    if (newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled') {
+        updatedOrder.completedAt = new Date().toISOString();
+    }
+    setOrder(updatedOrder);
+
+    toast({
+        title: "Success",
+        description: `Order ${order.id} updated to ${newStatus}.`
+    });
+
+    if (newStatus === 'Returning') {
+        setReturnDialogOpen(false);
+    }
+
+    // After a terminal status update, navigate back to the dashboard
+    const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
+    if(isTerminalStatus) {
+        // If it's a return, we wait for the photo submission part to be shown
+        if (newStatus !== 'Returning' || photoSubmitted || order.returnPhotoUrl) {
             setTimeout(() => {
                 router.push('/driver');
-                // Force a reload to ensure the parent page re-fetches data
-                setTimeout(() => window.location.reload(), 100); 
             }, 1500);
         }
-        
-        if (newStatus === 'Returning') {
-            setReturnDialogOpen(false);
-        }
-
-    } catch (error) {
-        console.error("Failed to update order status:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: `Could not update order ${order.id}.`
-        });
     }
   };
 
 
-  if (isLoading || !order) {
+  if (!order) {
     return (
         <div className="space-y-6">
             <Skeleton className="h-12 w-48" />
@@ -252,7 +229,8 @@ export default function OrderDetailsPage() {
                     orderId={order.id} 
                     onConfirmed={() => {
                         setPhotoSubmitted(true);
-                        handleStatusUpdate('Returning', order.returnReason);
+                        // Now that photo is "submitted", trigger the final navigation
+                        setTimeout(() => router.push('/driver'), 1500);
                     }}
                 />
             )}

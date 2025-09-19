@@ -1,9 +1,12 @@
 
+'use client';
+// This needs to be a client component to use Suspense with client components.
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import DriverDashboard from './page-wrapper';
 
 export default function DriverDashboardPage() {
+    // The page-wrapper now handles all logic, including routing to the details view.
     return (
         <Suspense fallback={<DashboardSkeleton />}>
             <DriverDashboard />
