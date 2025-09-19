@@ -45,5 +45,7 @@ export type SOSMessage = {
   timestamp: string;
   message: string;
   location?: string;
-  problemCode: 'BT' | 'MF' | 'FS' | 'SOS' | 'TR' | 'NP' | 'AC' | 'PD' | 'BW' | 'CU' | 'SC' | 'OK';
+  problemCode: 'BT' | 'MF' | 'FS' | 'SOS' | 'TR' | 'NP' | 'AC' | 'PD' | 'BW' | 'CU' | 'SC';
 };
+
+    

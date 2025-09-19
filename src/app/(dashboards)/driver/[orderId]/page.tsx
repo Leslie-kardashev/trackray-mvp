@@ -142,7 +142,9 @@ export default function OrderDetailsPage() {
     )
   }
 
-  const totalAmountToCollect = (order.paymentType === 'Pay on Delivery' ? (order.productPrice || 0) : 0) + order.deliveryFee;
+  const totalAmountToCollect = order.paymentType === 'Pay on Delivery'
+    ? (order.productPrice || 0) + order.deliveryFee
+    : 0;
 
   return (
     <APIProvider apiKey={apiKey}>
@@ -212,6 +214,9 @@ export default function OrderDetailsPage() {
                             <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                 GHS {totalAmountToCollect.toFixed(2)}
                             </span>
+                             <div className="text-sm text-muted-foreground">
+                                (Product Price: GHS {order.productPrice?.toFixed(2)} + Delivery Fee: GHS {order.deliveryFee.toFixed(2)})
+                            </div>
                         </OrderDetailItem>
                     )}
                 </CardContent>
@@ -308,3 +313,5 @@ export default function OrderDetailsPage() {
     </APIProvider>
   );
 }
+
+    
