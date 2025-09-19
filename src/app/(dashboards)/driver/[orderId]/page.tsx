@@ -62,11 +62,10 @@ export default function OrderDetailsPage({
     order: initialOrder, 
     onStatusUpdate 
 }: { 
-    order: Order | null;
+    order: Order; // Now expecting a non-null order
     onStatusUpdate: (orderId: string, newStatus: Order['status'], reason?: string) => void;
 }) {
-  const [order, setOrder] = useState<Order | null>(initialOrder);
-  const [isLoading, setIsLoading] = useState(false);
+  const [order, setOrder] = useState<Order>(initialOrder);
   const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
   const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const { toast } = useToast();
@@ -98,11 +97,9 @@ export default function OrderDetailsPage({
     if (newStatus === 'Returning') {
         setReturnDialogOpen(false);
     }
-
-    // After a terminal status update, navigate back to the dashboard
+    
     const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
     if(isTerminalStatus) {
-        // If it's a return, we wait for the photo submission part to be shown
         if (newStatus !== 'Returning' || photoSubmitted || order.returnPhotoUrl) {
             setTimeout(() => {
                 router.push('/driver');
@@ -113,6 +110,7 @@ export default function OrderDetailsPage({
 
 
   if (!order) {
+    // This case should ideally not be hit if the parent component manages loading state
     return (
         <div className="space-y-6">
             <Skeleton className="h-12 w-48" />
