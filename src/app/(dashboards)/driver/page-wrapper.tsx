@@ -12,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListTodo, History } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import OrderDetailsPage from './[orderId]/page';
 
 function DashboardSkeleton() {
     return (
@@ -37,19 +36,9 @@ export default function DriverDashboard() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const pathname = usePathname();
 
   const driverId = "DRV-001"; // Hardcoded for now
   
-  const orderId = useMemo(() => {
-    const parts = pathname.split('/');
-    // Check if the path is for a specific order, e.g., /driver/ORD-101
-    if (parts.length === 3 && parts[1] === 'driver' && parts[2]) {
-      return parts[2];
-    }
-    return null;
-  }, [pathname]);
-
   const getOrders = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -72,25 +61,7 @@ export default function DriverDashboard() {
     getOrders();
   }, [getOrders]);
   
-  const handleStatusUpdate = useCallback((updatedOrderId: string, newStatus: Order['status'], reason?: string) => {
-    setAllOrders(currentOrders => 
-        currentOrders.map(order => {
-            if (order.id === updatedOrderId) {
-                const updatedOrder = { ...order, status: newStatus };
-                if (reason) {
-                    updatedOrder.returnReason = reason;
-                }
-                if (newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled') {
-                    updatedOrder.completedAt = new Date().toISOString();
-                }
-                return updatedOrder;
-            }
-            return order;
-        })
-    );
-  }, []);
-
-  const { activeOrders, historyOrders, selectedOrder } = useMemo(() => {
+  const { activeOrders, historyOrders } = useMemo(() => {
     const active = allOrders.filter(
       o => o.status === 'Moving' || o.status === 'Pending'
     ).sort((a, b) => {
@@ -107,32 +78,13 @@ export default function DriverDashboard() {
         return dateB - dateA;
       });
     
-    const selected = orderId ? allOrders.find(o => o.id === orderId) || null : null;
-
-    return { activeOrders: active, historyOrders: history, selectedOrder: selected };
-  }, [allOrders, orderId]);
+    return { activeOrders: active, historyOrders: history };
+  }, [allOrders]);
 
   if (isLoading) {
     return <DashboardSkeleton />;
   }
 
-  // If an orderId is present in the URL, show the details page.
-  if (orderId) {
-    // IMPORTANT: Only render the details page if the order has been found.
-    // Otherwise, you might pass null and crash the component.
-    if (selectedOrder) {
-      return (
-        <OrderDetailsPage 
-          order={selectedOrder} 
-          onStatusUpdate={handleStatusUpdate}
-        />
-      );
-    }
-    // If the order isn't found (or is still loading), show a skeleton.
-    return <DashboardSkeleton />;
-  }
-
-  // Otherwise, show the main dashboard.
   return (
     <div className="space-y-8">
       <div>
@@ -168,5 +120,3 @@ export default function DriverDashboard() {
     </div>
   );
 }
-
-    

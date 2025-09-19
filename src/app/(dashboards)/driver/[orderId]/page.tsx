@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getOrderById, updateOrderStatus, confirmDelivery } from '@/lib/data-service';
 import { type Order } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -57,53 +58,86 @@ const OrderDetailItem = ({ icon, label, children, className }: { icon: React.Ele
     );
 }
 
-// This component is now "controlled" by the parent `DriverDashboard`
-export default function OrderDetailsPage({ 
-    order, 
-    onStatusUpdate 
-}: { 
-    order: Order; // Now expecting a non-null order
-    onStatusUpdate: (orderId: string, newStatus: Order['status'], reason?: string) => void;
-}) {
+export default function OrderDetailsPage({ params }: { params: { orderId: string } }) {
+  const [order, setOrder] = useState<Order | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
   const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
+  useEffect(() => {
+    const fetchOrder = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedOrder = await getOrderById(params.orderId);
+        if (fetchedOrder) {
+          setOrder(fetchedOrder);
+        } else {
+          toast({ variant: 'destructive', title: 'Error', description: 'Order not found.' });
+          router.push('/driver');
+        }
+      } catch (error) {
+        console.error('Failed to fetch order details:', error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to load order details.' });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [params.orderId, router, toast]);
 
   const handleStatusUpdate = async (newStatus: Order['status'], reason?: string) => {
     if (!order) return;
 
-    // Call the parent's update function to modify the central state
-    onStatusUpdate(order.id, newStatus, reason);
+    try {
+        await updateOrderStatus(order.id, newStatus, reason);
+        
+        setOrder(prev => prev ? { ...prev, status: newStatus, returnReason: reason } : null);
 
-    toast({
-        title: "Success",
-        description: `Order ${order.id} updated to ${newStatus}.`
-    });
+        toast({
+            title: "Success",
+            description: `Order ${order.id} updated to ${newStatus}.`
+        });
 
-    if (newStatus === 'Returning') {
-        setReturnDialogOpen(false);
-    }
-    
-    const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
-    if(isTerminalStatus) {
-        // For returning, we wait for the photo submission before redirecting.
-        // For other terminal statuses, we can redirect immediately after a delay.
-        if (newStatus !== 'Returning' || (order.returnPhotoUrl || photoSubmitted)) {
-            setTimeout(() => {
-                router.push('/driver');
-            }, 1500);
+        if (newStatus === 'Returning') {
+            setReturnDialogOpen(false);
         }
+        
+        const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
+        if(isTerminalStatus) {
+            // For returning, we wait for the photo submission before redirecting.
+            // For other terminal statuses, we can redirect immediately after a delay.
+            if (newStatus !== 'Returning' || (order.returnPhotoUrl || photoSubmitted)) {
+                setTimeout(() => {
+                    router.push('/driver');
+                    // Force a reload to ensure the dashboard reflects the change from the mock data service
+                    setTimeout(() => window.location.reload(), 100); 
+                }, 1500);
+            }
+        }
+    } catch (error) {
+        console.error("Failed to update status:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not update order status.' });
     }
   };
 
+  const handlePhotoConfirmed = async () => {
+    setPhotoSubmitted(true);
+    await confirmDelivery(order!.id, 'PHOTO_SUBMITTED', 'PHOTO');
+    setTimeout(() => {
+        router.push('/driver');
+        setTimeout(() => window.location.reload(), 100);
+    }, 1500);
+  }
 
-  if (!order) {
-    // This case should ideally not be hit if the parent component manages loading state
+
+  if (isLoading || !order) {
     return (
         <div className="space-y-6">
-            <Skeleton className="h-12 w-48" />
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-12 w-full" />
             <Skeleton className="h-64 w-full" />
             <Skeleton className="h-96 w-full" />
         </div>
@@ -215,11 +249,7 @@ export default function OrderDetailsPage({
             {order.status === 'Returning' && !order.returnPhotoUrl && !photoSubmitted &&(
                 <DeliveryConfirmationPhoto 
                     orderId={order.id} 
-                    onConfirmed={() => {
-                        setPhotoSubmitted(true);
-                        // Now that photo is "submitted", trigger the final navigation
-                        setTimeout(() => router.push('/driver'), 1500);
-                    }}
+                    onConfirmed={handlePhotoConfirmed}
                 />
             )}
             
@@ -294,5 +324,3 @@ export default function OrderDetailsPage({
     </APIProvider>
   );
 }
-
-    
