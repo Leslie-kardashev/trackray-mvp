@@ -83,6 +83,9 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
        }
   }
 
+  const paymentTypes: Order['paymentType'][] = ['Prepaid', 'Pay on Delivery'];
+  const paymentType = paymentTypes[i % paymentTypes.length];
+
 
   const confirmationMethods: Order['confirmationMethod'][] = ['PHOTO', 'SIGNATURE', 'OTP'];
 
@@ -96,6 +99,14 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
   // Generate single or bundled items
   const itemCount = (i % 5 === 2) ? 3 : (i % 5 === 4) ? 2 : 1; // Create some bundled orders
   const items = generateItems(itemCount);
+  
+  const deliveryFee = destination.address === 'Kumasi' ? 0 : 500;
+  
+  let productPrice;
+  if (paymentType === 'Pay on Delivery' && status !== 'Delivered') {
+    productPrice = Math.floor(Math.random() * 1000) + 50;
+  }
+
 
   return {
     id,
@@ -108,7 +119,9 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
     recipientPhone: `0${Math.floor(200000000 + Math.random() * 100000000)}`,
     requestedDeliveryTime: new Date(Date.now() + Math.random() * 1000 * 60 * 60 * 24 * 3).toISOString(),
     confirmationMethod: confirmationMethods[i % confirmationMethods.length],
-    productPrice: status === 'Pending' ? Math.floor(Math.random() * 1000) + 50 : undefined,
+    productPrice,
+    deliveryFee,
+    paymentType,
     completedAt,
     returnReason: status === 'Returning' ? 'Customer Refused' : undefined,
     returnPhotoUrl: status === 'Returning' ? `/returns/${id}-photo.jpg` : undefined

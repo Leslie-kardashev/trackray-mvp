@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { getOrderById, updateOrderStatus } from '@/lib/data-service';
 import { type Order } from '@/lib/types';
 import Link from 'next/link';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +17,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, MapPin, Package, Phone, PlayCircle, Undo2, User, X } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, CreditCard, MapPin, Package, Phone, PlayCircle, Truck, Undo2, User, Wallet, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -45,10 +45,10 @@ const returnReasons = [
 ];
 
 
-const OrderDetailItem = ({ icon, label, children }: { icon: React.ElementType, label: string, children: React.ReactNode }) => {
+const OrderDetailItem = ({ icon, label, children, className }: { icon: React.ElementType, label: string, children: React.ReactNode, className?: string }) => {
     const Icon = icon;
     return (
-        <div className="flex items-start gap-4">
+        <div className={cn("flex items-start gap-4", className)}>
             <Icon className="w-5 h-5 text-muted-foreground mt-1" />
             <div>
                 <p className="font-semibold text-muted-foreground">{label}</p>
@@ -65,6 +65,7 @@ export default function OrderDetailsPage() {
   const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const { toast } = useToast();
   const params = useParams();
+  const router = useRouter();
   const orderId = params.orderId as string;
 
   const fetchOrderDetails = async () => {
@@ -103,7 +104,14 @@ export default function OrderDetailsPage() {
             description: `Order ${orderId} has been updated to ${newStatus}.`
         });
         setReturnDialogOpen(false); // Close dialog on success
-        fetchOrderDetails(); // Re-fetch to update UI
+        
+        // If the order is completed, navigate back to the dashboard after a short delay
+        if (newStatus === 'Delivered' || newStatus === 'Returning') {
+            setTimeout(() => router.push('/driver'), 1500);
+        } else {
+            fetchOrderDetails(); // Re-fetch to update UI for non-terminal statuses
+        }
+
     } catch (error) {
         console.error("Failed to update order status:", error);
         toast({
@@ -134,6 +142,8 @@ export default function OrderDetailsPage() {
     )
   }
 
+  const totalAmountToCollect = (order.paymentType === 'Pay on Delivery' ? (order.productPrice || 0) : 0) + order.deliveryFee;
+
   return (
     <APIProvider apiKey={apiKey}>
         <div className="space-y-6">
@@ -156,8 +166,8 @@ export default function OrderDetailsPage() {
                 </CardDescription>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-8">
-                    <OrderDetailItem icon={Package} label="Items">
-                        <ul className="list-disc list-inside space-y-1">
+                    <OrderDetailItem icon={Package} label="Items" className="md:col-span-2">
+                        <ul className="list-disc list-inside space-y-1 text-base">
                             {order.items.map((item, index) => <li key={index}>{item}</li>)}
                         </ul>
                     </OrderDetailItem>
@@ -170,14 +180,38 @@ export default function OrderDetailsPage() {
                     <OrderDetailItem icon={Phone} label="Recipient Phone">
                         <a href={`tel:${order.recipientPhone}`} className="text-primary hover:underline">{order.recipientPhone}</a>
                     </OrderDetailItem>
-                    {order.productPrice && (
-                         <OrderDetailItem icon={CircleDollarSign} label="Product Price">
-                            GHS {order.productPrice.toFixed(2)}
-                        </OrderDetailItem>
-                    )}
                     {order.requestedDeliveryTime && (
                         <OrderDetailItem icon={Clock} label="Requested Delivery Time">
                             {format(new Date(order.requestedDeliveryTime), "PPP 'at' p")}
+                        </OrderDetailItem>
+                    )}
+                     <OrderDetailItem icon={Truck} label="Delivery Fee">
+                        GHS {order.deliveryFee.toFixed(2)}
+                    </OrderDetailItem>
+                    <OrderDetailItem 
+                        icon={order.paymentType === 'Prepaid' ? CreditCard : Wallet}
+                        label="Payment Type"
+                    >
+                        <Badge 
+                            variant={order.paymentType === 'Prepaid' ? 'default' : 'secondary'} 
+                            className={cn('text-base', {
+                                'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300': order.paymentType === 'Prepaid',
+                                'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300': order.paymentType === 'Pay on Delivery'
+                            })}
+                        >
+                            {order.paymentType}
+                        </Badge>
+                    </OrderDetailItem>
+                    
+                    {(order.productPrice || order.deliveryFee > 0 && order.paymentType === 'Pay on Delivery') && (
+                        <OrderDetailItem 
+                            icon={CircleDollarSign} 
+                            label="Amount to Collect"
+                            className="md:col-span-2 border-t pt-6"
+                        >
+                            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                GHS {totalAmountToCollect.toFixed(2)}
+                            </span>
                         </OrderDetailItem>
                     )}
                 </CardContent>

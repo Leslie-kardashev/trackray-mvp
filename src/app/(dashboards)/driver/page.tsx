@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListTodo, History } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSearchParams } from 'next/navigation';
 
 export default function DriverDashboard() {
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
@@ -18,6 +19,7 @@ export default function DriverDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   const driverId = "DRV-001"; // Hardcoded for now
 
@@ -64,7 +66,7 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     getOrders();
-  }, [getOrders, refreshKey]);
+  }, [getOrders, refreshKey, searchParams]);
 
   useEffect(() => {
     const handleFocus = () => {

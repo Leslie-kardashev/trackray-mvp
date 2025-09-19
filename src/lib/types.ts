@@ -20,6 +20,8 @@ export type Order = {
   recipientPhone: string;
   requestedDeliveryTime?: string; // ISO string
   productPrice?: number;
+  deliveryFee: number;
+  paymentType: 'Prepaid' | 'Pay on Delivery';
   completedAt?: string; // ISO string
   returnReason?: string; // Reason for the return
   returnPhotoUrl?: string; // URL to the photo of the returned item
