@@ -67,34 +67,29 @@ if (orders.length === 0) {
  */
 export async function getOrderById(orderId: string): Promise<Order | undefined> {
     console.log(`Fetching order by ID: ${orderId}`);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
     return Promise.resolve(orders.find(o => o.id === orderId));
 }
 
 
 /**
  * Simulates fetching the list of orders assigned to the logged-in driver.
- * The backend would handle prioritization.
  */
 export async function getAssignedOrders(driverId: string): Promise<Order[]> {
   console.log(`Fetching orders for driver: ${driverId}`);
-  // In a real app, this would be an API call:
-  // const response = await fetch(`https://your-django-api.com/drivers/${driverId}/orders`);
-  // const data = await response.json();
-  // return data;
-
-  // For now, return all mock data for the demo.
-  return Promise.resolve(orders);
+  await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+  return Promise.resolve(JSON.parse(JSON.stringify(orders))); // Return a deep copy
 }
 
 /**
  * Simulates updating an order's status.
- * e.g., when a driver accepts a route and status changes from 'Assigned' to 'En Route'.
  */
 export async function updateOrderStatus(orderId: string, status: Order['status']): Promise<Order> {
     let updatedOrder: Order | undefined;
     orders = orders.map(order => {
         if (order.id === orderId) {
-            updatedOrder = { ...order, status: status };
+            const completedAt = (status === 'Delivered' || status === 'Cancelled') ? new Date().toISOString() : order.completedAt;
+            updatedOrder = { ...order, status, completedAt };
             return updatedOrder;
         }
         return order;
@@ -102,12 +97,6 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
 
     if (updatedOrder) {
         console.log(`Order ${orderId} status updated to ${status}`);
-        // In a real app, this would be a PATCH request:
-        // await fetch(`https://your-django-api.com/orders/${orderId}`, {
-        //     method: 'PATCH',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ status: status })
-        // });
         return Promise.resolve(updatedOrder);
     }
     return Promise.reject(new Error("Order not found"));
@@ -121,21 +110,16 @@ export async function confirmDelivery(orderId: string, confirmationData: string,
     if (!order) return Promise.reject(new Error("Order not found"));
 
     console.log(`Confirming delivery for order ${orderId} via ${method}.`);
-    // In a real app, you would probably not log the full base64 string.
-    console.log(`Confirmation data length: ${confirmationData.length}`);
     
-    await updateOrderStatus(orderId, 'Delivered');
-
-    // In a real app, this would be a POST request to a confirmation endpoint:
-    // await fetch(`https://your-django-api.com/orders/${orderId}/confirm`, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //         method: method,
-    //         data: confirmationData,
-    //         timestamp: new Date().toISOString(),
-    //     })
-    // });
+    // If the method is PHOTO, it's for a return, so we don't change the status here.
+    // The 'Returning' status is managed separately.
+    // If it's a standard delivery confirmation, we mark it as delivered.
+    if (method !== 'PHOTO') {
+        await updateOrderStatus(orderId, 'Delivered');
+    } else {
+        console.log(`Photo for returned goods for order ${orderId} has been logged.`);
+        // In a real app, you would upload this photo to a storage service.
+    }
     
     return Promise.resolve({ success: true });
 }
@@ -155,8 +139,6 @@ export async function sendSOS(message: Omit<SOSMessage, 'id' | 'timestamp'>): Pr
     };
     sosMessages = [newSOS, ...sosMessages];
     
-    // In a real app, this would be a POST request to the backend
-    // The backend would then handle sending this to the admin dashboard via websockets or push notifications.
     console.log('Sending TCAS Alert to backend:', newSOS);
 
     return Promise.resolve(newSOS);

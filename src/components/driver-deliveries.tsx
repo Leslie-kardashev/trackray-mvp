@@ -47,10 +47,16 @@ export function DriverDeliveries() {
       // In a real app, driverId would come from auth state
       const driverOrders = await getAssignedOrders("DRV-001");
       
+      const activeOrders = driverOrders.filter(
+        o => o.status === 'Moving' || o.status === 'Pending' || o.status === 'Returning'
+      );
+
       // Sort orders: 'Moving' status comes first, then 'Pending', then by ID
-      const sortedOrders = driverOrders.sort((a, b) => {
+      const sortedOrders = activeOrders.sort((a, b) => {
         if (a.status === 'Moving' && b.status !== 'Moving') return -1;
         if (a.status !== 'Moving' && b.status === 'Moving') return 1;
+        if (a.status === 'Returning' && b.status !== 'Returning') return -1;
+        if (a.status !== 'Returning' && b.status === 'Returning') return 1;
         if (a.status === 'Pending' && b.status !== 'Pending') return -1;
         if (a.status !== 'Pending' && b.status === 'Pending') return 1;
         return a.id.localeCompare(b.id);
@@ -73,43 +79,36 @@ export function DriverDeliveries() {
     fetchDriverOrders();
   }, []);
 
-  const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
+  const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving' || o.status === 'Returning'), [orders]);
 
   const OrderRow = ({ order, index }: { order: Order, index: number }) => {
-    const isLocked = (activeOrder && activeOrder.id !== order.id) || order.status === 'Delivered' || order.status === 'Cancelled';
+    const isLocked = activeOrder && activeOrder.id !== order.id;
     const isCurrent = activeOrder && activeOrder.id === order.id;
-
-    const rowContent = (
-      <>
-        <TableCell className="font-bold text-center w-12">{index + 1}</TableCell>
-        <TableCell className="font-mono">{order.id}</TableCell>
-        <TableCell className="font-medium">{order.itemDescription}</TableCell>
-        <TableCell>{order.destination.address}</TableCell>
-        <TableCell>
-            <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status], {
-                'border-2 border-primary': isCurrent
-            })}>
-            {order.status}
-            </Badge>
-        </TableCell>
-        <TableCell className="text-right">
-            <Button variant="ghost" size="icon" disabled={isLocked} asChild={!isLocked}>
-                {isLocked ? <Lock className="w-4 h-4" /> : 
-                    <Link href={`/driver/${order.id}`}>
-                        <ChevronRight className="w-4 h-4" />
-                    </Link>
-                }
-            </Button>
-        </TableCell>
-      </>
-    );
 
     return (
         <TableRow key={order.id} className={cn("transition-colors", {
-            "cursor-pointer hover:bg-muted/50": !isLocked,
-            "opacity-50 cursor-not-allowed": isLocked,
+            "cursor-not-allowed opacity-50": isLocked,
         })}>
-           {rowContent}
+          <TableCell className="font-bold text-center w-12">{index + 1}</TableCell>
+          <TableCell className="font-mono">{order.id}</TableCell>
+          <TableCell className="font-medium">{order.itemDescription}</TableCell>
+          <TableCell>{order.destination.address}</TableCell>
+          <TableCell>
+              <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status], {
+                  'border-2 border-primary': isCurrent
+              })}>
+              {order.status}
+              </Badge>
+          </TableCell>
+          <TableCell className="text-right">
+              <Button variant="ghost" size="icon" disabled={isLocked} asChild>
+                  {isLocked ? <Lock className="w-4 h-4" /> : 
+                      <Link href={`/driver/${order.id}`}>
+                          <ChevronRight className="w-4 h-4" />
+                      </Link>
+                  }
+              </Button>
+          </TableCell>
         </TableRow>
     );
   };
@@ -119,7 +118,7 @@ export function DriverDeliveries() {
     <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <Package className="w-6 h-6" /> My Deliveries
+            <Package className="w-6 h-6" /> My Active Deliveries
         </CardTitle>
         <CardDescription>
           Your prioritized list of assigned deliveries. Complete the active order to unlock the next.

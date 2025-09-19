@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react';
 import { getOrderById, updateOrderStatus } from '@/lib/data-service';
 import { type Order } from '@/lib/types';
 import Link from 'next/link';
-import { notFound, useParams } from 'next/navigation';
+import { useParams, notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, MapPin, Package, Phone, PlayCircle, User } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, MapPin, Package, Phone, PlayCircle, Undo2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -70,7 +70,9 @@ export default function OrderDetailsPage() {
   };
 
   useEffect(() => {
-    fetchOrderDetails();
+    if (orderId) {
+      fetchOrderDetails();
+    }
   }, [orderId]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
@@ -101,7 +103,7 @@ export default function OrderDetailsPage() {
         </div>
     );
   }
-
+  
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
     return (
@@ -175,9 +177,14 @@ export default function OrderDetailsPage() {
             )}
 
             {order.status === 'Moving' && (
-                <Button size="lg" className="w-full text-lg font-bold bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(order.id, 'Delivered')}>
-                    <Check className="mr-2" /> Mark as Delivered
-                </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button size="lg" className="w-full text-lg font-bold bg-green-600 hover:bg-green-700" onClick={() => handleStatusUpdate(order.id, 'Delivered')}>
+                        <Check className="mr-2" /> Mark as Delivered
+                    </Button>
+                    <Button size="lg" variant="outline" className="w-full text-lg font-bold border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600" onClick={() => handleStatusUpdate(order.id, 'Returning')}>
+                        <Undo2 className="mr-2" /> Initiate Return
+                    </Button>
+                </div>
             )}
 
             {order.status === 'Delivered' && (

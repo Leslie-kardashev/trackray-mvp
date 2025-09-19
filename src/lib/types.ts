@@ -1,6 +1,4 @@
 
-
-
 export type Location = {
   address: string;
   coords: {
@@ -22,15 +20,10 @@ export type Order = {
   recipientPhone: string;
   requestedDeliveryTime?: string; // e.g., "2024-07-18T14:00:00Z"
   productPrice?: number;
+  completedAt?: string; // Timestamp for when the order was delivered or cancelled
 
   // Defines what the driver needs to collect upon delivery
   confirmationMethod: 'PHOTO' | 'SIGNATURE' | 'OTP';
-
-  // Fields from your Django API can be added here
-  // For example:
-  // estimatedDeliveryTime: string;
-  // specialInstructions?: string;
-  // orderValue?: number;
 };
 
 // This represents the data payload for confirming a delivery

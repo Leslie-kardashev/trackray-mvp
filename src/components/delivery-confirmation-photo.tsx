@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, RefreshCw, Send } from 'lucide-react';
+import { Camera, RefreshCw, Send, AlertTriangle } from 'lucide-react';
 import { confirmDelivery } from '@/lib/data-service';
 import { Skeleton } from './ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
@@ -84,18 +84,19 @@ export function DeliveryConfirmationPhoto({ orderId, onConfirmed }: { orderId: s
     if (!photoData) return;
     setIsSubmitting(true);
     try {
+      // For returns, we confirm delivery but the status remains 'Returning' for backend processing
       await confirmDelivery(orderId, photoData, 'PHOTO');
       toast({
-        title: 'Delivery Confirmed!',
-        description: 'The delivery has been successfully marked as complete.',
+        title: 'Return Photo Submitted!',
+        description: 'The photo has been submitted. Proceed with returning the goods.',
       });
       onConfirmed(); // Trigger refresh on parent
     } catch (error) {
-      console.error('Failed to confirm delivery:', error);
+      console.error('Failed to submit return photo:', error);
       toast({
         variant: 'destructive',
         title: 'Submission Failed',
-        description: 'Could not confirm the delivery. Please try again.',
+        description: 'Could not submit the photo. Please try again.',
       });
     } finally {
       setIsSubmitting(false);
@@ -112,7 +113,7 @@ export function DeliveryConfirmationPhoto({ orderId, onConfirmed }: { orderId: s
         <Camera className="h-4 w-4" />
         <AlertTitle>Camera Access Required</AlertTitle>
         <AlertDescription>
-          You have denied camera access. Please enable it in your browser settings to take a confirmation photo.
+          You have denied camera access. Please enable it in your browser settings to take a photo of the returned goods.
         </AlertDescription>
       </Alert>
     );
@@ -121,8 +122,8 @@ export function DeliveryConfirmationPhoto({ orderId, onConfirmed }: { orderId: s
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Take Confirmation Photo</CardTitle>
-        <CardDescription>Take a picture of the delivered item at the location.</CardDescription>
+        <CardTitle>Photograph Returned Goods</CardTitle>
+        <CardDescription>Take a clear picture of the item(s) being returned. This is for damage assessment.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
