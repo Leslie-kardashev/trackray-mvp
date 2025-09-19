@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useParams, notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, MapPin, Package, Phone, PlayCircle, Undo2 } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, MapPin, Package, Phone, PlayCircle, Undo2, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
