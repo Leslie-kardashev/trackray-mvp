@@ -33,7 +33,6 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-// This is now a "dumb" component that just receives props
 export function DriverDeliveries({ orders }: { orders: Order[] }) {
   
   const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
@@ -46,12 +45,12 @@ export function DriverDeliveries({ orders }: { orders: Order[] }) {
         <TableRow key={order.id} className={cn("transition-colors", {
             "cursor-not-allowed opacity-50": isLocked,
         })}>
-          <TableCell className="font-bold text-center w-12">{index + 1}</TableCell>
-          <TableCell className="font-mono">{order.id}</TableCell>
-          <TableCell className="font-medium">{order.itemDescription}</TableCell>
-          <TableCell>{order.destination.address}</TableCell>
+          <TableCell className="font-bold text-center w-12 hidden sm:table-cell">{index + 1}</TableCell>
+          <TableCell className="font-mono text-xs">{order.id}</TableCell>
+          <TableCell className="hidden md:table-cell font-medium">{order.itemDescription}</TableCell>
+          <TableCell className="font-medium text-sm">{order.destination.address}</TableCell>
           <TableCell>
-              <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status], {
+              <Badge variant="outline" className={cn("font-semibold text-xs", statusStyles[order.status], {
                   'border-2 border-primary': isCurrent
               })}>
               {order.status}
@@ -80,13 +79,13 @@ export function DriverDeliveries({ orders }: { orders: Order[] }) {
           Your prioritized list of assigned deliveries. Complete the active order to unlock the next.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center w-12">#</TableHead>
+              <TableHead className="text-center w-12 hidden sm:table-cell">#</TableHead>
               <TableHead>Order ID</TableHead>
-              <TableHead>Item</TableHead>
+              <TableHead className="hidden md:table-cell">Item</TableHead>
               <TableHead>Destination</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right"></TableHead>
