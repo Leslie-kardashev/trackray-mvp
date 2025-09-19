@@ -103,7 +103,7 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
   const deliveryFee = destination.address === 'Kumasi' ? 0 : 500;
   
   let productPrice;
-  if (paymentType === 'Pay on Delivery' && status !== 'Delivered') {
+  if (paymentType === 'Pay on Delivery') {
     productPrice = Math.floor(Math.random() * 1000) + 50;
   }
 

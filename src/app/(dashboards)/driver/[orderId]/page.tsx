@@ -203,7 +203,7 @@ export default function OrderDetailsPage() {
                         </Badge>
                     </OrderDetailItem>
                     
-                    {(order.productPrice || order.deliveryFee > 0 && order.paymentType === 'Pay on Delivery') && (
+                    {order.paymentType === 'Pay on Delivery' && (
                         <OrderDetailItem 
                             icon={CircleDollarSign} 
                             label="Amount to Collect"
