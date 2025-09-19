@@ -98,14 +98,15 @@ export default function OrderDetailsPage() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status'], reason?: string) => {
     try {
+        // Call the mock backend function. Note: this doesn't persist the change.
         await updateOrderStatus(orderId, newStatus, reason);
+
         toast({
             title: "Success",
             description: `Order ${orderId} has been updated to ${newStatus}.`
         });
-        setReturnDialogOpen(false); 
         
-        const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning';
+        const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
 
         // Update local state to reflect the change immediately
         if (order) {
@@ -116,13 +117,21 @@ export default function OrderDetailsPage() {
             setOrder(updatedOrder);
         }
         
+        // If the status is one that ends the delivery, redirect back to the dashboard.
+        // The reload will force the dashboard to fetch the "new" state from the server.
         if (isTerminalStatus) {
-            // After a short delay, navigate back to the dashboard.
-            // The dashboard will re-fetch data on its own due to the navigation.
             setTimeout(() => {
                 router.push('/driver');
+                // A short delay before reload to ensure navigation completes
+                setTimeout(() => window.location.reload(), 100); 
             }, 1500);
         }
+        
+        // Close the dialog if it was open
+        if (newStatus === 'Returning') {
+            setReturnDialogOpen(false);
+        }
+
 
     } catch (error) {
         console.error("Failed to update order status:", error);
@@ -250,7 +259,11 @@ export default function OrderDetailsPage() {
             {order.status === 'Returning' && !photoSubmitted && (
                 <DeliveryConfirmationPhoto 
                     orderId={order.id} 
-                    onConfirmed={() => setPhotoSubmitted(true)}
+                    onConfirmed={() => {
+                        setPhotoSubmitted(true);
+                        // Now trigger the final step of the update process
+                        handleStatusUpdate(order.id, 'Returning', order.returnReason);
+                    }}
                 />
             )}
             
@@ -261,7 +274,7 @@ export default function OrderDetailsPage() {
                             <CheckCircle /> Return Process Complete
                         </CardTitle>
                         <CardDescription>
-                            The return has been logged and the item can now be returned to the warehouse.
+                            The return has been logged. You will be redirected shortly.
                         </CardDescription>
                     </CardHeader>
                 </Card>
@@ -292,7 +305,14 @@ export default function OrderDetailsPage() {
                                         key={reason.code}
                                         variant="default"
                                         className={cn('h-16 text-base font-semibold', reason.color)}
-                                        onClick={() => handleStatusUpdate(order.id, 'Returning', reason.description)}
+                                        onClick={() => {
+                                            // For returns, we just set the reason and update the status locally first.
+                                            // The final 'handleStatusUpdate' call happens after the photo is submitted.
+                                            if (order) {
+                                                setOrder({ ...order, status: 'Returning', returnReason: reason.description });
+                                            }
+                                            setReturnDialogOpen(false);
+                                        }}
                                     >
                                         {reason.description}
                                     </Button>
@@ -315,7 +335,7 @@ export default function OrderDetailsPage() {
                             <CheckCircle /> Delivery Complete
                         </CardTitle>
                         <CardDescription>
-                            This order has been successfully delivered.
+                            This order has been successfully delivered. You will be redirected shortly.
                         </CardDescription>
                     </CardHeader>
                 </Card>

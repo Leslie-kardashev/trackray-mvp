@@ -39,7 +39,6 @@ const recipientNames = [
     "Distributor - Koforidua", "Wholesale Supply - Takoradi", "Jumia Warehouse", "Local Market - Tamale"
 ];
 
-// Function to generate a random list of items for an order
 const generateItems = (count: number): string[] => {
     const items = new Set<string>();
     while (items.size < count) {
@@ -50,80 +49,136 @@ const generateItems = (count: number): string[] => {
     return Array.from(items);
 };
 
-
-export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
-  const id = `ORD-${101 + i}`;
-  const pickup = getRandomLocation();
-  let destination = getRandomLocation();
-  while (destination.address === pickup.address) {
-    destination = getRandomLocation();
+// A structured set of orders for DRV-001 to ensure a clear demo flow
+const driver1Orders: Order[] = [
+  // 1. The active order
+  {
+    id: "ORD-101",
+    driverId: "DRV-001",
+    items: generateItems(1),
+    status: 'Moving',
+    pickup: { address: "Accra", coords: ghanaLocations["Accra"] },
+    destination: { address: "Tema", coords: ghanaLocations["Tema"] },
+    recipientName: "CityDia - Tema",
+    recipientPhone: "0302111222",
+    paymentType: 'Pay on Delivery',
+    productPrice: 750,
+    deliveryFee: 500,
+    confirmationMethod: 'PHOTO'
+  },
+  // 2. Pending orders, will become available after the active one is done
+  {
+    id: "ORD-102",
+    driverId: "DRV-001",
+    items: generateItems(2),
+    status: 'Pending',
+    pickup: { address: "Tema", coords: ghanaLocations["Tema"] },
+    destination: { address: "Kumasi", coords: ghanaLocations["Kumasi"] },
+    recipientName: "Melcome Shop",
+    recipientPhone: "0244333444",
+    paymentType: 'Prepaid',
+    deliveryFee: 0,
+    confirmationMethod: 'SIGNATURE'
+  },
+  {
+    id: "ORD-103",
+    driverId: "DRV-001",
+    items: generateItems(1),
+    status: 'Pending',
+    pickup: { address: "Accra", coords: ghanaLocations["Accra"] },
+    destination: { address: "Takoradi", coords: ghanaLocations["Takoradi"] },
+    recipientName: "Wholesale Supply - Takoradi",
+    recipientPhone: "0205556666",
+    paymentType: 'Pay on Delivery',
+    productPrice: 1200,
+    deliveryFee: 500,
+    confirmationMethod: 'OTP'
+  },
+  // 3. Completed orders for the history view
+  {
+    id: "ORD-104",
+    driverId: "DRV-001",
+    items: generateItems(1),
+    status: 'Delivered',
+    pickup: { address: "Accra", coords: ghanaLocations["Accra"] },
+    destination: { address: "Cape Coast", coords: ghanaLocations["Cape Coast"] },
+    recipientName: "Palace Supermarket",
+    recipientPhone: "0277888999",
+    paymentType: 'Prepaid',
+    deliveryFee: 500,
+    completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    confirmationMethod: 'PHOTO'
+  },
+  {
+    id: "ORD-105",
+    driverId: "DRV-001",
+    items: generateItems(3),
+    status: 'Returning',
+    pickup: { address: "Tema", coords: ghanaLocations["Tema"] },
+    destination: { address: "Ho", coords: ghanaLocations["Ho"] },
+    recipientName: "Local Market - Ho",
+    recipientPhone: "0266111222",
+    paymentType: 'Pay on Delivery',
+    productPrice: 2100,
+    deliveryFee: 500,
+    completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    returnReason: 'Customer Refused',
+    returnPhotoUrl: `/returns/ORD-105-photo.jpg`,
+    confirmationMethod: 'PHOTO'
+  },
+  {
+    id: "ORD-106",
+    driverId: "DRV-001",
+    items: generateItems(1),
+    status: 'Cancelled',
+    pickup: { address: "Accra", coords: ghanaLocations["Accra"] },
+    destination: { address: "Sunyani", coords: ghanaLocations["Sunyani"] },
+    recipientName: "Jumia Warehouse",
+    recipientPhone: "0555444333",
+    paymentType: 'Prepaid',
+    deliveryFee: 500,
+    completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    confirmationMethod: 'PHOTO'
   }
-  
-  const completedStatuses: Order['status'][] = ['Delivered', 'Returning', 'Cancelled'];
-  let status: Order['status'];
-  
-  // Assign driver and set status logic
-  const driverId = (i % 4 === 0) ? 'DRV-002' : 'DRV-001'; // Assign to different drivers
-  
-  // Make the data generation deterministic and logical for the demo
-  if (driverId === 'DRV-001') {
-      if (i === 1) { // This is ORD-102 for DRV-001, make it the active one
-          status = 'Moving';
-      } else if (i > 1 && i < 7 && i % 2 !== 0) { // The next few orders are pending
-          status = 'Pending';
-      } else { // The rest are completed
-          status = completedStatuses[i % completedStatuses.length];
-      }
-  } else {
-      // All orders for the other driver are completed or pending for simplicity
-       if (i === 0) { // ORD-101 for DRV-002
-           status = 'Pending';
-       } else {
-           status = 'Delivered';
-       }
-  }
+];
 
-  const paymentTypes: Order['paymentType'][] = ['Prepaid', 'Pay on Delivery'];
-  const paymentType = paymentTypes[i % paymentTypes.length];
+// Orders for another driver, to show filtering works
+const driver2Orders: Order[] = [
+    {
+        id: "ORD-201",
+        driverId: "DRV-002",
+        items: generateItems(1),
+        status: 'Delivered',
+        pickup: { address: "Tamale", coords: ghanaLocations["Tamale"] },
+        destination: { address: "Wa", coords: ghanaLocations["Wa"] },
+        recipientName: "Distributor - Wa",
+        recipientPhone: "0233999888",
+        paymentType: 'Prepaid',
+        deliveryFee: 500,
+        completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        confirmationMethod: 'SIGNATURE'
+    }
+];
 
-
-  const confirmationMethods: Order['confirmationMethod'][] = ['PHOTO', 'SIGNATURE', 'OTP'];
-
-  let completedAt: string | undefined = undefined;
-  if (status === 'Delivered' || status === 'Cancelled' || status === 'Returning') {
-      const date = new Date();
-      date.setDate(date.getDate() - (i % 10)); // Stagger completion dates
-      completedAt = date.toISOString();
-  }
-
-  // Generate single or bundled items
-  const itemCount = (i % 5 === 2) ? 3 : (i % 5 === 4) ? 2 : 1; // Create some bundled orders
-  const items = generateItems(itemCount);
-  
-  const deliveryFee = destination.address === 'Kumasi' ? 0 : 500;
-  
-  let productPrice;
-  if (paymentType === 'Pay on Delivery') {
-    productPrice = Math.floor(Math.random() * 1000) + 50;
-  }
-
-
-  return {
-    id,
-    driverId: driverId,
-    items,
-    status,
-    pickup,
-    destination,
-    recipientName: recipientNames[i % recipientNames.length],
-    recipientPhone: `0${Math.floor(200000000 + Math.random() * 100000000)}`,
-    requestedDeliveryTime: new Date(Date.now() + Math.random() * 1000 * 60 * 60 * 24 * 3).toISOString(),
-    confirmationMethod: confirmationMethods[i % confirmationMethods.length],
-    productPrice,
-    deliveryFee,
-    paymentType,
-    completedAt,
-    returnReason: status === 'Returning' ? 'Customer Refused' : undefined,
-    returnPhotoUrl: status === 'Returning' ? `/returns/${id}-photo.jpg` : undefined
-  };
+// Generate more random orders for filler
+const otherOrders = Array.from({ length: 10 }, (_, i) => {
+    const id = `ORD-3${String(i).padStart(2, '0')}`;
+    const driverId = `DRV-00${3 + (i % 3)}`;
+    return {
+        id,
+        driverId,
+        items: generateItems(1),
+        status: 'Delivered' as Order['status'],
+        pickup: getRandomLocation(),
+        destination: getRandomLocation(),
+        recipientName: recipientNames[i % recipientNames.length],
+        recipientPhone: `05012345${i < 10 ? '0' : ''}${i}`,
+        paymentType: 'Prepaid' as Order['paymentType'],
+        deliveryFee: 500,
+        completedAt: new Date(Date.now() - (i + 4) * 24 * 60 * 60 * 1000).toISOString(),
+        confirmationMethod: 'OTP' as Order['confirmationMethod'],
+    };
 });
+
+
+export const mockOrders: Order[] = [...driver1Orders, ...driver2Orders, ...otherOrders];

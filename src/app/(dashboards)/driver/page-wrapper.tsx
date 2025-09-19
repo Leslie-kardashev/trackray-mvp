@@ -11,13 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListTodo, History } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSearchParams } from 'next/navigation';
 
 export default function DriverDashboard() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const searchParams = useSearchParams();
 
   const driverId = "DRV-001"; // Hardcoded for now
 
@@ -42,14 +40,17 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     getOrders();
-  }, [getOrders, searchParams]);
+  }, [getOrders]);
 
   const { activeOrders, historyOrders } = useMemo(() => {
     const active = allOrders.filter(
       o => o.status === 'Moving' || o.status === 'Pending'
     ).sort((a, b) => {
+        // 'Moving' status always comes first
         if (a.status === 'Moving' && b.status !== 'Moving') return -1;
         if (a.status !== 'Moving' && b.status === 'Moving') return 1;
+        
+        // Then sort by ID or creation date if available
         return a.id.localeCompare(b.id);
       });
 
