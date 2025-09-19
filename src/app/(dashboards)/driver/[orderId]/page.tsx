@@ -157,7 +157,7 @@ export default function OrderDetailsPage() {
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-8">
                     <OrderDetailItem icon={Package} label="Item Description">
-                        {order.itemDescription} (x{order.quantity})
+                        {order.itemDescription}
                     </OrderDetailItem>
                     <OrderDetailItem icon={MapPin} label="Destination">
                         {order.destination.address}

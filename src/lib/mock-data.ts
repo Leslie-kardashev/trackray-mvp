@@ -62,12 +62,13 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
   }
 
   const driverId = (i % 3 === 0) ? 'DRV-002' : 'DRV-001'; // Assign to different drivers
+  const quantity = Math.floor(Math.random() * 50) + 5;
 
   return {
     id,
     driverId: driverId,
-    itemDescription: itemDescriptions[i % itemDescriptions.length],
-    quantity: Math.floor(Math.random() * 50) + 5,
+    itemDescription: `${quantity} ${itemDescriptions[i % itemDescriptions.length]}`,
+    quantity: quantity,
     status,
     pickup,
     destination,
