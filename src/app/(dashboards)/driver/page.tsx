@@ -15,9 +15,8 @@ import { useSearchParams } from 'next/navigation';
 
 export default function DriverDashboard() {
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
-  const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
+  const [historyOrders, setHistoryOrders]_ = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
   const searchParams = useSearchParams();
 
@@ -66,19 +65,7 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     getOrders();
-  }, [getOrders, refreshKey, searchParams]);
-
-  useEffect(() => {
-    const handleFocus = () => {
-      setRefreshKey(prev => prev + 1);
-    };
-
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, []);
+  }, [getOrders, searchParams]);
 
   return (
     <div className="space-y-8">
