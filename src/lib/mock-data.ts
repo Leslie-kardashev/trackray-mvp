@@ -59,26 +59,25 @@ export const mockOrders: Order[] = Array.from({ length: 20 }, (_, i) => {
     destination = getRandomLocation();
   }
   
-  const statuses: Order['status'][] = ['Pending', 'Delivered', 'Returning', 'Cancelled'];
+  const completedStatuses: Order['status'][] = ['Delivered', 'Returning', 'Cancelled'];
   let status: Order['status'];
   
   // Assign driver and set status logic
   const driverId = (i % 4 === 0) ? 'DRV-002' : 'DRV-001'; // Assign to different drivers
   
+  // Make the data generation deterministic and logical for the demo
   if (driverId === 'DRV-001') {
-      if (i === 1) { // The first order for DRV-001
+      if (i === 1) { // This is ORD-102 for DRV-001, make it the active one
           status = 'Moving';
-      } else if (i < 5) {
+      } else if (i > 1 && i < 7) { // The next few orders are pending
           status = 'Pending';
-      } else if (i < 15) {
-          status = 'Delivered';
-      } else {
-          status = statuses[Math.floor(Math.random() * statuses.length)];
+      } else { // The rest are completed
+          status = completedStatuses[i % completedStatuses.length];
       }
   } else {
-      // Logic for DRV-002 (can be different if needed)
-       if (i === 0) {
-           status = 'Pending'
+      // All orders for the other driver are completed or pending for simplicity
+       if (i === 0) { // ORD-101 for DRV-002
+           status = 'Pending';
        } else {
            status = 'Delivered';
        }
