@@ -47,7 +47,7 @@ export function DriverDeliveries() {
       // In a real app, driverId would come from auth state
       const driverOrders = await getAssignedOrders("DRV-001");
       
-      // Sort orders: 'Moving' status comes first, then by ID
+      // Sort orders: 'Moving' status comes first, then 'Pending', then by ID
       const sortedOrders = driverOrders.sort((a, b) => {
         if (a.status === 'Moving' && b.status !== 'Moving') return -1;
         if (a.status !== 'Moving' && b.status === 'Moving') return 1;
