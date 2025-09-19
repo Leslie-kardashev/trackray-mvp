@@ -28,7 +28,7 @@ export default function Home() {
               <h1 className="font-headline text-4xl font-bold tracking-tighter">
                 Sign In
               </h1>
-              <p className="mt-2 text-muted-foreground">Welcome back. Select a role to sign in.</p>
+              <p className="mt-2 text-muted-foreground">Welcome back. Enter your Driver Credentials.</p>
             </div>
             <LoginForm />
              <p className="mt-4 text-center text-xs text-muted-foreground">This is a demo app. Select a role and click Sign In.</p>
