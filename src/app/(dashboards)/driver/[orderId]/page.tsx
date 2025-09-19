@@ -107,16 +107,6 @@ export default function OrderDetailsPage() {
         if (newStatus === 'Returning') {
             setReturnDialogOpen(false);
         }
-        
-        const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning' || newStatus === 'Cancelled';
-        if(isTerminalStatus) {
-            if (newStatus !== 'Returning') {
-                 setTimeout(() => {
-                    router.push('/driver');
-                    setTimeout(() => window.location.reload(), 100); 
-                }, 1500);
-            }
-        }
     } catch (error) {
         console.error("Failed to update status:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not update order status.' });
@@ -124,12 +114,9 @@ export default function OrderDetailsPage() {
   };
 
   const handlePhotoConfirmed = async () => {
+    if (!order) return;
     setPhotoSubmitted(true);
-    await confirmDelivery(order!.id, 'PHOTO_SUBMITTED', 'PHOTO');
-    setTimeout(() => {
-        router.push('/driver');
-        setTimeout(() => window.location.reload(), 100);
-    }, 1500);
+    await confirmDelivery(order.id, 'PHOTO_SUBMITTED', 'PHOTO');
   }
 
 
@@ -260,7 +247,7 @@ export default function OrderDetailsPage() {
                             <CheckCircle /> Return Process Complete
                         </CardTitle>
                         <CardDescription>
-                            The return has been logged. You will be redirected shortly.
+                            The return has been logged. You can now go back to your deliveries list.
                         </CardDescription>
                     </CardHeader>
                 </Card>
@@ -314,7 +301,7 @@ export default function OrderDetailsPage() {
                             <CheckCircle /> Delivery Complete
                         </CardTitle>
                         <CardDescription>
-                            This order has been successfully delivered. You will be redirected shortly.
+                            This order has been successfully delivered. You can now go back to your deliveries list.
                         </CardDescription>
                     </CardHeader>
                 </Card>
