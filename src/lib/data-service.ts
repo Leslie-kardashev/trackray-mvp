@@ -1,190 +1,126 @@
 
 'use server';
 
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, Timestamp, orderBy, addDoc } from 'firebase/firestore';
-import { db, storage } from './firebase-config';
+// This is a mock data service. In a real application, this would be replaced
+// with calls to a backend API or a database.
+
+import { promises as fs } from 'fs';
+import path from 'path';
 import { type Order, type SOSMessage } from './types';
-import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 
-const ORDERS_COLLECTION = 'orders';
-const SOS_COLLECTION = 'sos_messages';
+const MOCK_DATA_PATH = path.join(process.cwd(), 'src/lib/mock-data-store.json');
 
-// == MOCK API FUNCTIONS using Firestore ==
+type MockDataStore = {
+  orders: Order[];
+  sos_messages: SOSMessage[];
+};
 
-/**
- * Fetches a single order by its ID from Firestore.
- */
-export async function getOrderById(orderId: string): Promise<Order | undefined> {
-    console.log(`Fetching order by ID: ${orderId}`);
-    try {
-        const docRef = doc(db, ORDERS_COLLECTION, orderId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            return {
-                id: docSnap.id,
-                ...data,
-                // Convert Firestore Timestamps to ISO strings
-                requestedDeliveryTime: (data.requestedDeliveryTime as Timestamp)?.toDate().toISOString(),
-                completedAt: (data.completedAt as Timestamp)?.toDate().toISOString(),
-            } as Order;
-        } else {
-            console.log("No such document!");
-            return undefined;
-        }
-    } catch (error) {
-        console.error("Error getting document:", error);
-        throw error;
-    }
-}
-
-/**
- * Fetches the list of orders assigned to a specific driver from Firestore.
- * This function will be replaced by a real-time listener on the client.
- */
-export async function getAssignedOrders(driverId: string): Promise<Order[]> {
-  console.log(`Fetching orders for driver: ${driverId}`);
+// Helper function to read the mock data from the JSON file
+async function readData(): Promise<MockDataStore> {
   try {
-      const q = query(collection(db, ORDERS_COLLECTION), where("driverId", "==", driverId));
-      const querySnapshot = await getDocs(q);
-      const orders: Order[] = [];
-      querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          orders.push({
-              id: doc.id,
-              ...data,
-              requestedDeliveryTime: (data.requestedDeliveryTime as Timestamp)?.toDate().toISOString(),
-              completedAt: (data.completedAt as Timestamp)?.toDate().toISOString(),
-          } as Order);
-      });
-      return orders;
+    const data = await fs.readFile(MOCK_DATA_PATH, 'utf-8');
+    return JSON.parse(data);
   } catch (error) {
-      console.error("Error fetching assigned orders:", error);
-      throw error;
+    // If the file doesn't exist, return a default structure
+    return { orders: [], sos_messages: [] };
   }
 }
 
-export async function fetchAllOrders(): Promise<Order[]> {
-    console.log(`Fetching all orders`);
-    try {
-        const q = query(collection(db, ORDERS_COLLECTION));
-        const querySnapshot = await getDocs(q);
-        const orders: Order[] = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            orders.push({
-                id: doc.id,
-                ...data,
-                requestedDeliveryTime: (data.requestedDeliveryTime as Timestamp)?.toDate().toISOString(),
-                completedAt: (data.completedAt as Timestamp)?.toDate().toISOString(),
-            } as Order);
-        });
-        return orders;
-    } catch (error) {
-        console.error("Error fetching all orders:", error);
-        throw error;
-    }
+// Helper function to write data to the mock data JSON file
+async function writeData(data: MockDataStore): Promise<void> {
+  await fs.writeFile(MOCK_DATA_PATH, JSON.stringify(data, null, 2));
+}
+
+
+// == MOCK API FUNCTIONS ==
+
+/**
+ * Fetches a single order by its ID.
+ */
+export async function getOrderById(orderId: string): Promise<Order | undefined> {
+    console.log(`Fetching order by ID: ${orderId}`);
+    const { orders } = await readData();
+    return orders.find(order => order.id === orderId);
 }
 
 /**
- * Updates an order's status in Firestore.
+ * Fetches the list of all orders.
+ */
+export async function fetchAllOrders(): Promise<Order[]> {
+    console.log(`Fetching all orders`);
+    const { orders } = await readData();
+    return orders;
+}
+
+/**
+ * Updates an order's status.
  */
 export async function updateOrderStatus(orderId: string, status: Order['status'], returnReason?: string): Promise<void> {
     console.log(`Updating order ${orderId} status to ${status}`);
-    const orderRef = doc(db, ORDERS_COLLECTION, orderId);
+    const data = await readData();
+    const orderIndex = data.orders.findIndex(o => o.id === orderId);
+
+    if (orderIndex === -1) {
+        throw new Error("Order not found.");
+    }
     
-    const updateData: { status: Order['status'], completedAt?: Timestamp, returnReason?: string } = { status };
+    data.orders[orderIndex].status = status;
 
     if (status === 'Delivered' || status === 'Cancelled' || status === 'Returning') {
-        updateData.completedAt = Timestamp.now();
+        data.orders[orderIndex].completedAt = new Date().toISOString();
     }
     if (status === 'Returning' && returnReason) {
-        updateData.returnReason = returnReason;
+        data.orders[orderIndex].returnReason = returnReason;
     }
-
-    try {
-        await updateDoc(orderRef, updateData);
-        console.log(`Order ${orderId} successfully updated.`);
-    } catch (error) {
-        console.error("Error updating order status:", error);
-        throw new Error("Failed to update order status.");
-    }
+    
+    await writeData(data);
+    console.log(`Order ${orderId} successfully updated.`);
 }
+
 
 /**
  * Simulates sending the delivery confirmation to the backend.
- * Now uploads photo to Firebase Storage.
  */
 export async function confirmDelivery(orderId: string, confirmationData: string, method: Order['confirmationMethod']): Promise<{success: boolean}> {
-    const orderRef = doc(db, ORDERS_COLLECTION, orderId);
+    const data = await readData();
+    const orderIndex = data.orders.findIndex(o => o.id === orderId);
+
+    if (orderIndex === -1) {
+        throw new Error("Order not found.");
+    }
 
     if (method === 'PHOTO') {
-        console.log(`Uploading return photo for order ${orderId}...`);
-        const storageRef = ref(storage, `returns/${orderId}/${Date.now()}.jpg`);
-        
-        try {
-            const snapshot = await uploadString(storageRef, confirmationData, 'data_url');
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            
-            // Store the photo URL in the order document
-            await updateDoc(orderRef, {
-                returnPhotoUrl: downloadURL,
-            });
-            
-            console.log("Photo uploaded and URL saved to order.");
-            return { success: true };
-
-        } catch (error) {
-            console.error('Failed to upload photo:', error);
-            throw new Error('Could not submit the photo.');
-        }
-
+        // In a real app, this base64 data would be uploaded to a storage service.
+        // For now, we'll just log it and mark the return as processed.
+        console.log(`Received photo data for return of order ${orderId}`);
+        // We'll store a placeholder URL to indicate the photo was "uploaded"
+        data.orders[orderIndex].returnPhotoUrl = `/returns/${orderId}-photo.jpg`;
     } else {
-        // Handle other confirmation methods if necessary
         await updateOrderStatus(orderId, 'Delivered');
-        return { success: true };
     }
+    
+    await writeData(data);
+    return { success: true };
 }
 
 
 // == SOS MESSAGES ==
 export async function getSOSMessages(): Promise<SOSMessage[]> {
-    try {
-        const q = query(collection(db, SOS_COLLECTION), orderBy("timestamp", "desc"));
-        const querySnapshot = await getDocs(q);
-        const messages: SOSMessage[] = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            messages.push({
-                id: doc.id,
-                ...data,
-                timestamp: (data.timestamp as Timestamp).toDate().toISOString(),
-            } as SOSMessage);
-        });
-        return messages;
-    } catch (error) {
-        console.error("Error fetching SOS messages:", error);
-        throw error;
-    }
+    const { sos_messages } = await readData();
+    return sos_messages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 export async function sendSOS(message: Omit<SOSMessage, 'id' | 'timestamp'>): Promise<SOSMessage> {
-    const newSOSData = {
+    const data = await readData();
+    const newSOS: SOSMessage = {
+        id: `SOS-${Date.now()}`,
         ...message,
-        timestamp: Timestamp.now(),
+        timestamp: new Date().toISOString(),
     };
     
-    try {
-        const docRef = await addDoc(collection(db, SOS_COLLECTION), newSOSData);
-        console.log('Sending TCAS Alert to backend:', newSOSData);
-        return {
-            id: docRef.id,
-            ...newSOSData,
-            timestamp: newSOSData.timestamp.toDate().toISOString(),
-        };
-    } catch (error) {
-        console.error('Failed to send SOS to Firestore:', error);
-        throw new Error('Failed to send SOS alert.');
-    }
+    console.log('Sending TCAS Alert to backend:', newSOS);
+    data.sos_messages.push(newSOS);
+    await writeData(data);
+    
+    return newSOS;
 }
