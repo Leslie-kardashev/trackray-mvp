@@ -48,15 +48,13 @@ export function DriverDeliveries() {
       const driverOrders = await getAssignedOrders("DRV-001");
       
       const activeOrders = driverOrders.filter(
-        o => o.status === 'Moving' || o.status === 'Pending' || o.status === 'Returning'
+        o => o.status === 'Moving' || o.status === 'Pending'
       );
 
       // Sort orders: 'Moving' status comes first, then 'Pending', then by ID
       const sortedOrders = activeOrders.sort((a, b) => {
         if (a.status === 'Moving' && b.status !== 'Moving') return -1;
         if (a.status !== 'Moving' && b.status === 'Moving') return 1;
-        if (a.status === 'Returning' && b.status !== 'Returning') return -1;
-        if (a.status !== 'Returning' && b.status === 'Returning') return 1;
         if (a.status === 'Pending' && b.status !== 'Pending') return -1;
         if (a.status !== 'Pending' && b.status === 'Pending') return 1;
         return a.id.localeCompare(b.id);
@@ -79,7 +77,7 @@ export function DriverDeliveries() {
     fetchDriverOrders();
   }, []);
 
-  const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving' || o.status === 'Returning'), [orders]);
+  const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
 
   const OrderRow = ({ order, index }: { order: Order, index: number }) => {
     const isLocked = activeOrder && activeOrder.id !== order.id;

@@ -46,7 +46,7 @@ export function DriverOrderHistory() {
       const driverOrders = await getAssignedOrders("DRV-001");
       
       const completedOrders = driverOrders.filter(
-        o => o.status === 'Delivered' || o.status === 'Cancelled'
+        o => o.status === 'Delivered' || o.status === 'Cancelled' || o.status === 'Returning'
       );
 
       // Sort by most recent first
@@ -77,10 +77,10 @@ export function DriverOrderHistory() {
     <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <History className="w-6 h-6" /> Completed Deliveries
+            <History className="w-6 h-6" /> Completed & Returned
         </CardTitle>
         <CardDescription>
-          A record of your completed and cancelled deliveries.
+          A record of your completed, cancelled, and returned deliveries.
         </CardDescription>
       </CardHeader>
       <CardContent>
