@@ -29,6 +29,7 @@ if (orders.length === 0) {
             recipientPhone: '+233 24 111 2222',
             confirmationMethod: 'SIGNATURE',
             requestedDeliveryTime: '2024-07-25T14:00:00Z',
+            productPrice: 1500.00,
         },
         {
             id: 'ORD-102',
@@ -41,6 +42,7 @@ if (orders.length === 0) {
             recipientPhone: '+233 20 333 4444',
             confirmationMethod: 'PHOTO',
             requestedDeliveryTime: '2024-07-25T17:00:00Z',
+            productPrice: 3250.50,
         },
         {
             id: 'ORD-103',
@@ -52,6 +54,7 @@ if (orders.length === 0) {
             recipientName: 'Dr. Evelyn Adjei',
             recipientPhone: '+233 55 555 6666',
             confirmationMethod: 'OTP',
+            productPrice: 800.00,
         }
     ];
 }

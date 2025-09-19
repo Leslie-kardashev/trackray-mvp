@@ -20,6 +20,7 @@ export type Order = {
   recipientName: string;
   recipientPhone: string;
   requestedDeliveryTime?: string; // e.g., "2024-07-18T14:00:00Z"
+  productPrice?: number;
 
   // Defines what the driver needs to collect upon delivery
   confirmationMethod: 'PHOTO' | 'SIGNATURE' | 'OTP';

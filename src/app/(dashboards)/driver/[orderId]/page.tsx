@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, CheckCircle, Clock, MapPin, Package, Phone, PlayCircle, User } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle, CircleDollarSign, Clock, MapPin, Package, Phone, PlayCircle, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -144,6 +144,11 @@ export default function OrderDetailsPage() {
                     <OrderDetailItem icon={Phone} label="Recipient Phone">
                         <a href={`tel:${order.recipientPhone}`} className="text-primary hover:underline">{order.recipientPhone}</a>
                     </OrderDetailItem>
+                    {order.productPrice && (
+                         <OrderDetailItem icon={CircleDollarSign} label="Product Price">
+                            GHS {order.productPrice.toFixed(2)}
+                        </OrderDetailItem>
+                    )}
                     {order.requestedDeliveryTime && (
                         <OrderDetailItem icon={Clock} label="Requested Delivery Time">
                             {format(new Date(order.requestedDeliveryTime), "PPP 'at' p")}
