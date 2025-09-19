@@ -62,6 +62,7 @@ export default function OrderDetailsPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [photoSubmitted, setPhotoSubmitted] = useState(false);
   const { toast } = useToast();
   const params = useParams();
   const orderId = params.orderId as string;
@@ -193,11 +194,24 @@ export default function OrderDetailsPage() {
                 </Button>
             )}
 
-            {order.status === 'Returning' && (
+            {order.status === 'Returning' && !photoSubmitted && (
                 <DeliveryConfirmationPhoto 
                     orderId={order.id} 
-                    onConfirmed={() => handleStatusUpdate(order.id, 'Delivered')} 
+                    onConfirmed={() => setPhotoSubmitted(true)}
                 />
+            )}
+            
+            {order.status === 'Returning' && photoSubmitted && (
+                 <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
+                    <CardHeader className="text-center">
+                        <CardTitle className="text-orange-700 dark:text-orange-300 flex items-center justify-center gap-2">
+                            <CheckCircle /> Return Process Complete
+                        </CardTitle>
+                        <CardDescription>
+                            The return has been logged and the item can now be returned to the warehouse.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
             )}
 
             {order.status === 'Moving' && (

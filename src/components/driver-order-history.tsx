@@ -38,7 +38,7 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
     <Card className="shadow-sm">
       <CardHeader>
         <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <History className="w-6 h-6" /> Completed & Returned
+            <History className="w-6 h-6" /> Completed & Returned Orders
         </CardTitle>
         <CardDescription>
           A record of your completed, cancelled, and returned deliveries.
