@@ -107,7 +107,11 @@ export default function OrderDetailsPage() {
         
         // If the order is completed, navigate back to the dashboard after a short delay
         if (newStatus === 'Delivered' || newStatus === 'Returning') {
-            setTimeout(() => router.push('/driver'), 1500);
+            setTimeout(() => {
+                router.push('/driver');
+                // A short delay before reload to ensure navigation completes and cache is cleared
+                setTimeout(() => window.location.reload(), 100);
+            }, 1500);
         } else {
             fetchOrderDetails(); // Re-fetch to update UI for non-terminal statuses
         }

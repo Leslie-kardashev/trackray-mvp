@@ -11,14 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListTodo, History } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSearchParams } from 'next/navigation';
 
 export default function DriverDashboard() {
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [historyOrders, setHistoryOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const searchParams = useSearchParams();
 
   const driverId = "DRV-001"; // Hardcoded for now
 
@@ -65,7 +63,7 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     getOrders();
-  }, [getOrders, searchParams]);
+  }, [getOrders]);
 
   return (
     <div className="space-y-8">
