@@ -11,7 +11,7 @@ export default function Home() {
                 TrackRay
             </h1>
             <p className="mt-2 text-white/80">
-                AI-Powered Logistics & Fleet Management
+                Driver
             </p>
            </div>
            <div className="relative z-10 mt-auto max-w-md text-left self-start">
