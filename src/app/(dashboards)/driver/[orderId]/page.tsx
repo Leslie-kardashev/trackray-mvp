@@ -98,14 +98,12 @@ export default function OrderDetailsPage() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status'], reason?: string) => {
     try {
-        // This function is now just for show in a demo environment.
-        // It doesn't actually persist the change on the backend.
         await updateOrderStatus(orderId, newStatus, reason);
         toast({
             title: "Success",
             description: `Order ${orderId} has been updated to ${newStatus}.`
         });
-        setReturnDialogOpen(false); // Close dialog on success
+        setReturnDialogOpen(false); 
         
         const isTerminalStatus = newStatus === 'Delivered' || newStatus === 'Returning';
 
@@ -120,7 +118,7 @@ export default function OrderDetailsPage() {
         
         if (isTerminalStatus) {
             // After a short delay, navigate back to the dashboard.
-            // The dashboard will re-fetch data on its own.
+            // The dashboard will re-fetch data on its own due to the navigation.
             setTimeout(() => {
                 router.push('/driver');
             }, 1500);
@@ -327,5 +325,3 @@ export default function OrderDetailsPage() {
     </APIProvider>
   );
 }
-
-    

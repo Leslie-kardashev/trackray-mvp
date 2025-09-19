@@ -17,7 +17,7 @@ export default function DriverDashboard() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const searchParams = useSearchParams(); // Keep track of navigation
+  const searchParams = useSearchParams();
 
   const driverId = "DRV-001"; // Hardcoded for now
 
@@ -42,7 +42,7 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     getOrders();
-  }, [getOrders, searchParams]); // Re-fetch when navigating back to the page
+  }, [getOrders, searchParams]);
 
   const { activeOrders, historyOrders } = useMemo(() => {
     const active = allOrders.filter(
@@ -100,5 +100,3 @@ export default function DriverDashboard() {
     </div>
   );
 }
-
-    
