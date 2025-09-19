@@ -36,13 +36,13 @@ export default function DriverDashboard() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const router = useRouter();
 
   const driverId = "DRV-001"; // Hardcoded for now
   
   const getOrders = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch initial data once
       const fetchedOrders = await fetchAllOrders(); 
       const driverOrders = fetchedOrders.filter(o => o.driverId === driverId);
       setAllOrders(driverOrders);
@@ -82,6 +82,10 @@ export default function DriverDashboard() {
     return { activeOrders: active, historyOrders: history };
   }, [allOrders]);
 
+  const handleSelectOrder = (order: Order) => {
+    router.push(`/driver/${order.id}`);
+  };
+
   if (isLoading) {
     return <DashboardSkeleton />;
   }
@@ -107,7 +111,7 @@ export default function DriverDashboard() {
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="active">
-                  <DriverDeliveries orders={activeOrders} />
+                  <DriverDeliveries orders={activeOrders} onSelectOrder={handleSelectOrder} />
                 </TabsContent>
                 <TabsContent value="history">
                   <DriverOrderHistory orders={historyOrders} />
