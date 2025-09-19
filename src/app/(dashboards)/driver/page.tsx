@@ -18,14 +18,11 @@ export default function DriverDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // We use a state variable to force a refresh when needed.
-  // This is a simple way to trigger a data re-fetch.
   const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchAllOrders = async () => {
     try {
       setIsLoading(true);
-      // In a real app, driverId would come from auth state
       const allOrders = await getAssignedOrders("DRV-001");
 
       const active = allOrders.filter(
@@ -36,14 +33,12 @@ export default function DriverDashboard() {
         o => o.status === 'Delivered' || o.status === 'Cancelled' || o.status === 'Returning'
       );
 
-      // Sort active orders: 'Moving' status comes first, then 'Pending'
       const sortedActive = active.sort((a, b) => {
         if (a.status === 'Moving' && b.status !== 'Moving') return -1;
         if (a.status !== 'Moving' && b.status === 'Moving') return 1;
         return a.id.localeCompare(b.id);
       });
 
-      // Sort history orders: most recent first
       const sortedHistory = history.sort((a, b) => {
         const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
         const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
@@ -64,15 +59,10 @@ export default function DriverDashboard() {
     }
   };
 
-
   useEffect(() => {
     fetchAllOrders();
-    // This effect now depends on refreshKey, so we can trigger it from anywhere.
-    // For now, it runs on mount and when coming back to the page.
   }, [refreshKey]);
 
-
-  // This will re-fetch data when the user navigates back to this page
   useEffect(() => {
     const handleFocus = () => {
       setRefreshKey(prev => prev + 1);
@@ -97,10 +87,10 @@ export default function DriverDashboard() {
             <Tabs defaultValue="active">
                 <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="active">
-                        <ListTodo className="mr-2" /> Active Deliveries
+                        <ListTodo className="mr-2 h-4 w-4" /> Active Deliveries
                     </TabsTrigger>
                     <TabsTrigger value="history">
-                        <History className="mr-2" /> Order History
+                        <History className="mr-2 h-4 w-4" /> Order History
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="active">
@@ -111,7 +101,7 @@ export default function DriverDashboard() {
                 </TabsContent>
             </Tabs>
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 w-full">
             <DriverSOS />
         </div>
       </div>

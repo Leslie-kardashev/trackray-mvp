@@ -146,7 +146,7 @@ export function DriverSOS() {
                         disabled={isSending}
                       >
                         <span className="text-2xl font-bold">{item.code}</span>
-                        <span className="text-xs font-light">{item.description}</span>
+                        <span className="text-xs font-light text-center">{item.description}</span>
                       </Button>
                     ))}
                   </div>
