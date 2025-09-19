@@ -1,0 +1,205 @@
+
+{
+  "orders": [
+    {
+      "id": "ORD-101",
+      "driverId": "DRV-001",
+      "itemDescription": "20 boxes of Grade A Cocoa Beans",
+      "quantity": 20,
+      "status": "Pending",
+      "pickup": {
+        "address": "Kumasi",
+        "coords": {
+          "lat": 6.6886,
+          "lng": -1.6244
+        }
+      },
+      "destination": {
+        "address": "Tema Port",
+        "coords": {
+          "lat": 5.6667,
+          "lng": -0.0167
+        }
+      },
+      "recipientName": "Global Exporters Ltd",
+      "recipientPhone": "0302123456",
+      "requestedDeliveryTime": "2024-07-28T14:00:00.000Z",
+      "confirmationMethod": "SIGNATURE"
+    },
+    {
+      "id": "ORD-102",
+      "driverId": "DRV-001",
+      "itemDescription": "5 Rolls of Kente Cloth",
+      "quantity": 5,
+      "status": "Moving",
+      "pickup": {
+        "address": "Adanwomase",
+        "coords": {
+          "lat": 6.793,
+          "lng": -1.583
+        }
+      },
+      "destination": {
+        "address": "Accra Arts Centre",
+        "coords": {
+          "lat": 5.546,
+          "lng": -0.205
+        }
+      },
+      "recipientName": "Cultural Heritage Shop",
+      "recipientPhone": "0244112233",
+      "productPrice": 2500,
+      "confirmationMethod": "PHOTO"
+    },
+    {
+      "id": "ORD-103",
+      "driverId": "DRV-002",
+      "itemDescription": "Medical Supplies",
+      "quantity": 15,
+      "status": "Delivered",
+      "pickup": {
+        "address": "Central Medical Stores, Tema",
+        "coords": {
+          "lat": 5.67,
+          "lng": -0.01
+        }
+      },
+      "destination": {
+        "address": "Korle Bu Teaching Hospital",
+        "coords": {
+          "lat": 5.539,
+          "lng": -0.224
+        }
+      },
+      "recipientName": "Korle Bu Pharmacy",
+      "recipientPhone": "0302987654",
+      "completedAt": "2024-07-25T11:30:00.000Z",
+      "confirmationMethod": "SIGNATURE"
+    },
+    {
+      "id": "ORD-104",
+      "driverId": "DRV-001",
+      "itemDescription": "Electronic Components",
+      "quantity": 200,
+      "status": "Delivered",
+      "pickup": {
+        "address": "Accra Industrial Area",
+        "coords": {
+          "lat": 5.57,
+          "lng": -0.25
+        }
+      },
+      "destination": {
+        "address": "Agbogbloshie Market",
+        "coords": {
+          "lat": 5.544,
+          "lng": -0.218
+        }
+      },
+      "recipientName": "Tech Parts Ltd",
+      "recipientPhone": "0555123789",
+      "completedAt": "2024-07-26T15:00:00.000Z",
+      "confirmationMethod": "PHOTO"
+    },
+    {
+      "id": "ORD-105",
+      "driverId": "DRV-001",
+      "itemDescription": "Fresh Pineapples",
+      "quantity": 100,
+      "status": "Returning",
+      "pickup": {
+        "address": "Ekumfi",
+        "coords": {
+          "lat": 5.27,
+          "lng": -0.98
+        }
+      },
+      "destination": {
+        "address": "Madina Market",
+        "coords": {
+          "lat": 5.68,
+          "lng": -0.17
+        }
+      },
+      "recipientName": "Fresh Fruits Co.",
+      "recipientPhone": "0208111999",
+      "completedAt": "2024-07-26T10:00:00.000Z",
+      "returnReason": "Customer Refused",
+      "confirmationMethod": "PHOTO",
+      "returnPhotoUrl": "/returns/ORD-105-photo.jpg"
+    },
+    {
+      "id": "ORD-106",
+      "driverId": "DRV-001",
+      "itemDescription": "Frozen Fish",
+      "quantity": 50,
+      "status": "Pending",
+      "pickup": {
+        "address": "Tema Fishing Harbour",
+        "coords": {
+          "lat": 5.64,
+          "lng": 0.001
+        }
+      },
+      "destination": {
+        "address": "Kasoa Market",
+        "coords": {
+          "lat": 5.53,
+          "lng": -0.41
+        }
+      },
+      "recipientName": "Ocean's Best",
+      "recipientPhone": "0277345678",
+      "requestedDeliveryTime": "2024-07-28T12:00:00.000Z",
+      "confirmationMethod": "PHOTO"
+    },
+    {
+        "id": "ORD-107",
+        "driverId": "DRV-003",
+        "itemDescription": "Cement Bags",
+        "quantity": 100,
+        "status": "Moving",
+        "pickup": {
+            "address": "Ghacem, Tema",
+            "coords": { "lat": 5.67, "lng": 0.01 }
+        },
+        "destination": {
+            "address": "Appolonia City",
+            "coords": { "lat": 5.76, "lng": -0.05 }
+        },
+        "recipientName": "Construction Site 5",
+        "recipientPhone": "0501234567",
+        "confirmationMethod": "SIGNATURE"
+    },
+    {
+        "id": "ORD-108",
+        "driverId": "DRV-001",
+        "itemDescription": "University Textbooks",
+        "quantity": 500,
+        "status": "Delivered",
+        "pickup": {
+            "address": "Epp Books, Accra",
+            "coords": { "lat": 5.60, "lng": -0.20 }
+        },
+        "destination": {
+            "address": "University of Ghana",
+            "coords": { "lat": 5.65, "lng": -0.18 }
+        },
+        "recipientName": "UG Bookshop",
+        "recipientPhone": "0302500381",
+        "completedAt": "2024-07-24T16:30:00.000Z",
+        "confirmationMethod": "SIGNATURE"
+    }
+  ],
+  "sos_messages": [
+    {
+      "id": "SOS-1690374600000",
+      "driverId": "DRV-002",
+      "driverName": "Yaw Mensah",
+      "timestamp": "2024-07-26T12:30:00.000Z",
+      "message": "Heavy Traffic",
+      "location": "N1 Highway, near Dzorwulu",
+      "problemCode": "TR"
+    }
+  ]
+}
