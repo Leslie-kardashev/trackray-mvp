@@ -34,10 +34,10 @@ const statusStyles: { [key in Order['status']]: string } = {
 };
 
 const urgencyLevels = {
-    overdue: { label: "Overdue", style: "bg-red-600 text-white animate-pulse" },
-    high: { label: "High Priority", style: "bg-red-500 text-white" },
-    medium: { label: "Approaching Deadline", style: "bg-amber-500 text-black" },
-    low: { label: "On Schedule", style: "bg-green-500 text-white" },
+    overdue: { label: "Overdue", borderColor: "border-red-600" },
+    high: { label: "High Priority", borderColor: "border-red-500" },
+    medium: { label: "Approaching Deadline", borderColor: "border-amber-500" },
+    low: { label: "On Schedule", borderColor: "border-green-500" },
 };
 
 const getUrgency = (createdAt: string) => {
@@ -93,18 +93,16 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
                 "cursor-not-allowed opacity-50": isLocked,
                 "cursor-pointer": !isLocked,
                 "border-l-4": true,
-                "border-green-500": urgency.label === 'On Schedule',
-                "border-amber-500": urgency.label === 'Approaching Deadline',
-                "border-red-500": urgency.label === 'High Priority',
-                "border-red-600": urgency.label === 'Overdue',
-            })}
+            }, urgency.borderColor)}
             onClick={() => !isLocked && onSelectOrder(order)}
         >
           <TableCell className="font-mono text-xs w-28 md:w-32">
-              <div className="font-bold">{order.id}</div>
-              <Badge variant="outline" className={cn('text-xs mt-1 font-semibold', urgency.style)}>
-                  {urgency.label}
-              </Badge>
+              <div className="flex items-center gap-3">
+                <span className="text-xl font-bold text-muted-foreground">{index + 1}</span>
+                <div>
+                    <div className="font-bold">{order.id}</div>
+                </div>
+              </div>
           </TableCell>
           <TableCell className="hidden md:table-cell">
             <ItemDescription items={order.items} />
@@ -148,7 +146,7 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order / Urgency</TableHead>
+              <TableHead>Rank / Order</TableHead>
               <TableHead className="hidden md:table-cell">Item(s)</TableHead>
               <TableHead>Destination</TableHead>
               <TableHead>Status / Time</TableHead>
