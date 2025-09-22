@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { type Order } from "@/lib/types";
+import { type Order, type OrderItem } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -20,9 +20,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
-import { ChevronRight, Package, Lock } from "lucide-react";
+import { ChevronRight, Package, Lock, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { differenceInHours, formatDistanceToNowStrict } from 'date-fns';
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -33,7 +33,30 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-const ItemDescription = ({ items }: { items: string[] }) => {
+const urgencyLevels = {
+    overdue: { label: "Overdue", style: "bg-red-600 text-white animate-pulse" },
+    high: { label: "High Priority", style: "bg-red-500 text-white" },
+    medium: { label: "Approaching Deadline", style: "bg-amber-500 text-black" },
+    low: { label: "On Schedule", style: "bg-green-500 text-white" },
+};
+
+const getUrgency = (createdAt: string) => {
+    const hoursElapsed = differenceInHours(new Date(), new Date(createdAt));
+    if (hoursElapsed > 48) return urgencyLevels.overdue;
+    if (hoursElapsed > 36) return urgencyLevels.high;
+    if (hoursElapsed > 24) return urgencyLevels.medium;
+    return urgencyLevels.low;
+};
+
+const getTimeRemaining = (createdAt: string) => {
+    const deadline = new Date(createdAt).getTime() + 48 * 60 * 60 * 1000;
+    const now = new Date().getTime();
+    if (now > deadline) return 'Overdue';
+    return formatDistanceToNowStrict(deadline, { addSuffix: true }).replace('in ', '');
+}
+
+
+const ItemDescription = ({ items }: { items: OrderItem[] }) => {
     if (!items || items.length === 0) {
         return <span className="text-muted-foreground">No items</span>;
     }
@@ -42,7 +65,7 @@ const ItemDescription = ({ items }: { items: string[] }) => {
 
     return (
         <div className="flex flex-col">
-            <span className="font-medium">{firstItem}</span>
+            <span className="font-medium">{firstItem.quantity} {firstItem.unit} of {firstItem.name}</span>
             {remainingCount > 0 && (
                 <span className="text-xs text-muted-foreground">
                     + {remainingCount} more item{remainingCount > 1 ? 's' : ''}
@@ -60,6 +83,8 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
   const OrderRow = ({ order, index }: { order: Order, index: number }) => {
     const isLocked = activeOrder && activeOrder.id !== order.id;
     const isCurrent = activeOrder && activeOrder.id === order.id;
+    const urgency = getUrgency(order.createdAt);
+    const timeRemaining = getTimeRemaining(order.createdAt);
 
     return (
         <TableRow 
@@ -67,21 +92,34 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
             className={cn("transition-colors", {
                 "cursor-not-allowed opacity-50": isLocked,
                 "cursor-pointer": !isLocked,
+                "border-l-4": true,
+                "border-green-500": urgency.label === 'On Schedule',
+                "border-amber-500": urgency.label === 'Approaching Deadline',
+                "border-red-500": urgency.label === 'High Priority',
+                "border-red-600": urgency.label === 'Overdue',
             })}
             onClick={() => !isLocked && onSelectOrder(order)}
         >
-          <TableCell className="font-bold text-center w-12 hidden sm:table-cell">{index + 1}</TableCell>
-          <TableCell className="font-mono text-xs">{order.id}</TableCell>
+          <TableCell className="font-mono text-xs w-28 md:w-32">
+              <div className="font-bold">{order.id}</div>
+              <Badge variant="outline" className={cn('text-xs mt-1 font-semibold', urgency.style)}>
+                  {urgency.label}
+              </Badge>
+          </TableCell>
           <TableCell className="hidden md:table-cell">
             <ItemDescription items={order.items} />
           </TableCell>
           <TableCell className="font-medium text-sm">{order.destination.address}</TableCell>
-          <TableCell>
-              <Badge variant="outline" className={cn("font-semibold text-xs", statusStyles[order.status], {
+          <TableCell className="w-40">
+              <Badge variant="outline" className={cn("font-semibold text-xs mb-1", statusStyles[order.status], {
                   'border-2 border-primary': isCurrent
               })}>
               {order.status}
               </Badge>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="w-3 h-3" />
+                <span>{timeRemaining} left</span>
+              </div>
           </TableCell>
           <TableCell className="text-right">
               <Button variant="ghost" size="icon" disabled={isLocked} asChild>
@@ -106,15 +144,14 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
           Your prioritized list of assigned deliveries. Complete the active order to unlock the next.
         </CardDescription>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
+      <CardContent className="overflow-x-auto p-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center w-12 hidden sm:table-cell">#</TableHead>
-              <TableHead>Order ID</TableHead>
+              <TableHead>Order / Urgency</TableHead>
               <TableHead className="hidden md:table-cell">Item(s)</TableHead>
               <TableHead>Destination</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Status / Time</TableHead>
               <TableHead className="text-right"></TableHead>
             </TableRow>
           </TableHeader>

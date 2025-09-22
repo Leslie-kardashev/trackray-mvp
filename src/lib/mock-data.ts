@@ -1,5 +1,5 @@
 
-import { type Order } from './types';
+import { type Order, type OrderItem } from './types';
 
 const ghanaLocations = {
   "Accra": { lat: 5.6037, lng: -0.1870 },
@@ -20,17 +20,17 @@ const getRandomLocation = () => {
   return { address: name, coords: ghanaLocations[name as keyof typeof ghanaLocations] };
 }
 
-const itemBases = [
-    { product: "Nestlé Milo", unit: "Cases" },
-    { product: "Gino Tomato Mix", unit: "Boxes" },
-    { product: "Cowbell Milk Powder", unit: "Sacks" },
-    { product: "Frytol Cooking Oil", unit: "Cartons" },
-    { product: "Ideal Milk", unit: "Pallets" },
-    { product: "Indomie Noodles", unit: "Boxes" },
-    { product: "Omo Detergent", unit: "Sacks" },
-    { product: "Club Beer", unit: "Cases" },
-    { product: "Coca-Cola", unit: "Crates" },
-    { product: "Royal Aroma Rice", unit: "Bags" }
+const itemBases: Omit<OrderItem, 'quantity'>[] = [
+    { name: "Nestlé Milo", unit: "Cases", unitPrice: 150 },
+    { name: "Gino Tomato Mix", unit: "Boxes", unitPrice: 80, specifics: "400g Tins" },
+    { name: "Cowbell Milk Powder", unit: "Sacks", unitPrice: 500 },
+    { name: "Frytol Cooking Oil", unit: "Cartons", unitPrice: 220, specifics: "5L Bottles" },
+    { name: "Ideal Milk", unit: "Pallets", unitPrice: 1200 },
+    { name: "Indomie Noodles", unit: "Boxes", unitPrice: 95, specifics: "Chicken Flavour" },
+    { name: "Omo Detergent", unit: "Sacks", unitPrice: 300, specifics: "10kg" },
+    { name: "Club Beer", unit: "Cases", unitPrice: 180 },
+    { name: "Coca-Cola", unit: "Crates", unitPrice: 100, specifics: "350ml Glass" },
+    { name: "Royal Aroma Rice", unit: "Bags", unitPrice: 450, specifics: "Grade A, 25kg" }
 ];
 
 const recipientNames = [
@@ -39,19 +39,26 @@ const recipientNames = [
     "Distributor - Koforidua", "Wholesale Supply - Takoradi", "Jumia Warehouse", "Local Market - Tamale"
 ];
 
-const generateItems = (count: number): string[] => {
-    const items = new Set<string>();
+const generateItems = (count: number): OrderItem[] => {
+    const items = new Set<OrderItem>();
+    const usedIndices = new Set<number>();
     while (items.size < count) {
-        const itemBase = itemBases[Math.floor(Math.random() * itemBases.length)];
-        const quantity = Math.floor(Math.random() * 50) + 5;
-        items.add(`${quantity} ${itemBase.unit} of ${itemBase.product}`);
+        const itemIndex = Math.floor(Math.random() * itemBases.length);
+        if (usedIndices.has(itemIndex)) continue;
+
+        const itemBase = itemBases[itemIndex];
+        const quantity = Math.floor(Math.random() * 40) + 10; // 10 to 50
+        items.add({ ...itemBase, quantity });
+        usedIndices.add(itemIndex);
     }
     return Array.from(items);
 };
 
+const hoursAgo = (hours: number) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+
 // A structured set of orders for DRV-001 to ensure a clear demo flow
 const driver1Orders: Order[] = [
-  // 1. The active order
+  // 1. The active order - approaching deadline
   {
     id: "ORD-101",
     driverId: "DRV-001",
@@ -61,9 +68,8 @@ const driver1Orders: Order[] = [
     destination: { address: "Tema", coords: ghanaLocations["Tema"] },
     recipientName: "CityDia - Tema",
     recipientPhone: "0302111222",
-    paymentType: 'Pay on Delivery',
-    productPrice: 750,
-    deliveryFee: 500,
+    createdAt: hoursAgo(30), // 30 hours ago
+    paymentType: 'Pay on Credit',
     confirmationMethod: 'PHOTO'
   },
   // 2. Pending orders, will become available after the active one is done
@@ -76,8 +82,8 @@ const driver1Orders: Order[] = [
     destination: { address: "Kumasi", coords: ghanaLocations["Kumasi"] },
     recipientName: "Melcome Shop",
     recipientPhone: "0244333444",
+    createdAt: hoursAgo(10), // On schedule
     paymentType: 'Prepaid',
-    deliveryFee: 0,
     confirmationMethod: 'SIGNATURE'
   },
   {
@@ -89,9 +95,8 @@ const driver1Orders: Order[] = [
     destination: { address: "Takoradi", coords: ghanaLocations["Takoradi"] },
     recipientName: "Wholesale Supply - Takoradi",
     recipientPhone: "0205556666",
-    paymentType: 'Pay on Delivery',
-    productPrice: 1200,
-    deliveryFee: 500,
+    createdAt: hoursAgo(40), // High priority
+    paymentType: 'Pay on Credit',
     confirmationMethod: 'OTP'
   },
   // 3. Completed orders for the history view
@@ -104,8 +109,8 @@ const driver1Orders: Order[] = [
     destination: { address: "Cape Coast", coords: ghanaLocations["Cape Coast"] },
     recipientName: "Palace Supermarket",
     recipientPhone: "0277888999",
+    createdAt: hoursAgo(72),
     paymentType: 'Prepaid',
-    deliveryFee: 500,
     completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     confirmationMethod: 'PHOTO'
   },
@@ -118,9 +123,8 @@ const driver1Orders: Order[] = [
     destination: { address: "Ho", coords: ghanaLocations["Ho"] },
     recipientName: "Local Market - Ho",
     recipientPhone: "0266111222",
-    paymentType: 'Pay on Delivery',
-    productPrice: 2100,
-    deliveryFee: 500,
+    createdAt: hoursAgo(90),
+    paymentType: 'Pay on Credit',
     completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     returnReason: 'Customer Refused',
     returnPhotoUrl: `/returns/ORD-105-photo.jpg`,
@@ -135,8 +139,8 @@ const driver1Orders: Order[] = [
     destination: { address: "Sunyani", coords: ghanaLocations["Sunyani"] },
     recipientName: "Jumia Warehouse",
     recipientPhone: "0555444333",
+    createdAt: hoursAgo(100),
     paymentType: 'Prepaid',
-    deliveryFee: 500,
     completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     confirmationMethod: 'PHOTO'
   }
@@ -153,8 +157,8 @@ const driver2Orders: Order[] = [
         destination: { address: "Wa", coords: ghanaLocations["Wa"] },
         recipientName: "Distributor - Wa",
         recipientPhone: "0233999888",
+        createdAt: hoursAgo(50),
         paymentType: 'Prepaid',
-        deliveryFee: 500,
         completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         confirmationMethod: 'SIGNATURE'
     }
@@ -173,8 +177,8 @@ const otherOrders = Array.from({ length: 10 }, (_, i) => {
         destination: getRandomLocation(),
         recipientName: recipientNames[i % recipientNames.length],
         recipientPhone: `05012345${i < 10 ? '0' : ''}${i}`,
+        createdAt: hoursAgo(i*5 + 48),
         paymentType: 'Prepaid' as Order['paymentType'],
-        deliveryFee: 500,
         completedAt: new Date(Date.now() - (i + 4) * 24 * 60 * 60 * 1000).toISOString(),
         confirmationMethod: 'OTP' as Order['confirmationMethod'],
     };

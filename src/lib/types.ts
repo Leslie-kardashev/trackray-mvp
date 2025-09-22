@@ -7,10 +7,18 @@ export type Location = {
   };
 };
 
+export type OrderItem = {
+    name: string;
+    quantity: number;
+    unit: string;
+    specifics?: string;
+    unitPrice: number;
+};
+
 export type Order = {
   id: string; // Document ID from Firestore
   driverId: string; // ID of the assigned driver
-  items: string[]; // e.g., ["50 Bags of Lele Rice", "20 Boxes of Indomie"]
+  items: OrderItem[]; // e.g., ["50 Bags of Lele Rice", "20 Boxes of Indomie"]
   status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
   
   pickup: Location;
@@ -18,10 +26,12 @@ export type Order = {
 
   recipientName: string;
   recipientPhone: string;
+  
+  createdAt: string; // ISO string - for urgency calculation
   requestedDeliveryTime?: string; // ISO string
-  productPrice?: number;
-  deliveryFee: number;
-  paymentType: 'Prepaid' | 'Pay on Delivery';
+  
+  paymentType: 'Prepaid' | 'Pay on Credit';
+  
   completedAt?: string; // ISO string
   returnReason?: string; // Reason for the return
   returnPhotoUrl?: string; // URL to the photo of the returned item

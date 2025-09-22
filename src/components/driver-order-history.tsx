@@ -1,7 +1,7 @@
 
 "use client";
 
-import { type Order } from "@/lib/types";
+import { type Order, type OrderItem } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -31,7 +31,7 @@ const statusStyles: { [key in Order['status']]: string } = {
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-const ItemDescription = ({ items }: { items: string[] }) => {
+const ItemDescription = ({ items }: { items: OrderItem[] }) => {
     if (!items || items.length === 0) {
         return <span className="text-muted-foreground">No items</span>;
     }
@@ -39,14 +39,14 @@ const ItemDescription = ({ items }: { items: string[] }) => {
     const remainingCount = items.length - 1;
 
     return (
-        <>
-            {firstItem}
+        <div className="flex flex-col">
+            <span className="font-medium">{firstItem.quantity} {firstItem.unit} of {firstItem.name}</span>
             {remainingCount > 0 && (
-                <span className="text-xs text-muted-foreground ml-1">
-                    (+{remainingCount})
+                <span className="text-xs text-muted-foreground">
+                    + {remainingCount} more item{remainingCount > 1 ? 's' : ''}
                 </span>
             )}
-        </>
+        </div>
     );
 };
 
@@ -64,7 +64,7 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
           A record of your completed, cancelled, and returned deliveries.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow>
@@ -85,7 +85,7 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
                     </TableCell>
                     <TableCell>{order.destination.address}</TableCell>
                     <TableCell>
-                        <Badge variant="outline" className={cn("font-semibold", statusStyles[order.status])}>
+                        <Badge variant="outline" className={cn("font-semibold text-xs", statusStyles[order.status])}>
                             {order.status}
                         </Badge>
                     </TableCell>

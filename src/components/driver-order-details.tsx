@@ -10,6 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,6 +38,8 @@ import {
   User,
   Wallet,
   X,
+  FileText,
+  Warehouse
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +50,7 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 import { DeliveryConfirmationPhoto } from '@/components/delivery-confirmation-photo';
 import { updateOrderStatus } from '@/lib/data-service';
 import { useRouter } from 'next/navigation';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 
 const statusStyles: { [key in Order['status']]: string } = {
@@ -103,8 +107,8 @@ const OrderDetailItem = ({
   const Icon = icon;
   return (
     <div className={cn('flex items-start gap-4', className)}>
-      <Icon className="mt-1 h-5 w-5 text-muted-foreground" />
-      <div>
+      <Icon className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+      <div className="flex-grow">
         <p className="font-semibold text-muted-foreground">{label}</p>
         <div className="text-lg font-medium">{children}</div>
       </div>
@@ -158,11 +162,6 @@ export function DriverOrderDetails({
         setReturnDialogOpen(false);
       }
       
-      // Navigate back to the dashboard after a successful update
-      if (newStatus === 'Delivered' || (newStatus === 'Returning' && updatedOrder.returnPhotoUrl)) {
-        setTimeout(() => router.push('/driver'), 1000);
-      }
-
     } catch (error) {
       console.error('Failed to update status:', error);
       toast({
@@ -180,7 +179,6 @@ export function DriverOrderDetails({
         title: 'Return Photo Submitted!',
         description: 'The return process is now complete.',
       });
-    setTimeout(() => router.push('/driver'), 1000);
   }
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -194,14 +192,12 @@ export function DriverOrderDetails({
     );
   }
 
-  const totalAmountToCollect =
-    order.paymentType === 'Pay on Delivery'
-      ? (order.productPrice || 0) + order.deliveryFee
-      : 0;
+  const totalValue = order.items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
+  const totalAmountToCollect = order.paymentType === 'Pay on Credit' ? totalValue : 0;
 
   return (
     <APIProvider apiKey={apiKey}>
-      <div className="space-y-6 p-4 md:gap-8 md:p-8">
+      <div className="space-y-6">
         <Link
           href="/driver"
           className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
@@ -212,7 +208,7 @@ export function DriverOrderDetails({
 
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline flex items-center justify-between text-3xl">
+            <CardTitle className="font-headline flex flex-wrap items-center justify-between gap-2 text-3xl">
               <span>Order #{order.id}</span>
               <Badge
                 variant="outline"
@@ -232,20 +228,10 @@ export function DriverOrderDetails({
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-8 md:grid-cols-2">
-            <OrderDetailItem icon={Package} label="Items" className="md:col-span-2">
-              <ul className="list-inside list-disc space-y-1 text-base">
-                {order.items.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
-              </ul>
-            </OrderDetailItem>
-            <OrderDetailItem icon={MapPin} label="Destination">
-              {order.destination.address}
-            </OrderDetailItem>
             <OrderDetailItem icon={User} label="Recipient Name">
               {order.recipientName}
             </OrderDetailItem>
-            <OrderDetailItem icon={Phone} label="Recipient Phone">
+             <OrderDetailItem icon={Phone} label="Recipient Phone">
               <a
                 href={`tel:${order.recipientPhone}`}
                 className="text-primary hover:underline"
@@ -253,47 +239,99 @@ export function DriverOrderDetails({
                 {order.recipientPhone}
               </a>
             </OrderDetailItem>
+            <OrderDetailItem icon={MapPin} label="Drop-off Point (Destination)">
+              {order.destination.address}
+              {/* Here you could use a geocoding API to get a more specific name */}
+              <div className="text-sm text-muted-foreground">Lat: {order.destination.coords.lat.toFixed(4)}, Lng: {order.destination.coords.lng.toFixed(4)}</div>
+            </OrderDetailItem>
+             <OrderDetailItem icon={Warehouse} label="Pickup Location">
+              {order.pickup.address}
+            </OrderDetailItem>
             {order.requestedDeliveryTime && (
               <OrderDetailItem icon={Clock} label="Requested Delivery Time">
                 {format(new Date(order.requestedDeliveryTime), "PPP 'at' p")}
               </OrderDetailItem>
             )}
-            <OrderDetailItem icon={Truck} label="Delivery Fee">
-              GHS {order.deliveryFee.toFixed(2)}
-            </OrderDetailItem>
+
             <OrderDetailItem
               icon={order.paymentType === 'Prepaid' ? CreditCard : Wallet}
-              label="Payment Type"
+              label="Payment Status"
+              className="md:col-span-2 border-t pt-6"
             >
               <Badge
                 variant={order.paymentType === 'Prepaid' ? 'default' : 'secondary'}
                 className={cn('text-base', {
                   'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300':
                     order.paymentType === 'Prepaid',
-                  'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300':
-                    order.paymentType === 'Pay on Delivery',
+                  'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300':
+                    order.paymentType === 'Pay on Credit',
                 })}
               >
                 {order.paymentType}
               </Badge>
             </OrderDetailItem>
 
-            {order.paymentType === 'Pay on Delivery' && (
+            {order.paymentType === 'Pay on Credit' && (
               <OrderDetailItem
                 icon={CircleDollarSign}
                 label="Amount to Collect"
-                className="border-t pt-6 md:col-span-2"
               >
                 <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   GHS {totalAmountToCollect.toFixed(2)}
                 </span>
-                <div className="text-sm text-muted-foreground">
-                  (Product Price: GHS {order.productPrice?.toFixed(2)} + Delivery
-                  Fee: GHS {order.deliveryFee.toFixed(2)})
-                </div>
               </OrderDetailItem>
             )}
+            
+             <OrderDetailItem
+                icon={FileText}
+                label="Total Order Value"
+              >
+                <span className="text-xl font-bold">
+                  GHS {totalValue.toFixed(2)}
+                </span>
+              </OrderDetailItem>
+
           </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-headline text-2xl">
+                    <Package />
+                    Product Details
+                </CardTitle>
+                <CardDescription>List of all products included in this delivery.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Item Name</TableHead>
+                            <TableHead className="text-center">Quantity</TableHead>
+                            <TableHead className="text-right">Total Price</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {order.items.map((item, index) => (
+                            <TableRow key={index}>
+                                <TableCell>
+                                    <div className="font-medium">{item.name}</div>
+                                    {item.specifics && <div className="text-xs text-muted-foreground">{item.specifics}</div>}
+                                </TableCell>
+                                <TableCell className="text-center">{item.quantity} {item.unit}</TableCell>
+                                <TableCell className="text-right font-mono">GHS {(item.quantity * item.unitPrice).toFixed(2)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+            <CardFooter className="flex justify-between items-center bg-muted/50 p-4 mt-4 rounded-b-lg">
+                <Button variant="outline"><FileText className="mr-2"/> View Invoice</Button>
+                <div className="text-right">
+                    <div className="text-sm text-muted-foreground">Total Value</div>
+                    <div className="text-2xl font-bold">GHS {totalValue.toFixed(2)}</div>
+                </div>
+            </CardFooter>
         </Card>
 
         {order.status === 'Moving' && order.pickup && order.destination && (
