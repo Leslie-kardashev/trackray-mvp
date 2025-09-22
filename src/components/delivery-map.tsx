@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Map,
   Marker,
@@ -13,17 +13,6 @@ import { Skeleton } from './ui/skeleton';
 import { LocateFixed, MapIcon, Milestone, Timer, XCircle } from 'lucide-react';
 import { type Location } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-
-const DRIVER_ICON = {
-  path: 'M2,10.1c0,0,0-0.1,0-0.1s0-0.1,0-0.1c0-2.8,2.2-5,5-5s5,2.2,5,5c0,0,0,0.1,0,0.1s0,0.1,0,0.1H2z M7,12.1 c-1.7,0-3-1.3-3-3s1.3-3,3-3s3,1.3,3,3S8.7,12.1,7,12.1z M7,7.1C6.4,7.1,6,6.6,6,6.1s0.4-1,1-1s1,0.4,1,1S7.6,7.1,7,7.1z M12.5,10.1H14c0.6,0,1-0.4,1-1s-0.4-1-1-1h-1.5V10.1z M0,10.1h1.5V8.1H0V10.1z',
-  fillColor: 'hsl(var(--primary))',
-  fillOpacity: 1,
-  strokeWeight: 1,
-  strokeColor: 'hsl(var(--primary-foreground))',
-  rotation: 0,
-  scale: 1.8,
-  anchor: { x: 7, y: 10 },
-};
 
 function Directions({
   origin,
@@ -78,6 +67,21 @@ export function DeliveryMap({ origin, destination }: { origin: Location['coords'
     const [driverLocation, setDriverLocation] = useState<google.maps.LatLngLiteral | null>(origin);
     const [locationError, setLocationError] = useState<string | null>(null);
     const map = useMap();
+    const coreLibrary = useMapsLibrary('core');
+
+    const driverIcon = useMemo<google.maps.Symbol | null>(() => {
+        if (!coreLibrary) return null;
+        return {
+            path: 'M2,10.1c0,0,0-0.1,0-0.1s0-0.1,0-0.1c0-2.8,2.2-5,5-5s5,2.2,5,5c0,0,0,0.1,0,0.1s0,0.1,0,0.1H2z M7,12.1 c-1.7,0-3-1.3-3-3s1.3-3,3-3s3,1.3,3,3S8.7,12.1,7,12.1z M7,7.1C6.4,7.1,6,6.6,6,6.1s0.4-1,1-1s1,0.4,1,1S7.6,7.1,7,7.1z M12.5,10.1H14c0.6,0,1-0.4,1-1s-0.4-1-1-1h-1.5V10.1z M0,10.1h1.5V8.1H0V10.1z',
+            fillColor: 'hsl(var(--primary))',
+            fillOpacity: 1,
+            strokeWeight: 1,
+            strokeColor: 'hsl(var(--primary-foreground))',
+            rotation: 0,
+            scale: 1.8,
+            anchor: new coreLibrary.Point(7, 10),
+        };
+    }, [coreLibrary]);
 
     useEffect(() => {
         if (!navigator.geolocation) {
@@ -140,9 +144,9 @@ export function DeliveryMap({ origin, destination }: { origin: Location['coords'
                         mapId="trackray_driver_map"
                         disableDefaultUI
                     >
-                       {driverLocation && (
+                       {driverLocation && driverIcon && (
                          <>
-                            <Marker position={driverLocation} title="My Location" icon={DRIVER_ICON} />
+                            <Marker position={driverLocation} title="My Location" icon={driverIcon} />
                             <Marker position={destination} title="Destination" />
                             <Directions origin={driverLocation} destination={destination} setEta={setEta} />
                          </>
@@ -166,7 +170,7 @@ export function DeliveryMap({ origin, destination }: { origin: Location['coords'
                                 <CardTitle className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
                                     <Milestone className="w-4 h-4" /> Remaining Distance
                                  </CardTitle>
-                            </CardHeader>
+                            </Header>
                             <CardContent className="p-0">
                                 <p className="text-2xl font-bold">{eta.distance}</p>
                             </CardContent>
