@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { type Order } from '@/lib/types';
 import Link from 'next/link';
 import {
@@ -46,11 +46,12 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DeliveryMap } from '@/components/delivery-map';
-import { APIProvider } from '@vis.gl/react-google-maps';
+import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { DeliveryConfirmationPhoto } from '@/components/delivery-confirmation-photo';
 import { updateOrderStatus } from '@/lib/data-service';
 import { useRouter } from 'next/navigation';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { Skeleton } from './ui/skeleton';
 
 
 const statusStyles: { [key in Order['status']]: string } = {
@@ -124,20 +125,37 @@ export function DriverOrderDetails({
   onStatusUpdate: (updatedOrder: Order) => void;
 }) {
   const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [specificAddress, setSpecificAddress] = useState<string | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+
+  const geocodingLibrary = useMapsLibrary('geocoding');
+
+  useEffect(() => {
+    if (!geocodingLibrary || !order) return;
+
+    const geocoder = new geocodingLibrary.Geocoder();
+    setSpecificAddress(null); // Reset on order change
+
+    geocoder.geocode({ location: order.destination.coords }, (results, status) => {
+        if (status === 'OK' && results && results[0]) {
+            setSpecificAddress(results[0].formatted_address);
+        } else {
+            console.error('Geocode was not successful for the following reason: ' + status);
+            // Fallback to the generic address if geocoding fails
+            setSpecificAddress(order.destination.address);
+        }
+    });
+
+  }, [order, geocodingLibrary]);
 
 
   const handleLocalStatusUpdate = async (
     newStatus: Order['status'],
     reason?: string
   ) => {
-    // This function will call the prop and also update the mock backend
     try {
-      // Call the mock backend
       await updateOrderStatus(order.id, newStatus, reason);
-
-      // Create the updated order object for client-side state
       const updatedOrder: Order = {
         ...order,
         status: newStatus,
@@ -150,7 +168,6 @@ export function DriverOrderDetails({
             : undefined,
       };
 
-      // Update the state in the parent component
       onStatusUpdate(updatedOrder);
 
       toast({
@@ -198,13 +215,13 @@ export function DriverOrderDetails({
   return (
     <APIProvider apiKey={apiKey}>
       <div className="space-y-6">
-        <Link
-          href="/driver"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+        <div
+          onClick={() => onStatusUpdate(order)} // This is a bit of a hack to go "back"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Deliveries
-        </Link>
+        </div>
 
         <Card>
           <CardHeader>
@@ -240,9 +257,16 @@ export function DriverOrderDetails({
               </a>
             </OrderDetailItem>
             <OrderDetailItem icon={MapPin} label="Drop-off Point (Destination)">
-              {order.destination.address}
-              {/* Here you could use a geocoding API to get a more specific name */}
-              <div className="text-sm text-muted-foreground">Lat: {order.destination.coords.lat.toFixed(4)}, Lng: {order.destination.coords.lng.toFixed(4)}</div>
+               {specificAddress ? (
+                <>
+                  {specificAddress}
+                  <div className="text-sm text-muted-foreground">
+                    Lat: {order.destination.coords.lat.toFixed(4)}, Lng: {order.destination.coords.lng.toFixed(4)}
+                  </div>
+                </>
+              ) : (
+                <Skeleton className="h-6 w-3/4" />
+              )}
             </OrderDetailItem>
              <OrderDetailItem icon={Warehouse} label="Pickup Location">
               {order.pickup.address}

@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListTodo, History } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DriverOrderDetails } from '@/components/driver-order-details';
 
 function DashboardSkeleton() {
     return (
@@ -35,9 +36,9 @@ function DashboardSkeleton() {
 export default function DriverDashboard() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { toast } = useToast();
-  const router = useRouter();
-
+  
   const driverId = "DRV-001"; // Hardcoded for now
   
   const getOrders = useCallback(async () => {
@@ -83,11 +84,25 @@ export default function DriverDashboard() {
   }, [allOrders]);
 
   const handleSelectOrder = (order: Order) => {
-    router.push(`/driver/${order.id}`);
+    setSelectedOrder(order);
   };
+  
+  const handleUpdateOrder = (updatedOrder: Order) => {
+    // If the ID matches, it's an update, otherwise it's the "back" button which passes the original order.
+    if (updatedOrder.id === selectedOrder?.id) {
+       setAllOrders(prevOrders => 
+        prevOrders.map(o => o.id === updatedOrder.id ? updatedOrder : o)
+      );
+    }
+    setSelectedOrder(null); // Go back to the list view
+  }
 
   if (isLoading) {
     return <DashboardSkeleton />;
+  }
+  
+  if (selectedOrder) {
+    return <DriverOrderDetails order={selectedOrder} onStatusUpdate={handleUpdateOrder} />;
   }
 
   return (

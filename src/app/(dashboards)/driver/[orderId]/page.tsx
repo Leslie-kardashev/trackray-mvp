@@ -4,18 +4,18 @@
 import { useEffect, useState } from 'react';
 import { getOrderById } from '@/lib/data-service';
 import { type Order } from '@/lib/types';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DriverOrderDetails } from '@/components/driver-order-details';
+import { APIProvider } from '@vis.gl/react-google-maps';
 
 export default function OrderDetailsPage() {
   const params = useParams<{ orderId: string }>();
-  const { orderId } = params;
+  const orderId = params?.orderId;
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const router = useRouter();
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -27,7 +27,6 @@ export default function OrderDetailsPage() {
           setOrder(fetchedOrder);
         } else {
           toast({ variant: 'destructive', title: 'Error', description: 'Order not found.' });
-          router.push('/driver');
         }
       } catch (error) {
         console.error('Failed to fetch order details:', error);
@@ -38,12 +37,16 @@ export default function OrderDetailsPage() {
     };
 
     fetchOrder();
-  }, [orderId, router, toast]);
+  }, [orderId, toast]);
   
   const handleStatusUpdate = (updatedOrder: Order) => {
     setOrder(updatedOrder);
   };
 
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  if (!apiKey) {
+    return <div>Google Maps API Key is missing.</div>;
+  }
 
   if (isLoading || !order) {
     return (
@@ -57,6 +60,8 @@ export default function OrderDetailsPage() {
   }
 
   return (
-    <DriverOrderDetails order={order} onStatusUpdate={handleStatusUpdate} />
+    <APIProvider apiKey={apiKey}>
+      <DriverOrderDetails order={order} onStatusUpdate={handleStatusUpdate} />
+    </APIProvider>
   );
 }
