@@ -6,17 +6,24 @@ import { ShieldCheck, Truck, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+type NavItem = {
+  href: string;
+  label: string;
+};
+
 export function DashboardNav() {
   const pathname = usePathname();
   const isActive = (path: string) => pathname.startsWith(path);
 
   const role = pathname.split("/")[1];
 
-  const getNavItems = () => {
+  const getNavItems = (): NavItem[] => {
     switch (role) {
       case "admin":
         return [];
       case "driver":
+        // The driver dashboard is a single-page interface, so no extra nav links are needed here.
+        // Returning an empty array is correct, but it must be typed.
         return [];
       case "customer":
         return [];

@@ -2,9 +2,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { type Order } from '@/lib/types';
-import { fetchAllOrders, updateOrderStatus as mockUpdateOrderStatus } from '@/lib/data-service';
+import { fetchAllOrders } from '@/lib/data-service';
 import { DriverDeliveries } from "@/components/driver-deliveries";
 import { DriverOrderHistory } from "@/components/driver-order-history";
 import { DriverSOS } from "@/components/driver-sos";
@@ -69,7 +68,8 @@ export default function DriverDashboard() {
     ).sort((a, b) => {
         if (a.status === 'Moving' && b.status !== 'Moving') return -1;
         if (a.status !== 'Moving' && b.status === 'Moving') return 1;
-        return a.id.localeCompare(b.id);
+        // Then sort by creation date for priority
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       });
 
     const history = allOrders.filter(
@@ -88,13 +88,22 @@ export default function DriverDashboard() {
   };
   
   const handleUpdateOrder = (updatedOrder: Order) => {
-    // If the ID matches, it's an update, otherwise it's the "back" button which passes the original order.
-    if (updatedOrder.id === selectedOrder?.id) {
-       setAllOrders(prevOrders => 
-        prevOrders.map(o => o.id === updatedOrder.id ? updatedOrder : o)
-      );
+    setAllOrders(prevOrders => 
+      prevOrders.map(o => o.id === updatedOrder.id ? updatedOrder : o)
+    );
+    // If the status is final, go back to the list view after a short delay
+    if (updatedOrder.status === 'Delivered' || updatedOrder.status === 'Cancelled' || (updatedOrder.status === 'Returning' && updatedOrder.returnPhotoUrl)) {
+        setTimeout(() => {
+          setSelectedOrder(null);
+        }, 1500)
+    } else {
+      // Otherwise, just update the details in place
+      setSelectedOrder(updatedOrder);
     }
-    setSelectedOrder(null); // Go back to the list view
+  }
+
+  const handleBackToList = () => {
+    setSelectedOrder(null);
   }
 
   if (isLoading) {
@@ -102,7 +111,7 @@ export default function DriverDashboard() {
   }
   
   if (selectedOrder) {
-    return <DriverOrderDetails order={selectedOrder} onStatusUpdate={handleUpdateOrder} />;
+    return <DriverOrderDetails order={selectedOrder} onStatusUpdate={handleUpdateOrder} onBack={handleBackToList} />;
   }
 
   return (
@@ -129,7 +138,7 @@ export default function DriverDashboard() {
                   <DriverDeliveries orders={activeOrders} onSelectOrder={handleSelectOrder} />
                 </TabsContent>
                 <TabsContent value="history">
-                  <DriverOrderHistory orders={historyOrders} />
+                  <DriverOrderHistory orders={historyOrders} onSelectOrder={handleSelectOrder} />
                 </TabsContent>
             </Tabs>
         </div>

@@ -20,7 +20,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
-import { History } from "lucide-react";
+import { History, ChevronRight } from "lucide-react";
+import { Button } from "./ui/button";
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -51,8 +52,7 @@ const ItemDescription = ({ items }: { items: OrderItem[] }) => {
 };
 
 
-// This is now a "dumb" component that just receives props
-export function DriverOrderHistory({ orders }: { orders: Order[] }) {
+export function DriverOrderHistory({ orders, onSelectOrder }: { orders: Order[], onSelectOrder: (order: Order) => void; }) {
 
   return (
     <Card className="shadow-sm">
@@ -72,13 +72,14 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
               <TableHead className="hidden sm:table-cell">Item(s)</TableHead>
               <TableHead>Destination</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Completed On</TableHead>
+              <TableHead className="hidden md:table-cell text-right">Completed On</TableHead>
+              <TableHead className="text-right"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.length > 0 ? (
               orders.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow key={order.id} className="cursor-pointer" onClick={() => onSelectOrder(order)}>
                     <TableCell className="font-mono">{order.id}</TableCell>
                     <TableCell className="font-medium hidden sm:table-cell">
                        <ItemDescription items={order.items} />
@@ -89,14 +90,21 @@ export function DriverOrderHistory({ orders }: { orders: Order[] }) {
                             {order.status}
                         </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="hidden md:table-cell text-right">
                         {order.completedAt ? format(new Date(order.completedAt), "PPp") : 'N/A'}
+                    </TableCell>
+                     <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" asChild>
+                            <div>
+                                <ChevronRight className="w-4 h-4" />
+                            </div>
+                        </Button>
                     </TableCell>
                 </TableRow>
               ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center h-24">
+                    <TableCell colSpan={6} className="text-center h-24">
                         You have no completed orders yet.
                     </TableCell>
                 </TableRow>

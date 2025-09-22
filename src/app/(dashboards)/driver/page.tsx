@@ -4,13 +4,21 @@
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import DriverDashboard from './page-wrapper';
+import { APIProvider } from '@vis.gl/react-google-maps';
 
 export default function DriverDashboardPage() {
-    // The page-wrapper now handles all logic, including routing to the details view.
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    if (!apiKey) {
+        return <div className="p-4 text-red-500">Google Maps API Key is missing.</div>;
+    }
+    
     return (
-        <Suspense fallback={<DashboardSkeleton />}>
-            <DriverDashboard />
-        </Suspense>
+        <APIProvider apiKey={apiKey}>
+            <Suspense fallback={<DashboardSkeleton />}>
+                <DriverDashboard />
+            </Suspense>
+        </APIProvider>
     );
 }
 
