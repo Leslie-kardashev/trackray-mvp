@@ -60,14 +60,39 @@ Tapping on an order card should navigate to a detailed view of that specific ord
 
 ---
 
-### **4. SOS Alert System**
+### **4. SOS Alert System (TCAS)**
 
-A persistent, easily accessible SOS button should be available on all screens.
+Implement the **TrackRay Color Alert System (TCAS)** for reporting issues. This is a critical safety and communication tool.
 
-*   **UI:** A floating action button (FAB) or a prominent button in the header/footer.
+*   **UI:**
+    *   A persistent, easily accessible SOS button should be available on all main screens, likely a large, red "Report Issue" button.
+    *   Tapping this button must open a **Dialog** window.
+
+*   **Dialog Content:** The dialog should be titled "TrackRay Color Alert System" and organized into four distinct, color-coded categories.
+
+    1.  **Critical Emergency (Red):**
+        *   **UI:** A section with a red background/theme.
+        *   **Buttons:** "Burst/Flat Tire", "Mechanical Fault", "Fuel Shortage", "Robbery/Attack/Medical".
+
+    2.  **Movement Blockage (Orange):**
+        *   **UI:** A section with an orange background/theme.
+        *   **Buttons:** "Heavy Traffic", "No Parking", "Accident on Route".
+
+    3.  **External Delays (Yellow):**
+        *   **UI:** A section with a yellow background/theme.
+        *   **Buttons:** "Police/Customs Delay", "Bad Weather/Road".
+
+    4.  **Customer Issue (Blue):**
+        *   **UI:** A section with a blue background/theme.
+        *   **Buttons:** "Customer Unavailable", "Site Closed".
+
 *   **Functionality:**
-    *   Tapping the button opens a dialog with predefined issue categories (e.g., "Mechanical Fault," "Heavy Traffic," "Medical Emergency").
-    *   Selecting an issue immediately sends an alert to the admin dashboard with the driver's ID, issue type, and current GPS location.
+    *   Each button in the dialog should be large, clear, and easy to tap.
+    *   When a driver taps any issue button, the app must immediately:
+        1.  Capture the `driverId`, the selected `problemCode` (e.g., "MF" for Mechanical Fault), the full `message` ("Mechanical Fault"), and the driver's current GPS location.
+        2.  Send this data as an alert to the admin/dispatch backend.
+        3.  Show a confirmation toast to the driver (e.g., "Alert Sent: Mechanical Fault reported.").
+        4.  Close the dialog.
 
 ---
 
