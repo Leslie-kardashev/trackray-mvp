@@ -170,7 +170,7 @@ export function DeliveryMap({ origin, destination }: { origin: Location['coords'
                                 <CardTitle className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
                                     <Milestone className="w-4 h-4" /> Remaining Distance
                                  </CardTitle>
-                            </Header>
+                            </CardHeader>
                             <CardContent className="p-0">
                                 <p className="text-2xl font-bold">{eta.distance}</p>
                             </CardContent>
