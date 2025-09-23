@@ -48,6 +48,7 @@ Set up the navigation using **React Navigation**.
     *   The "Deliveries" tab should itself be a Stack Navigator containing:
         *   **`ActiveDeliveriesScreen`:** The list of pending and moving orders.
         *   **`OrderDetailsScreen`:** The detailed view of a single order.
+        *   **`ConfirmationPhotoScreen`:** A screen for taking photo proof of delivery.
 
 ---
 
@@ -74,7 +75,7 @@ This is the default screen in the "Deliveries" tab.
         *   **Amber (24-36 hours):** Approaching Deadline
         *   **Red (>36 hours):** High Priority / Overdue
     *   **Content:** Display `Order ID`, `Destination Address`, `Status Badge`, and remaining time (e.g., "18 hours left").
-    *   **Locked State:** If there is an active `'Moving'` order, all `'Pending'` orders should be visually "locked" (e.g., reduced opacity and a lock icon) and not pressable.
+    *   **Locked State:** If there is an active `'Moving'` order, all `'Pending'` orders should be visually "locked" (e.g., reduced opacity and a lock icon) and not pressable. This is a critical UX feature.
 *   **Functionality:**
     *   Tapping an (unlocked) order card navigates to the `OrderDetailsScreen`, passing the `orderId`.
 
@@ -94,19 +95,21 @@ This is the default screen in the "Deliveries" tab.
     *   Use the **`expo-location`** library to get the user's current GPS location.
     *   Use `react-native-maps` to display the driver's location and the destination, with a polyline drawn between them showing the route.
 
-**D. Delivery Confirmation (Part of OrderDetailsScreen)**
+**D. Delivery Confirmation (Part of OrderDetailsScreen flow)**
 *   **Functionality:**
-    *   When "Mark as Delivered" is pressed, simulate a success state and navigate back.
-    *   If the order requires photo confirmation, first navigate to a new screen.
+    *   When "Mark as Delivered" is pressed, simulate a success state. If the order requires photo confirmation, first navigate to the `ConfirmationPhotoScreen`. Otherwise, just navigate back.
 *   **Photo Confirmation Screen (`/screens/ConfirmationPhotoScreen.tsx`):**
+    *   This screen should be pushed onto the stack.
     *   Use the **`expo-camera`** library to show a full-screen camera view.
     *   Provide a button to take a picture.
-    *   After taking the picture, show a preview with "Confirm" and "Retake" buttons. On confirm, navigate back.
+    *   After taking the picture, show a preview of the image with two buttons: "**Confirm**" and "**Retake**".
+    *   On "Confirm", navigate back to the details screen, which should then show a "Completed" message before popping back to the list. On "Retake", the camera view should be shown again.
 
 **E. Order History Screen (`/screens/OrderHistoryScreen.tsx`)**
 *   **UI:**
+    *   This screen is in the "History" tab.
     *   Use a `FlatList` to display all orders with status `'Delivered'`, `'Returning'`, or `'Cancelled'`.
     *   Sort the list by `completedAt` timestamp (most recent first).
     *   Each row should show `Order ID`, `Destination`, final `Status`, and the date of completion.
 *   **Functionality:**
-    *   Tapping an item can navigate to the `OrderDetailsScreen` to view the details of the past order (in a read-only state).
+    *   Tapping an item can navigate to the `OrderDetailsScreen` to view the details of the past order (in a read-only state). Action buttons should be hidden.
