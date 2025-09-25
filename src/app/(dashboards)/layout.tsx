@@ -7,7 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { DashboardNav } from "@/components/dashboard-nav";
 import { Badge } from "@/components/ui/badge";
@@ -75,10 +75,10 @@ export default function DashboardLayout({
             <div className="ml-auto flex-1 sm:flex-initial">
                 {/* Optional search bar can go here */}
             </div>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/" className="flex items-center gap-2">
+          <Button asChild variant="outline" size="icon">
+            <Link href="/">
                 <LogOut className="h-4 w-4" />
-                <span>Logout</span>
+                <span className="sr-only">Logout</span>
             </Link>
           </Button>
         </div>
