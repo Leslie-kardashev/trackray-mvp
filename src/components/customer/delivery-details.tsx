@@ -90,7 +90,7 @@ export function DeliveryDetails({
         <Label>Payment Preference</Label>
         <RadioGroup
           value={paymentPreference}
-          onValueChange={setPaymentPreference}
+          onValueChange={(value) => setPaymentPreference(value as 'Prepaid' | 'Pay On Credit')}
           className="mt-2"
         >
           <div className="flex items-center space-x-2">
