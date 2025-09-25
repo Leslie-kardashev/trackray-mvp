@@ -1,4 +1,3 @@
-
 export type Location = {
   address: string;
   coords: {
@@ -7,60 +6,46 @@ export type Location = {
   };
 };
 
+export type User = {
+  id: string;
+  email: string;
+  password?: string; // Should not be sent to client
+  type: 'Individual' | 'Business';
+  fullName?: string;
+  businessName?: string;
+  businessOwnerName?: string;
+  phoneNumbers?: string[];
+  shopLocation: Location;
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  description: string;
+  unitPrice: number;
+  imageUrl: string;
+  category: string;
+};
+
+export type CartItem = {
+  product: Product;
+  quantity: number;
+};
+
 export type OrderItem = {
-    name: string;
-    quantity: number;
-    unit: string;
-    specifics?: string;
-    unitPrice: number;
+  product: Product;
+  quantity: number;
+  priceAtOrder: number;
 };
 
 export type Order = {
-  id: string; // Document ID from Firestore
-  driverId: string; // ID of the assigned driver
-  items: OrderItem[]; // e.g., ["50 Bags of Lele Rice", "20 Boxes of Indomie"]
-  status: 'Pending' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled';
-  
-  pickup: Location;
-  destination: Location;
-
-  recipientName: string;
-  recipientPhone: string;
-  
-  createdAt: string; // ISO string - for urgency calculation
-  requestedDeliveryTime?: string; // ISO string
-  
-  paymentType: 'Prepaid' | 'Pay on Credit';
-  
-  completedAt?: string; // ISO string
-  returnReason?: string; // Reason for the return
-  returnPhotoUrl?: string; // URL to the photo of the returned item
-
-  // Defines what the driver needs to collect upon delivery
-  confirmationMethod: 'PHOTO' | 'SIGNATURE' | 'OTP';
-};
-
-// This represents the data payload for confirming a delivery
-export type DeliveryConfirmation = {
-  orderId: string;
-  status: 'Delivered';
-  confirmationData: string; // Base64 string for photo/signature, or the OTP string
-  timestamp: string;
-}
-
-export type SOSMessage = {
   id: string;
-  driverId: string;
-  driverName: string;
-  timestamp: string;
-  message: string;
-  location?: string;
-  problemCode: 'BT' | 'MF' | 'FS' | 'SOS' | 'TR' | 'NP' | 'AC' | 'PD' | 'BW' | 'CU' | 'SC';
-};
-
-export type ReturnReason = {
-  code: string;
-  description: string;
-  color: string;
-  action: 'PHOTO' | 'CALL';
+  userId: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: 'Pending Assignment' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
+  deliveryAddress: Location;
+  orderDate: string; // ISO String
+  scheduledDeliveryDate: string; // ISO String
+  paymentPreference: 'Prepaid' | 'Pay On Credit';
 };

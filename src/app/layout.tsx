@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
+import { AppProvider } from '@/context/AppContext';
 
 export const metadata: Metadata = {
-  title: 'TrackRay',
-  description: 'AI-Powered Logistics & Fleet Management',
+  title: 'Thonket',
+  description: 'Everything you need, delivered to your door.',
 };
 
 export default function RootLayout({
@@ -23,8 +24,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        {children}
-        <Toaster />
+        <AppProvider>
+          {children}
+          <Toaster />
+        </AppProvider>
       </body>
     </html>
   );
