@@ -340,7 +340,7 @@ export function DriverOrderDetails({
                       ))}
                   </TableBody>
               </Table>
-          </CardFooter>
+          </CardContent>
           <CardFooter className="flex justify-between items-center bg-muted/50 p-4 mt-4 rounded-b-lg">
               <Button variant="outline"><FileText className="mr-2"/> View Invoice</Button>
               <div className="text-right">
@@ -466,3 +466,5 @@ export function DriverOrderDetails({
     </div>
   );
 }
+
+    
