@@ -1,3 +1,4 @@
+
 export type Location = {
   address: string;
   coords: {
@@ -18,11 +19,18 @@ export type User = {
   shopLocation: Location;
 };
 
+export type ProductVariant = {
+  id: string;
+  name: string; // e.g., "5kg Bag", "Liter Bottle"
+  unitPrice: number;
+};
+
 export type Product = {
   id: string;
   name: string;
   description: string;
-  unitPrice: number;
+  unitPrice?: number; // For products without variants
+  variants?: ProductVariant[];
   imageUrl: string;
   category: string;
 };
@@ -30,12 +38,14 @@ export type Product = {
 export type CartItem = {
   product: Product;
   quantity: number;
+  variant?: ProductVariant;
 };
 
 export type OrderItem = {
   product: Product;
   quantity: number;
   priceAtOrder: number;
+  variant?: ProductVariant;
 };
 
 export type Order = {

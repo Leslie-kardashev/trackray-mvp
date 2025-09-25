@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import Image from 'next/image';
 import { AppContext } from '@/context/AppContext';
-import { Product } from '@/lib/types';
+import { Product, ProductVariant } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,6 +16,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Minus, ShoppingCart } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ProductCardProps {
   product: Product;
@@ -23,6 +30,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
+    product.variants?.[0]
+  );
   const { addToCart } = useContext(AppContext);
   const { toast } = useToast();
 
@@ -31,12 +41,32 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    if (product.variants && !selectedVariant) {
+        toast({
+            variant: 'destructive',
+            title: 'Please select a variant',
+        });
+        return;
+    }
+    addToCart(product, quantity, selectedVariant);
     toast({
       title: 'Added to Cart',
-      description: `${quantity} x ${product.name} has been added to your cart.`,
+      description: `${quantity} x ${product.name} ${selectedVariant ? `(${selectedVariant.name})` : ''} added.`,
     });
   };
+
+  const handleVariantChange = (variantId: string) => {
+      const variant = product.variants?.find(v => v.id === variantId);
+      setSelectedVariant(variant);
+  }
+
+  const displayPrice = useMemo(() => {
+    if (selectedVariant) {
+        return selectedVariant.unitPrice;
+    }
+    return product.unitPrice || 0;
+  }, [product, selectedVariant]);
+
 
   return (
     <Card className="flex flex-col overflow-hidden">
@@ -52,10 +82,29 @@ export function ProductCard({ product }: ProductCardProps) {
       </CardHeader>
       <CardContent className="flex flex-1 flex-col p-4">
         <CardTitle className="mb-2 text-lg font-semibold">{product.name}</CardTitle>
-        <p className="text-sm text-muted-foreground">{product.description}</p>
+        <p className="text-sm text-muted-foreground flex-grow">{product.description}</p>
+        
+        {product.variants && (
+            <div className="mt-4">
+                <Select onValueChange={handleVariantChange} defaultValue={selectedVariant?.id}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a size/type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {product.variants.map(variant => (
+                            <SelectItem key={variant.id} value={variant.id}>
+                                {variant.name} - GH₵{variant.unitPrice.toFixed(2)}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        )}
+
         <p className="mt-auto pt-4 text-xl font-bold text-primary">
-          GH₵{product.unitPrice.toFixed(2)}
+          GH₵{displayPrice.toFixed(2)}
         </p>
+
       </CardContent>
       <CardFooter className="flex-col items-start gap-4 p-4 pt-0">
         <div className="flex w-full items-center justify-between">

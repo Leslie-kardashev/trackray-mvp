@@ -1,3 +1,4 @@
+
 import { type User, type Product, type Order } from './types';
 
 // In a real app, this data would come from a database.
@@ -36,7 +37,10 @@ export const mockProducts: Product[] = [
     id: 'prod-1',
     name: 'Nestlé Milo',
     description: 'Rich chocolate malt beverage.',
-    unitPrice: 150.0,
+    variants: [
+        { id: 'milo-400', name: '400g Tin', unitPrice: 45.00 },
+        { id: 'milo-900', name: '900g Tin', unitPrice: 90.00 },
+    ],
     imageUrl: 'https://picsum.photos/seed/milo/400/300',
     category: 'Beverages',
   },
@@ -44,7 +48,10 @@ export const mockProducts: Product[] = [
     id: 'prod-2',
     name: 'Cowbell Milk',
     description: 'Instant milk powder.',
-    unitPrice: 500.0,
+    variants: [
+        { id: 'cowbell-sachet', name: 'Sachet', unitPrice: 5.00 },
+        { id: 'cowbell-400', name: '400g Tin', unitPrice: 50.00 },
+    ],
     imageUrl: 'https://picsum.photos/seed/cowbell/400/300',
     category: 'Dairy',
   },
@@ -52,7 +59,10 @@ export const mockProducts: Product[] = [
     id: 'prod-3',
     name: 'Frytol Cooking Oil',
     description: 'Pure vegetable cooking oil.',
-    unitPrice: 220.0,
+    variants: [
+        { id: 'frytol-1l', name: '1L Bottle', unitPrice: 65.00 },
+        { id: 'frytol-5l', name: '5L Gallon', unitPrice: 300.00 },
+    ],
     imageUrl: 'https://picsum.photos/seed/frytol/400/300',
     category: 'Cooking Essentials',
   },
@@ -60,7 +70,7 @@ export const mockProducts: Product[] = [
     id: 'prod-4',
     name: 'Gino Tomato Mix',
     description: 'Rich and thick tomato paste.',
-    unitPrice: 80.0,
+    unitPrice: 5.00,
     imageUrl: 'https://picsum.photos/seed/gino/400/300',
     category: 'Cooking Essentials',
   },
@@ -68,7 +78,11 @@ export const mockProducts: Product[] = [
     id: 'prod-5',
     name: 'Royal Aroma Rice',
     description: 'Premium long-grain perfumed rice.',
-    unitPrice: 450.0,
+    variants: [
+        { id: 'rice-5kg', name: '5kg Bag', unitPrice: 150.00 },
+        { id: 'rice-10kg', name: '10kg Bag', unitPrice: 280.00 },
+        { id: 'rice-25kg', name: '25kg Bag', unitPrice: 650.00 },
+    ],
     imageUrl: 'https://picsum.photos/seed/rice/400/300',
     category: 'Grains',
   },
@@ -84,7 +98,7 @@ export const mockProducts: Product[] = [
     id: 'prod-7',
     name: 'Indomie Instant Noodles',
     description: 'Quick and tasty chicken flavor noodles.',
-    unitPrice: 95.0,
+    unitPrice: 4.00,
     imageUrl: 'https://picsum.photos/seed/indomie/400/300',
     category: 'Pantry',
   },
@@ -92,19 +106,37 @@ export const mockProducts: Product[] = [
     id: 'prod-8',
     name: 'Omo Detergent',
     description: 'Tough stain removal for laundry.',
-    unitPrice: 30.0,
+    unitPrice: 30.00,
     imageUrl: 'https://picsum.photos/seed/omo/400/300',
     category: 'Household',
   },
 ];
+
+
+const successfulOrder: Order =  {
+    id: 'ord-124',
+    userId: 'user-1',
+    items: [
+        { product: mockProducts[2], quantity: 1, priceAtOrder: 220.00, variant: mockProducts[2].variants![1] },
+    ],
+    totalAmount: 220.00,
+    status: 'Delivered',
+    deliveryAddress: {
+        address: '123 Adabraka St, Accra, Ghana',
+        coords: { lat: 5.559, lng: -0.206 }
+    },
+    orderDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    scheduledDeliveryDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    paymentPreference: 'Prepaid',
+};
 
 export const mockOrders: Order[] = [
     {
         id: 'ord-123',
         userId: 'user-2',
         items: [
-            { product: mockProducts[0], quantity: 2, priceAtOrder: 150.00 },
-            { product: mockProducts[4], quantity: 1, priceAtOrder: 450.00 },
+            { product: mockProducts[0], quantity: 2, priceAtOrder: 150.00, variant: mockProducts[0].variants![0] },
+            { product: mockProducts[4], quantity: 1, priceAtOrder: 450.00, variant: mockProducts[4].variants![0] },
         ],
         totalAmount: 750.00,
         status: 'Out for Delivery',
@@ -116,22 +148,7 @@ export const mockOrders: Order[] = [
         scheduledDeliveryDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         paymentPreference: 'Pay On Credit',
     },
-    {
-        id: 'ord-124',
-        userId: 'user-1',
-        items: [
-            { product: mockProducts[2], quantity: 1, priceAtOrder: 220.00 },
-        ],
-        totalAmount: 220.00,
-        status: 'Delivered',
-        deliveryAddress: {
-            address: '123 Adabraka St, Accra, Ghana',
-            coords: { lat: 5.559, lng: -0.206 }
-        },
-        orderDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        scheduledDeliveryDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        paymentPreference: 'Prepaid',
-    },
+    successfulOrder,
     {
         id: 'ord-125',
         userId: 'user-2',

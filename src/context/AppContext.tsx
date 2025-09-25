@@ -3,7 +3,7 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Product, CartItem, Order } from '@/lib/types';
+import { User, Product, CartItem, Order, ProductVariant } from '@/lib/types';
 import { mockUsers, mockProducts, mockOrders } from '@/lib/mock-data';
 
 interface AppContextType {
@@ -12,9 +12,9 @@ interface AppContextType {
   logout: () => void;
   products: Product[];
   cart: CartItem[];
-  addToCart: (product: Product, quantity: number) => void;
-  updateCartQuantity: (productId: string, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
+  addToCart: (product: Product, quantity: number, variant?: ProductVariant) => void;
+  updateCartQuantity: (productId: string, quantity: number, variantId?: string) => void;
+  removeFromCart: (productId: string, variantId?: string) => void;
   clearCart: () => void;
   orders: Order[];
   placeOrder: (order: Omit<Order, 'id' | 'userId' | 'orderDate' >) => void;
@@ -82,35 +82,44 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     router.push('/customer/login');
   };
 
-  const addToCart = (product: Product, quantity: number) => {
+  const addToCart = (product: Product, quantity: number, variant?: ProductVariant) => {
     if (quantity <= 0) return;
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.product.id === product.id);
+      const existingItem = prevCart.find(
+        (item) => item.product.id === product.id && item.variant?.id === variant?.id
+      );
       if (existingItem) {
         return prevCart.map((item) =>
-          item.product.id === product.id
+          item.product.id === product.id && item.variant?.id === variant?.id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prevCart, { product, quantity }];
+      return [...prevCart, { product, quantity, variant }];
     });
   };
 
-  const updateCartQuantity = (productId: string, quantity: number) => {
+  const updateCartQuantity = (productId: string, quantity: number, variantId?: string) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, variantId);
     } else {
       setCart((prevCart) =>
         prevCart.map((item) =>
-          item.product.id === productId ? { ...item, quantity } : item
+          item.product.id === productId && item.variant?.id === variantId
+            ? { ...item, quantity }
+            : item
         )
       );
     }
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId));
+  const removeFromCart = (productId: string, variantId?: string) => {
+    setCart((prevCart) =>
+      prevCart.filter(
+        (item) =>
+          !(item.product.id === productId && item.variant?.id === variantId)
+      )
+    );
   };
   
   const clearCart = () => {
