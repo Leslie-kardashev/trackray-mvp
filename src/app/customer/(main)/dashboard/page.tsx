@@ -1,22 +1,24 @@
-// This is a placeholder for the Product Catalog page.
-// We will implement the content in the next step.
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+'use client';
+
+import { useContext } from 'react';
+import { AppContext } from '@/context/AppContext';
+import { ProductCard } from '@/components/customer/product-card';
 
 export default function DashboardPage() {
+  const { products } = useContext(AppContext);
+
   return (
     <div className="space-y-6">
-       <div className="flex items-center justify-between">
-         <h1 className="font-headline text-3xl font-bold">Browse & Order</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-headline text-3xl font-bold">Browse & Order</h1>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Product Catalog</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>Product grid will be implemented here.</p>
-        </CardContent>
-      </Card>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
     </div>
   );
 }
