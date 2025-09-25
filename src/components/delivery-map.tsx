@@ -10,9 +10,10 @@ import {
 } from '@vis.gl/react-google-maps';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Skeleton } from './ui/skeleton';
-import { LocateFixed, MapIcon, Milestone, Timer, XCircle } from 'lucide-react';
+import { LocateFixed, MapIcon, Milestone, Timer, XCircle, Navigation } from 'lucide-react';
 import { type Location } from '@/lib/types';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Button } from './ui/button';
 
 function Directions({
   origin,
@@ -120,6 +121,7 @@ export function DeliveryMap({ origin, destination }: { origin: Location['coords'
 
     }, [map]);
 
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`;
 
     return (
         <Card>
@@ -153,6 +155,12 @@ export function DeliveryMap({ origin, destination }: { origin: Location['coords'
                        )}
                     </Map>
                  </div>
+                 <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="w-full">
+                    <Button variant="outline" size="lg" className="w-full">
+                        <Navigation className="mr-2"/>
+                        Navigate in Google Maps
+                    </Button>
+                </a>
                  {eta ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Card className="p-4">
