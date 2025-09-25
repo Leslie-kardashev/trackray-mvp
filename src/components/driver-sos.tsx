@@ -10,14 +10,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet';
 import { Button } from './ui/button';
 import { AlertTriangle, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -70,7 +70,7 @@ const tcasCategories = {
 };
 
 export function DriverSOS() {
-  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [isSheetOpen, setSheetOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
 
@@ -92,7 +92,7 @@ export function DriverSOS() {
         title: 'Alert Sent!',
         description: `HQ has been notified of the issue: ${message}.`,
       });
-      setDialogOpen(false);
+      setSheetOpen(false);
     } catch (error) {
       console.error('Failed to send SOS:', error);
       toast({
@@ -116,20 +116,20 @@ export function DriverSOS() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
+        <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+          <SheetTrigger asChild>
             <Button variant="destructive" className="w-full h-16 text-lg font-bold">
               <AlertTriangle className="w-6 h-6 mr-3" />
               REPORT ISSUE
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>TrackRay Color Alert System (TCAS)</DialogTitle>
-              <DialogDescription>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="w-full rounded-t-lg max-h-[90vh] overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>TrackRay Color Alert System (TCAS)</SheetTitle>
+              <SheetDescription>
                 Select the category and specific problem you are facing. This will immediately notify dispatch.
-              </DialogDescription>
-            </DialogHeader>
+              </SheetDescription>
+            </SheetHeader>
             <div className="space-y-4 py-4">
               {Object.values(tcasCategories).map(category => (
                 <div key={category.label}>
@@ -153,13 +153,13 @@ export function DriverSOS() {
                 </div>
               ))}
             </div>
-            <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isSending}>
+            <SheetFooter>
+                <Button variant="outline" className="w-full" onClick={() => setSheetOpen(false)} disabled={isSending}>
                     Cancel
                 </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
       </CardContent>
     </Card>
   );
