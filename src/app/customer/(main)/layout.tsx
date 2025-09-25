@@ -1,4 +1,5 @@
 
+
 'use client';
 import React, { useContext } from 'react';
 import Link from 'next/link';
@@ -71,7 +72,7 @@ function MainNavContent() {
             const badgeCount = getBadgeCount(item.badgeKey);
             return (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href} legacyBehavior passHref>
+                <Link href={item.href}>
                   <SidebarMenuButton
                     isActive={pathname === item.href}
                     className="relative"
@@ -89,8 +90,8 @@ function MainNavContent() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4">
-         <Link href="/customer/login" legacyBehavior passHref>
-            <Button variant="ghost" className="justify-start gap-2" onClick={logout}>
+         <Link href="/customer/login">
+            <Button variant="ghost" className="justify-start gap-2 w-full" onClick={logout}>
               <LogOut className="h-5 w-5" />
               <span>Logout</span>
             </Button>
