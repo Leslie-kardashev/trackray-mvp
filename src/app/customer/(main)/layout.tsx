@@ -61,9 +61,12 @@ function MainNavContent() {
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
             <AppLogo />
-            <h1 className="font-headline text-2xl font-bold tracking-tighter">
-                Thonket
-            </h1>
+            <div className="flex items-center gap-2">
+                <h1 className="font-headline text-2xl font-bold tracking-tighter">
+                    Thonket
+                </h1>
+                <Badge variant="outline">Shop</Badge>
+            </div>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-4">
@@ -150,9 +153,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <SidebarTrigger />
             <div className="flex items-center gap-2">
                 <AppLogo />
-                <h1 className="font-headline text-2xl font-bold tracking-tighter">
-                    Thonket
-                </h1>
+                <div className="flex items-center gap-2">
+                    <h1 className="font-headline text-2xl font-bold tracking-tighter">
+                        Thonket
+                    </h1>
+                    <Badge variant="outline">Shop</Badge>
+                </div>
             </div>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8 pb-20 md:pb-8">
