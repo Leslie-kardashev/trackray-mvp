@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const [role, setRole] = React.useState("warehouse");
+  const role = "warehouse";
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,22 +38,6 @@ export function LoginForm() {
     <form onSubmit={handleLogin}>
       <Card className="w-full shadow-none border-none bg-transparent">
           <CardContent className="p-0 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="agentId">Agent Role</Label>
-                <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select your role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="admin">Superadmin</SelectItem>
-                        <SelectItem value="sales">Sales</SelectItem>
-                        <SelectItem value="warehouse">Warehouse</SelectItem>
-                        <SelectItem value="driver">Driver</SelectItem>
-                        <SelectItem value="finance">Finance</SelectItem>
-                        <SelectItem value="customer">Customer</SelectItem>
-                    </SelectContent>
-                </Select>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="agentId">Agent ID</Label>
                 <Input id="agentId" placeholder="Enter your Agent ID" required defaultValue={`AGENT-${role.toUpperCase()}-01`} />
@@ -72,7 +56,7 @@ export function LoginForm() {
               <Button type="submit" className="w-full font-bold text-lg py-6">
                 Sign In
               </Button>
-              <p className="text-center text-xs text-muted-foreground">For demo purposes, select a role and click Sign In.</p>
+              <p className="text-center text-xs text-muted-foreground">For demo purposes, use the default credentials and click Sign In.</p>
       </CardFooter>
     </Card>
     </form>
