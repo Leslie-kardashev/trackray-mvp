@@ -47,7 +47,7 @@ export default function DashboardLayout({
               <Badge variant="outline" className="text-xs">Driver</Badge>
             </div>
           </SheetTrigger>
-          <SheetContent side="left">
+          <SheetContent side="left" className="flex flex-col">
             <SheetHeader>
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             </SheetHeader>
@@ -62,6 +62,14 @@ export default function DashboardLayout({
               </Link>
               <DashboardNav />
             </nav>
+            <div className="mt-auto border-t pt-4">
+              <p className="text-center text-xs text-muted-foreground">
+                Built for Thonket Company Limited by TrackRay.
+              </p>
+               <p className="text-center text-xs font-semibold text-muted-foreground">
+                Authorized Users Only.
+              </p>
+            </div>
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
