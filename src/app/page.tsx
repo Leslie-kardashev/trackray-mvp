@@ -6,13 +6,20 @@ export default function Home() {
   return (
     <main className="grid grid-cols-1 md:grid-cols-2 min-h-screen w-full font-sans antialiased">
       <div className="hidden md:flex flex-col items-center justify-center p-10 text-center relative overflow-hidden">
-           <div className="absolute inset-0 bg-gradient-to-br from-purple-900 to-blue-900" />
+           <Image
+              src="https://picsum.photos/seed/3/1200/1800"
+              alt="Warehouse background"
+              fill
+              className="object-cover"
+              data-ai-hint="warehouse logistics"
+            />
+           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
            <div className="relative z-10 mt-auto max-w-md text-white text-left">
-            <h1 className="font-headline text-3xl font-bold tracking-tight">
-                Bleeding Edge Inventory Management System
+            <h1 className="font-headline text-5xl font-bold tracking-tight">
+                Efficiency in Motion.
             </h1>
-            <p className="mt-2 text-white/80">
-                TrackRay provides real-time inventory tracking and AI-powered supply chain optimization to keep your warehouse efficient and profitable.
+            <p className="mt-4 text-lg text-white/80">
+                TrackRay provides the real-time data and AI-powered insights needed to keep your logistics operation running at peak performance.
             </p>
           </div>
       </div>
@@ -20,13 +27,19 @@ export default function Home() {
       <div className="flex items-center justify-center p-6 animate-fade-in bg-background">
         <div className="w-full max-w-sm">
             <div className="text-left mb-8">
-              <h1 className="font-headline text-4xl font-bold tracking-tighter">
-                Thonket Warehouse
+               <div className="flex items-center gap-2 mb-4 text-foreground">
+                <svg role="img" aria-label="TrackRay Logo" className="w-auto h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 70 L25 30 L40 70 L55 30 L70 70 L85 30 L95 40" stroke="currentColor" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M10 65 L25 25 L40 65 L55 25 L70 65 L85 25 L95 35" stroke="hsl(var(--primary))" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="font-headline text-2xl font-bold tracking-tighter">TrackRay</span>
+              </div>
+              <h1 className="font-headline text-3xl font-bold tracking-tighter">
+                Agent Portal
               </h1>
-              <p className="mt-2 text-muted-foreground">Welcome back. Sign in to your dashboard.</p>
+              <p className="mt-2 text-muted-foreground">Enter your credentials to access your dashboard.</p>
             </div>
             <LoginForm />
-            <p className="mt-4 text-center text-xs text-muted-foreground">Select a role and click Sign In to enter.</p>
         </div>
       </div>
     </main>
