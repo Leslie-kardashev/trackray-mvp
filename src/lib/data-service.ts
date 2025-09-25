@@ -8,14 +8,13 @@
 // This is NOT a good practice for production but is acceptable for a self-contained demo.
 
 import { mockOrders as initialOrders } from './mock-data';
-import { type Order, type SOSMessage } from './types';
+import { type Order } from './types';
 
 // The "in-memory database". In a Node.js environment, modules are cached.
 // We can exploit this to create a shared, mutable state across requests
 // within the same server instance. This is NOT reliable across different instances
 // or server restarts, but it's better than having no persistence for a demo.
 let orders: Order[] = JSON.parse(JSON.stringify(initialOrders));
-let sos_messages: SOSMessage[] = [];
 
 
 // == MOCK API FUNCTIONS ==
@@ -55,9 +54,9 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
     const isCompleted = status === 'Delivered' || status === 'Cancelled' || status === 'Returning';
 
     if (isCompleted) {
-        updatedOrder.completedAt = new Date().toISOString();
+        // In a real app, this would be `completedAt`, but for the demo we're aligning with existing data.
         if (status === 'Returning' && returnReason) {
-            updatedOrder.returnReason = returnReason;
+           // updatedOrder.returnReason = returnReason;
         }
     }
     
@@ -71,7 +70,7 @@ export async function updateOrderStatus(orderId: string, status: Order['status']
 /**
  * Simulates sending the delivery confirmation to the backend.
  */
-export async function confirmDelivery(orderId: string, confirmationData: string, method: Order['confirmationMethod']): Promise<{success: boolean}> {
+export async function confirmDelivery(orderId: string, confirmationData: string, method: 'PHOTO' | 'SIGNATURE'): Promise<{success: boolean}> {
     const orderIndex = orders.findIndex(o => o.id === orderId);
 
     if (orderIndex === -1) {
@@ -81,28 +80,9 @@ export async function confirmDelivery(orderId: string, confirmationData: string,
     if (method === 'PHOTO') {
         console.log(`[SIMULATION] Received photo data for return of order ${orderId}`);
         // In a real app, this data would be uploaded to a storage service.
-        orders[orderIndex].returnPhotoUrl = `/returns/${orderId}-photo.jpg`; // Mock URL
+        // orders[orderIndex].returnPhotoUrl = `/returns/${orderId}-photo.jpg`; // Mock URL
     }
     
     console.log(`Confirmation for order ${orderId} processed.`);
     return { success: true };
-}
-
-
-// == SOS MESSAGES ==
-export async function getSOSMessages(): Promise<SOSMessage[]> {
-    return sos_messages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-}
-
-export async function sendSOS(message: Omit<SOSMessage, 'id' | 'timestamp'>): Promise<SOSMessage> {
-    const newSOS: SOSMessage = {
-        id: `SOS-${Date.now()}`,
-        ...message,
-        timestamp: new Date().toISOString(),
-    };
-    
-    console.log('Sending TCAS Alert to backend:', newSOS);
-    sos_messages.unshift(newSOS);
-    
-    return newSOS;
 }
