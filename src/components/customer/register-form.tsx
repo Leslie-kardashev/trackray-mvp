@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useContext } from 'react';
@@ -23,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { User, Location } from '@/lib/types';
 import { Phone, Plus, Trash2 } from 'lucide-react';
 import { LocationPicker } from '../location-picker';
+import Link from 'next/link';
 
 const formSchema = z.object({
   userType: z.enum(['Individual', 'Business']),
@@ -60,6 +62,9 @@ export function RegisterForm() {
       userType: 'Individual',
       email: '',
       password: '',
+      fullName: '',
+      businessName: '',
+      businessOwnerName: '',
       phoneNumbers: [{ value: '' }],
       shopLocation: null,
     },
@@ -264,9 +269,9 @@ export function RegisterForm() {
         </Button>
          <p className="text-sm text-center text-muted-foreground">
           Already have an account?{' '}
-          <a href="/customer/login" className="text-primary hover:underline font-medium">
+          <Link href="/customer/login" className="text-primary hover:underline font-medium">
             Sign In
-          </a>
+          </Link>
         </p>
       </form>
     </Form>
