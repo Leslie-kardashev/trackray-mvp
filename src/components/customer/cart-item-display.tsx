@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import Image from 'next/image';
 import { AppContext } from '@/context/AppContext';
 import { Button } from '@/components/ui/button';
@@ -176,4 +176,3 @@ export function CartItemDisplay() {
     </Table>
   );
 }
-
