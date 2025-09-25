@@ -113,32 +113,15 @@ export const mockProducts: Product[] = [
 ];
 
 
-const successfulOrder: Order =  {
-    id: 'ord-124',
-    userId: 'user-1',
-    items: [
-        { product: mockProducts[2], quantity: 1, priceAtOrder: 220.00, variant: mockProducts[2].variants![1] },
-    ],
-    totalAmount: 220.00,
-    status: 'Delivered',
-    deliveryAddress: {
-        address: '123 Adabraka St, Accra, Ghana',
-        coords: { lat: 5.559, lng: -0.206 }
-    },
-    orderDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    scheduledDeliveryDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    paymentPreference: 'Prepaid',
-};
-
 export const mockOrders: Order[] = [
     {
         id: 'ord-123',
         userId: 'user-2',
         items: [
-            { product: mockProducts[0], quantity: 2, priceAtOrder: 150.00, variant: mockProducts[0].variants![0] },
-            { product: mockProducts[4], quantity: 1, priceAtOrder: 450.00, variant: mockProducts[4].variants![0] },
+            { product: mockProducts[0], quantity: 2, priceAtOrder: 45.00, variant: mockProducts[0].variants![0] },
+            { product: mockProducts[4], quantity: 1, priceAtOrder: 150.00, variant: mockProducts[4].variants![0] },
         ],
-        totalAmount: 750.00,
+        totalAmount: 240.00,
         status: 'Out for Delivery',
         deliveryAddress: {
             address: '789 Osu Oxford Street, Accra, Ghana',
@@ -151,23 +134,111 @@ export const mockOrders: Order[] = [
         currentLocationArea: 'Near Tesano',
         trackingProgress: 45,
     },
-    successfulOrder,
+    {
+        id: 'ord-126',
+        userId: 'user-2',
+        items: [
+            { product: mockProducts[3], quantity: 20, priceAtOrder: 5.00 },
+        ],
+        totalAmount: 100.00,
+        status: 'Out for Delivery',
+        deliveryAddress: {
+            address: 'Circle, Accra, Ghana',
+            coords: { lat: 5.57, lng: -0.20 }
+        },
+        orderDate: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+        scheduledDeliveryDate: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
+        paymentPreference: 'Prepaid',
+        trackingStatus: 'In Traffic',
+        currentLocationArea: 'Achimota Forest',
+        trackingProgress: 30,
+    },
+    {
+        id: 'ord-127',
+        userId: 'user-1',
+        items: [
+            { product: mockProducts[7], quantity: 2, priceAtOrder: 30.00 },
+        ],
+        totalAmount: 60,
+        status: 'Out for Delivery',
+        deliveryAddress: {
+            address: '123 Adabraka St, Accra, Ghana',
+            coords: { lat: 5.559, lng: -0.206 }
+        },
+        orderDate: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+        scheduledDeliveryDate: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+        paymentPreference: 'Prepaid',
+        trackingStatus: 'Arriving',
+        currentLocationArea: 'ใกล้ Adabraka',
+        trackingProgress: 90,
+    },
+    {
+        id: 'ord-124',
+        userId: 'user-1',
+        items: [
+            { product: mockProducts[2], quantity: 1, priceAtOrder: 300.00, variant: mockProducts[2].variants![1] },
+        ],
+        totalAmount: 320.00,
+        status: 'Delivered',
+        deliveryAddress: {
+            address: '123 Adabraka St, Accra, Ghana',
+            coords: { lat: 5.559, lng: -0.206 }
+        },
+        orderDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        scheduledDeliveryDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        paymentPreference: 'Prepaid',
+    },
     {
         id: 'ord-125',
         userId: 'user-2',
         items: [
-            { product: mockProducts[6], quantity: 10, priceAtOrder: 95.0 },
+            { product: mockProducts[6], quantity: 10, priceAtOrder: 4.00 },
         ],
-        totalAmount: 950.00,
+        totalAmount: 40.00,
         status: 'Pending Assignment',
         deliveryAddress: {
             address: 'Melcome Shop, Kumasi',
             coords: { lat: 6.688, lng: -1.624 }
         },
-        orderDate: new Date().toISOString(),
-        scheduledDeliveryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        orderDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        scheduledDeliveryDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
         paymentPreference: 'Pay On Credit',
         trackingStatus: 'Driver Assigned',
         trackingProgress: 5,
-    }
+    },
+    {
+        id: 'ord-128',
+        userId: 'user-2',
+        items: [
+            { product: mockProducts[1], quantity: 5, priceAtOrder: 50.00, variant: mockProducts[1].variants![1] },
+        ],
+        totalAmount: 250.00,
+        status: 'Out for Delivery',
+        deliveryAddress: {
+            address: 'East Legon, Accra, Ghana',
+            coords: { lat: 5.63, lng: -0.18 }
+        },
+        orderDate: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+        scheduledDeliveryDate: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(),
+        paymentPreference: 'Pay On Credit',
+        trackingStatus: 'SOS',
+        currentLocationArea: 'Spintex Road',
+        trackingProgress: 40,
+    },
+     {
+        id: 'ord-129',
+        userId: 'user-1',
+        items: [
+            { product: mockProducts[5], quantity: 2, priceAtOrder: 5.50 },
+        ],
+        totalAmount: 11.00,
+        status: 'Cancelled',
+        deliveryAddress: {
+            address: '123 Adabraka St, Accra, Ghana',
+            coords: { lat: 5.559, lng: -0.206 }
+        },
+        orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        scheduledDeliveryDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        paymentPreference: 'Prepaid',
+    },
 ];
