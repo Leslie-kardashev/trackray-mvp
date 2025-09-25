@@ -21,7 +21,7 @@ export default function Home() {
         <div className="w-full max-w-sm">
             <div className="text-left mb-8">
               <h1 className="font-headline text-4xl font-bold tracking-tighter">
-                TrackRay
+                Thonket Warehouse
               </h1>
               <p className="mt-2 text-muted-foreground">Welcome back. Sign in to your dashboard.</p>
             </div>
