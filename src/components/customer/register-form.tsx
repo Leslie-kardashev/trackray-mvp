@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 
-=======
->>>>>>> 95ac1cf (Good Start)
 'use client';
 
 import { useState, useContext } from 'react';
@@ -21,23 +18,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-<<<<<<< HEAD
-=======
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
->>>>>>> 95ac1cf (Good Start)
 import { AppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { User, Location } from '@/lib/types';
 import { Phone, Plus, Trash2 } from 'lucide-react';
 import { LocationPicker } from '../location-picker';
-<<<<<<< HEAD
 import Link from 'next/link';
 
 const baseSchema = z.object({
-=======
-
-const formSchema = z.object({
->>>>>>> 95ac1cf (Good Start)
   userType: z.enum(['Individual', 'Business']),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z
@@ -47,11 +35,7 @@ const formSchema = z.object({
   businessName: z.string().optional(),
   businessOwnerName: z.string().optional(),
   phoneNumbers: z
-<<<<<<< HEAD
     .array(z.object({ value: z.string() }))
-=======
-    .array(z.object({ value: z.string().min(1, 'Phone number cannot be empty.') }))
->>>>>>> 95ac1cf (Good Start)
     .optional(),
   shopLocation: z
     .object({
@@ -61,7 +45,6 @@ const formSchema = z.object({
     .nullable(),
 });
 
-<<<<<<< HEAD
 const formSchema = baseSchema.superRefine((data, ctx) => {
     if (data.userType === 'Individual') {
         if (!data.fullName || data.fullName.trim() === '') {
@@ -104,9 +87,6 @@ const formSchema = baseSchema.superRefine((data, ctx) => {
     }
 });
 
-
-=======
->>>>>>> 95ac1cf (Good Start)
 type FormSchema = z.infer<typeof formSchema>;
 
 export function RegisterForm() {
@@ -123,12 +103,9 @@ export function RegisterForm() {
       userType: 'Individual',
       email: '',
       password: '',
-<<<<<<< HEAD
       fullName: '',
       businessName: '',
       businessOwnerName: '',
-=======
->>>>>>> 95ac1cf (Good Start)
       phoneNumbers: [{ value: '' }],
       shopLocation: null,
     },
@@ -148,11 +125,7 @@ export function RegisterForm() {
       fullName: values.fullName,
       businessName: values.businessName,
       businessOwnerName: values.businessOwnerName,
-<<<<<<< HEAD
       phoneNumbers: values.phoneNumbers?.map((p) => p.value).filter(p => p.trim() !== ''),
-=======
-      phoneNumbers: values.phoneNumbers?.map((p) => p.value),
->>>>>>> 95ac1cf (Good Start)
       shopLocation: values.shopLocation!,
     };
 
@@ -183,7 +156,6 @@ export function RegisterForm() {
                   onValueChange={(value: 'Individual' | 'Business') => {
                     field.onChange(value);
                     setUserType(value);
-<<<<<<< HEAD
                     // Reset fields when switching
                     form.reset({
                       ...form.getValues(),
@@ -193,8 +165,6 @@ export function RegisterForm() {
                       businessOwnerName: value === 'Business' ? form.getValues().businessOwnerName : '',
                       phoneNumbers: value === 'Business' ? form.getValues().phoneNumbers : [{ value: '' }],
                     });
-=======
->>>>>>> 95ac1cf (Good Start)
                   }}
                   defaultValue={field.value}
                   className="flex space-x-4"
@@ -329,7 +299,6 @@ export function RegisterForm() {
           </div>
         )}
 
-<<<<<<< HEAD
         {userType === 'Individual' && (
              <FormField
                 control={form.control}
@@ -350,8 +319,6 @@ export function RegisterForm() {
         )}
 
 
-=======
->>>>>>> 95ac1cf (Good Start)
         <FormField
           control={form.control}
           name="shopLocation"
@@ -372,22 +339,12 @@ export function RegisterForm() {
         </Button>
          <p className="text-sm text-center text-muted-foreground">
           Already have an account?{' '}
-<<<<<<< HEAD
           <Link href="/customer/login" className="text-primary hover:underline font-medium">
             Sign In
           </Link>
-=======
-          <a href="/customer/login" className="text-primary hover:underline font-medium">
-            Sign In
-          </a>
->>>>>>> 95ac1cf (Good Start)
         </p>
       </form>
     </Form>
   );
 }
-<<<<<<< HEAD
-
     
-=======
->>>>>>> 95ac1cf (Good Start)
