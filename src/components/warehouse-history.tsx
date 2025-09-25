@@ -28,11 +28,12 @@ import { ScrollArea } from "./ui/scroll-area";
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
+  'Confirmed': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
+  'Ready for Dispatch': 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300',
   'Moving': 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300',
-  'Idle': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
-  'Returning': 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300',
   'Delivered': 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
   'Cancelled': 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
+  'Archived': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
 };
 
 export function WarehouseHistory() {
@@ -86,12 +87,12 @@ export function WarehouseHistory() {
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[500px]">
+        <ScrollArea className="h-[calc(100vh-220px)]">
             <Table>
                 <TableHeader className="sticky top-0 bg-card">
                     <TableRow>
                         <TableHead>Order ID</TableHead>
-                        <TableHead>Item</TableHead>
+                        <TableHead>Items</TableHead>
                         <TableHead>Customer</TableHead>
                         <TableHead>Driver</TableHead>
                         <TableHead>Date</TableHead>
@@ -114,7 +115,11 @@ export function WarehouseHistory() {
                     filteredOrders.map((order) => (
                         <TableRow key={order.id}>
                             <TableCell className="font-mono">{order.id}</TableCell>
-                            <TableCell className="font-medium">{order.item}</TableCell>
+                            <TableCell className="font-medium">
+                                <ul className="list-disc list-inside">
+                                    {order.items.map(item => <li key={item.name}>{item.quantity}x {item.name}</li>)}
+                                </ul>
+                            </TableCell>
                             <TableCell>{order.customerName}</TableCell>
                             <TableCell>{order.driverName || 'N/A'}</TableCell>
                             <TableCell>{order.orderDate}</TableCell>

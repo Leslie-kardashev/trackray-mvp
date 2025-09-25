@@ -1,5 +1,4 @@
 
-
 'use server';
 
 import { type InventoryItem, type Order, type Customer, type Driver, type SOSMessage, type Complaint, type OrderItem } from './types';
@@ -35,13 +34,13 @@ const routeColors = [
 
 if (inventory.length === 0) {
     inventory = [
-      { id: 'ITM-001', name: 'Milo Cereal (500g)', category: "FMCG", quantity: 500, status: 'In Stock', lastUpdated: '2024-05-20', unitCost: 35.00, minThreshold: 100, productDimensions: '20x15x5 cm', weight: '500g' },
-      { id: 'ITM-002', name: 'Nido Milk Powder (400g)', category: "FMCG", quantity: 350, status: 'In Stock', lastUpdated: '2024-05-21', unitCost: 45.00, minThreshold: 80, productDimensions: '15x15x10 cm', weight: '400g' },
-      { id: 'ITM-003', name: 'Maggi Cubes (100-pack)', category: "FMCG", quantity: 800, status: 'In Stock', lastUpdated: '2024-05-22', unitCost: 20.00, minThreshold: 200, productDimensions: '10x5x5 cm', weight: '100g' },
-      { id: 'ITM-004', name: 'Cerelac Infant Cereal (Maize)', category: "FMCG", quantity: 150, status: 'In Stock', lastUpdated: '2024-05-23', unitCost: 28.00, minThreshold: 50, productDimensions: '18x12x4 cm', weight: '400g' },
-      { id: 'ITM-005', name: 'Ideal Milk (Evaporated, 12-pack)', category: "FMCG", quantity: 250, status: 'In Stock', lastUpdated: '2024-05-19', unitCost: 60.00, minThreshold: 70, productDimensions: '25x20x10 cm', weight: '2kg' },
-      { id: 'ITM-006', name: 'Frytol Cooking Oil (3L)', category: "FMCG", quantity: 180, status: 'In Stock', lastUpdated: '2024-05-24', unitCost: 85.00, minThreshold: 50, productDimensions: '15x10x30 cm', weight: '3kg' },
-      { id: 'ITM-007', name: 'Omo Detergent (1kg)', category: "FMCG", quantity: 40, status: 'Low Stock', lastUpdated: '2024-05-24', unitCost: 25.00, minThreshold: 50, productDimensions: '20x25x5 cm', weight: '1kg' },
+      { id: 'ITM-001', name: 'Milo Cereal (500g)', category: "FMCG", quantity: 500, status: 'In Stock', lastUpdated: new Date().toISOString(), unitCost: 35.00, minThreshold: 100, productDimensions: '20x15x5 cm', weight: '500g' },
+      { id: 'ITM-002', name: 'Nido Milk Powder (400g)', category: "FMCG", quantity: 350, status: 'In Stock', lastUpdated: new Date().toISOString(), unitCost: 45.00, minThreshold: 80, productDimensions: '15x15x10 cm', weight: '400g' },
+      { id: 'ITM-003', name: 'Maggi Cubes (100-pack)', category: "FMCG", quantity: 800, status: 'In Stock', lastUpdated: new Date().toISOString(), unitCost: 20.00, minThreshold: 200, productDimensions: '10x5x5 cm', weight: '100g' },
+      { id: 'ITM-004', name: 'Cerelac Infant Cereal (Maize)', category: "FMCG", quantity: 150, status: 'In Stock', lastUpdated: new Date().toISOString(), unitCost: 28.00, minThreshold: 50, productDimensions: '18x12x4 cm', weight: '400g' },
+      { id: 'ITM-005', name: 'Ideal Milk (Evaporated, 12-pack)', category: "FMCG", quantity: 250, status: 'In Stock', lastUpdated: new Date().toISOString(), unitCost: 60.00, minThreshold: 70, productDimensions: '25x20x10 cm', weight: '2kg' },
+      { id: 'ITM-006', name: 'Frytol Cooking Oil (3L)', category: "FMCG", quantity: 180, status: 'In Stock', lastUpdated: new Date().toISOString(), unitCost: 85.00, minThreshold: 50, productDimensions: '15x10x30 cm', weight: '3kg' },
+      { id: 'ITM-007', name: 'Omo Detergent (1kg)', category: "FMCG", quantity: 40, status: 'Low Stock', lastUpdated: new Date().toISOString(), unitCost: 25.00, minThreshold: 50, productDimensions: '20x25x5 cm', weight: '1kg' },
     ];
 }
 
@@ -190,7 +189,7 @@ export async function getInventory(): Promise<InventoryItem[]> {
 
 export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated'>): Promise<InventoryItem> {
   const newId = `ITM-${String(inventory.length + 1).padStart(3, '0')}`;
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString();
   const newItem: InventoryItem = {
     ...item,
     id: newId,
@@ -252,7 +251,7 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function getArchivedOrders(): Promise<Order[]> {
-    return Promise.resolve(orders.filter(o => ['Delivered', 'Cancelled', 'Archived'].includes(o.status)));
+    return Promise.resolve(orders.filter(o => ['Delivered', 'Cancelled'].includes(o.status) || o.status === 'Archived'));
 }
 
 export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'priorityScore' | 'items'> & { item: string }): Promise<Order> {
@@ -293,6 +292,9 @@ export async function updateOrderStatus(orderId: string, newStatus: Order['statu
             updatedOrder = { ...order, status: newStatus };
             if (newStatus === 'Moving') {
                 updatedOrder.currentLocation = order.pickup.coords;
+            }
+            if (newStatus === 'Delivered' || newStatus === 'Cancelled') {
+                updatedOrder.status = 'Archived';
             }
             return updatedOrder;
         }
@@ -411,7 +413,3 @@ export async function addComplaint(complaintData: Omit<Complaint, 'id' | 'timest
     complaints = [newComplaint, ...complaints];
     return Promise.resolve(newComplaint);
 }
-
-    
-
-    
