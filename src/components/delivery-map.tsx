@@ -154,7 +154,7 @@ export function DeliveryMap({ origin, destination }: { origin: Location['coords'
                     </Map>
                  </div>
                  {eta ? (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Card className="p-4">
                             <CardHeader className="p-0 pb-2">
                                 <CardTitle className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
@@ -177,7 +177,7 @@ export function DeliveryMap({ origin, destination }: { origin: Location['coords'
                         </Card>
                     </div>
                  ) : driverLocation ? (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Skeleton className="h-24" />
                         <Skeleton className="h-24" />
                     </div>
