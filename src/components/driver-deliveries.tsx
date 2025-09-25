@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
-import { ChevronRight, Package, Lock, Clock, MapPin, AlertCircle } from "lucide-react";
+import { ChevronRight, Package, Lock, Clock, MapPin, AlertCircle, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { differenceInHours, formatDistanceToNowStrict } from 'date-fns';
 
@@ -55,11 +55,11 @@ const ItemDescription = ({ items }: { items: OrderItem[] }) => {
     const remainingCount = items.length - 1;
 
     return (
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-base">
             <Package className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{firstItem.quantity} {firstItem.unit} of {firstItem.name}</span>
             {remainingCount > 0 && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                     + {remainingCount} more
                 </span>
             )}
@@ -87,19 +87,28 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
             }, urgency.borderColor)}
             onClick={() => !isLocked && onSelectOrder(order)}
         >
-            <CardHeader className="flex flex-row items-center justify-between p-4 space-y-0">
-                <CardTitle className="text-base font-bold">{order.id}</CardTitle>
-                <Badge variant="outline" className={cn("font-semibold text-xs", statusStyles[order.status])}>
+            <CardHeader className="flex flex-row items-center justify-between p-4 space-y-0 gap-3">
+                {isCurrent ? (
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground flex-shrink-0">
+                        <Truck className="h-5 w-5" />
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted font-bold text-lg flex-shrink-0">
+                        {index + 1}
+                    </div>
+                )}
+                <CardTitle className="text-lg font-bold flex-grow truncate">{order.id}</CardTitle>
+                <Badge variant="outline" className={cn("font-semibold text-sm", statusStyles[order.status])}>
                   {order.status}
                 </Badge>
             </CardHeader>
             <CardContent className="p-4 pt-0 space-y-3 text-sm">
-                <div className="flex items-center gap-2 font-semibold text-base">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-2 font-semibold text-lg">
+                    <MapPin className="h-5 w-5 text-muted-foreground" />
                     <span>{order.destination.address}</span>
                 </div>
                 <ItemDescription items={order.items} />
-                <div className={cn("flex items-center gap-2 font-medium", urgency.color)}>
+                <div className={cn("flex items-center gap-2 font-medium text-base", urgency.color)}>
                     {urgency.label === "Overdue" || urgency.label === "High Priority" ? (
                         <AlertCircle className="h-4 w-4" />
                     ) : (
