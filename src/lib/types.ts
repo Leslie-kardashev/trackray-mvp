@@ -58,4 +58,9 @@ export type SOSMessage = {
   problemCode: 'BT' | 'MF' | 'FS' | 'SOS' | 'TR' | 'NP' | 'AC' | 'PD' | 'BW' | 'CU' | 'SC';
 };
 
-    
+export type ReturnReason = {
+  code: string;
+  description: string;
+  color: string;
+  action: 'PHOTO' | 'CALL';
+};

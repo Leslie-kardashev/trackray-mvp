@@ -3,6 +3,8 @@ import { UserMenu } from "@/components/user-menu";
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -46,6 +48,9 @@ export default function DashboardLayout({
             </div>
           </SheetTrigger>
           <SheetContent side="left">
+            <SheetHeader>
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+            </SheetHeader>
             <nav className="grid gap-6 text-lg font-medium">
               <Link
                 href="#"

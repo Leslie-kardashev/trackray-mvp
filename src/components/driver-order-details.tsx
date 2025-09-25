@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { type Order } from '@/lib/types';
+import { type Order, type ReturnReason } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -65,13 +65,6 @@ const statusStyles: { [key in Order['status']]: string } = {
     'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-type ReturnReason = {
-  code: string;
-  description: string;
-  color: string;
-  action: 'PHOTO' | 'CALL';
-};
-
 const returnReasons: ReturnReason[] = [
   {
     code: 'PD',
@@ -121,6 +114,7 @@ const OrderDetailItem = ({
     </div>
   );
 };
+
 
 export function DriverOrderDetails({
   order,
@@ -497,5 +491,3 @@ export function DriverOrderDetails({
     </div>
   );
 }
-
-    
