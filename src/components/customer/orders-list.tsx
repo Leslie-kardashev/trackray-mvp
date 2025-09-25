@@ -28,13 +28,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { cn } from '@/lib/utils';
 
 
 interface OrdersListProps {
   orders: Order[];
 }
 
-const getStatusVariant = (status: Order['status']) => {
+const getStatusVariant = (status: Order['status']): VariantProps<typeof Badge>["variant"] => {
   switch (status) {
     case 'Out for Delivery':
       return 'default';
@@ -42,10 +43,21 @@ const getStatusVariant = (status: Order['status']) => {
       return 'secondary';
     case 'Cancelled':
       return 'destructive';
+    case 'Pending Assignment':
+        return 'outline';
     default:
       return 'outline';
   }
 };
+
+const getStatusClass = (status: Order['status']) => {
+    switch (status) {
+        case 'Pending Assignment':
+            return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
+        default:
+            return '';
+    }
+}
 
 export function OrdersList({ orders }: OrdersListProps) {
   const isMobile = useIsMobile();
@@ -59,7 +71,7 @@ export function OrdersList({ orders }: OrdersListProps) {
             <CardHeader>
               <CardTitle className="flex justify-between items-center text-base">
                 <span>Order #{order.id.split('-')[1]}</span>
-                <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                <Badge variant={getStatusVariant(order.status)} className={cn(getStatusClass(order.status))}>{order.status}</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
@@ -119,7 +131,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                                 <TableCell>{format(new Date(order.orderDate), 'PPP')}</TableCell>
                                 <TableCell>GH₵{order.totalAmount.toFixed(2)}</TableCell>
                                 <TableCell>
-                                <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                                <Badge variant={getStatusVariant(order.status)} className={cn(getStatusClass(order.status))}>{order.status}</Badge>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
