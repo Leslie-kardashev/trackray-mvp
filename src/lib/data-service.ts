@@ -50,6 +50,8 @@ if (drivers.length === 0) {
         { id: 'DRV-002', name: 'Abeiku Acquah', vehicleId: 'AS-5678-23', vehicleType: 'Motorbike', status: 'Available', phone: '+233555333444' },
         { id: 'DRV-003', name: 'Esi Prah', vehicleId: 'WR-9101-22', vehicleType: 'Heavy Duty Truck', status: 'On-trip', phone: '+233555555666' },
         { id: 'DRV-004', name: 'Yaw Asante', vehicleId: 'BA-1121-24', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233555777888' },
+        { id: 'DRV-005', name: 'Fatau Alhassan', vehicleId: 'NR-4455-21', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233201234567' },
+        { id: 'DRV-006', name: 'Adjoa Yeboah', vehicleId: 'ER-8877-22', vehicleType: 'Motorbike', status: 'On-trip', phone: '+233278901234' },
     ];
 }
 
@@ -88,7 +90,7 @@ if (orders.length === 0) {
         
         let assignedDriver: Driver | undefined;
         if (['Ready for Dispatch'].includes(status)) {
-            assignedDriver = drivers.find(d => d.id === `DRV-00${(i % 3) + 1}`);
+            assignedDriver = drivers.find(d => d.id === `DRV-00${(i % 6) + 1}`);
         }
         
         let currentLocation: { lat: number, lng: number } | null = null;
@@ -187,12 +189,13 @@ export async function getInventory(): Promise<InventoryItem[]> {
   return Promise.resolve(updatedInventory);
 }
 
-export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated'>): Promise<InventoryItem> {
+export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated' | 'quantity' | 'productDimensions'>): Promise<InventoryItem> {
   const newId = `ITM-${String(inventory.length + 1).padStart(3, '0')}`;
   const today = new Date().toISOString();
   const newItem: InventoryItem = {
     ...item,
     id: newId,
+    quantity: 0,
     status: item.quantity <= item.minThreshold ? 'Low Stock' : 'In Stock',
     lastUpdated: today,
   };

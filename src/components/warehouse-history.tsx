@@ -41,20 +41,22 @@ export function WarehouseHistory() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("");
 
-  const fetchHistory = async () => {
+  const fetchHistory = async (isInitialLoad = false) => {
+    if (isInitialLoad) setIsLoading(true);
     try {
-      setIsLoading(true);
       const fetchedOrders = await getArchivedOrders();
       setOrders(fetchedOrders);
     } catch (error) {
       console.error("Failed to fetch order history:", error);
     } finally {
-      setIsLoading(false);
+      if (isInitialLoad) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchHistory();
+    fetchHistory(true);
+    const interval = setInterval(() => fetchHistory(false), 5000); // Poll for new archived orders
+    return () => clearInterval(interval);
   }, []);
 
   const filteredOrders = orders.filter(order =>

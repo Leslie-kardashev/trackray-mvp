@@ -69,7 +69,6 @@ const statusStyles: { [key in InventoryItem['status']]: string } = {
 const itemSchema = z.object({
   name: z.string().min(3, "Item name must be at least 3 characters."),
   category: z.string().min(2, "Category is required."),
-  quantity: z.coerce.number().min(0, "Quantity cannot be negative.").default(0),
   unitCost: z.coerce.number().min(0.01, "Unit cost must be positive."),
   minThreshold: z.coerce.number().min(0, "Threshold cannot be negative."),
   weight: z.string().optional(),
@@ -91,7 +90,6 @@ function InventoryItemForm({
     defaultValues: {
       name: defaultValues?.name || "",
       category: defaultValues?.category || "",
-      quantity: defaultValues?.quantity || 0,
       unitCost: defaultValues?.unitCost || 0,
       minThreshold: defaultValues?.minThreshold || 10,
       weight: defaultValues?.weight || "",
@@ -125,7 +123,7 @@ function InventoryItemForm({
         </div>
          <div className="grid grid-cols-1 gap-4">
             <FormField control={form.control} name="weight" render={({ field }) => (
-                <FormItem><FormLabel>Weight (Optional)</FormLabel><FormControl><Input placeholder="e.g., 5 kg" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Weight (Optional)</FormLabel><FormControl><Input placeholder="e.g., 5 kg" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
         <DialogFooter>
@@ -235,7 +233,7 @@ export function WarehouseInventory() {
   const handleUpdateItem = async (values: ItemFormValues) => {
     if (!selectedItem) return;
     try {
-      await updateInventoryItem({ ...selectedItem, ...values, productDimensions: selectedItem.productDimensions });
+      await updateInventoryItem({ ...selectedItem, ...values });
       toast({ title: "Success", description: "Item details have been updated." });
       fetchInventory();
     } catch (error) {
@@ -263,8 +261,8 @@ export function WarehouseInventory() {
 
   return (
     <>
-    <Card className="shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="shadow-sm h-full">
+      <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <CardTitle className="font-headline text-2xl">
             Inventory Management
@@ -273,7 +271,7 @@ export function WarehouseInventory() {
             A complete overview of your product catalog and stock levels.
           </CardDescription>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <Button variant="outline" onClick={() => setActiveDialog('inbound')}><ArrowDownLeft /> Log Inbound</Button>
           <Button onClick={() => setActiveDialog('add')}><PlusCircle /> Add New Item</Button>
         </div>
@@ -374,9 +372,3 @@ export function WarehouseInventory() {
     </>
   );
 }
-
-    
-
-    
-
-    
