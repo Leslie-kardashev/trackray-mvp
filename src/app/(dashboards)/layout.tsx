@@ -1,3 +1,4 @@
+
 import { UserMenu } from "@/components/user-menu";
 import {
   Sheet,
@@ -38,14 +39,10 @@ export default function DashboardLayout({
         </nav>
         <Sheet>
           <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
+            <div className="flex items-center gap-2 text-lg font-semibold md:hidden">
+              <AppLogo />
+              <span className="font-headline text-xl font-bold tracking-tighter">TrackRay</span>
+            </div>
           </SheetTrigger>
           <SheetContent side="left">
             <nav className="grid gap-6 text-lg font-medium">
