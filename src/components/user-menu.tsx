@@ -1,3 +1,4 @@
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Settings, LifeBuoy } from "lucide-react";
 import Link from "next/link";
 
 export function UserMenu() {
@@ -22,8 +23,18 @@ export function UserMenu() {
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Settings</DropdownMenuItem>
-        <DropdownMenuItem>Support</DropdownMenuItem>
+        <DropdownMenuItem asChild>
+            <Link href="/settings" className="flex items-center gap-2">
+                <Settings />
+                <span>Settings</span>
+            </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+            <Link href="/support" className="flex items-center gap-2">
+                <LifeBuoy />
+                <span>Support</span>
+            </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/" className="flex items-center gap-2">
