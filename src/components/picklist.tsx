@@ -7,7 +7,7 @@ import html2canvas from "html2canvas";
 import { type Order } from "@/lib/types";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
-import { Download, CheckSquare } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 
 const AppLogo = () => (
     <svg role="img" aria-label="TrackRay Logo" className="w-auto h-8 text-primary" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -23,10 +23,6 @@ export function Picklist({ order }: { order: Order; }) {
   const handleDownload = () => {
     const input = picklistRef.current;
     if (input) {
-      // Temporarily remove the download button from the PDF
-      const button = input.querySelector('[data-id="download-button"]');
-      if (button) button.classList.add('hidden');
-
       html2canvas(input, { scale: 2 }).then((canvas) => {
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF('p', 'mm', 'a4');
@@ -40,11 +36,34 @@ export function Picklist({ order }: { order: Order; }) {
 
         pdf.addImage(imgData, "PNG", 0, 0, width, height > pdfHeight ? pdfHeight : height);
         pdf.save(`picklist-${order.id}.pdf`);
-        
-        // Restore the button
-        if (button) button.classList.remove('hidden');
       });
     }
+  };
+
+  const handlePrint = () => {
+    const node = picklistRef.current;
+    if (!node) return;
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #printable-picklist, #printable-picklist * {
+          visibility: visible;
+        }
+        #printable-picklist {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    window.print();
+    document.head.removeChild(style);
   };
 
   const getAisle = (itemName: string) => {
@@ -58,7 +77,7 @@ export function Picklist({ order }: { order: Order; }) {
 
   return (
     <div>
-        <div ref={picklistRef} className="bg-background p-8 rounded-lg border text-foreground">
+        <div ref={picklistRef} id="printable-picklist" className="bg-background p-8 rounded-lg border text-foreground">
             <header className="flex justify-between items-start mb-8">
                 <div>
                     <h1 className="font-headline text-3xl font-bold text-foreground mt-2">Picking List</h1>
@@ -109,10 +128,14 @@ export function Picklist({ order }: { order: Order; }) {
                 <p>Please ensure all items are picked accurately and report any discrepancies.</p>
             </footer>
         </div>
-        <div className="mt-6 flex justify-end" data-id="download-button">
+        <div className="mt-6 flex justify-end gap-2">
+            <Button onClick={handlePrint} variant="outline">
+              <Printer className="mr-2 h-4 w-4" />
+              Print
+            </Button>
             <Button onClick={handleDownload}>
-            <Download className="mr-2 h-4 w-4" />
-            Download as PDF
+              <Download className="mr-2 h-4 w-4" />
+              Download as PDF
             </Button>
       </div>
     </div>
