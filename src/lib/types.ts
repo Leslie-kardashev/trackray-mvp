@@ -85,3 +85,4 @@ export type Complaint = {
   status: 'Open' | 'In Progress' | 'Resolved';
   timestamp: string;
 };
+
