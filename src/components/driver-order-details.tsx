@@ -38,7 +38,8 @@ import {
   Wallet,
   X,
   FileText,
-  Warehouse
+  Warehouse,
+  PhoneCall
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -66,24 +67,28 @@ const statusStyles: { [key in Order['status']]: string } = {
 
 const returnReasons = [
   {
-    code: 'RD',
+    code: 'PD',
     description: 'Product Damaged',
     color: 'bg-red-500 hover:bg-red-600',
+    action: 'PHOTO',
   },
   {
     code: 'IW',
     description: 'Incorrect Item',
     color: 'bg-red-500 hover:bg-red-600',
+    action: 'CALL',
   },
   {
     code: 'IQ',
     description: 'Incorrect Quantity',
     color: 'bg-orange-500 hover:bg-orange-600',
+    action: 'CALL',
   },
   {
     code: 'CR',
     description: 'Customer Refused',
     color: 'bg-blue-500 hover:bg-blue-600',
+    action: 'CALL',
   },
 ];
 
@@ -122,6 +127,7 @@ export function DriverOrderDetails({
   const [isReturnSheetOpen, setReturnSheetOpen] = useState(false);
   const [specificAddress, setSpecificAddress] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [returnAction, setReturnAction] = useState<'PHOTO' | 'CALL' | null>(null);
   const { toast } = useToast();
 
   const geocodingLibrary = useMapsLibrary('geocoding');
@@ -147,15 +153,15 @@ export function DriverOrderDetails({
 
   const handleLocalStatusUpdate = async (
     newStatus: Order['status'],
-    reason?: string
+    reason?: { description: string, action: 'PHOTO' | 'CALL' }
   ) => {
     setIsUpdating(true);
     try {
-      await updateOrderStatus(order.id, newStatus, reason);
+      await updateOrderStatus(order.id, newStatus, reason?.description);
       const updatedOrder: Order = {
         ...order,
         status: newStatus,
-        returnReason: reason,
+        returnReason: reason?.description,
         completedAt:
           newStatus === 'Delivered' ||
           newStatus === 'Returning' ||
@@ -173,6 +179,7 @@ export function DriverOrderDetails({
 
       if (newStatus === 'Returning') {
         setReturnSheetOpen(false);
+        setReturnAction(reason?.action ?? null);
       }
       
     } catch (error) {
@@ -191,6 +198,7 @@ export function DriverOrderDetails({
     await confirmDelivery(order.id, "photo-data", "PHOTO"); // data is mocked
     const updatedOrder: Order = { ...order, returnPhotoUrl: `/returns/${order.id}-photo.jpg` };
     onStatusUpdate(updatedOrder);
+    setReturnAction(null);
     toast({
         title: 'Return Photo Submitted!',
         description: 'The return process is now complete.',
@@ -351,6 +359,34 @@ export function DriverOrderDetails({
           destination={order.destination.coords}
         />
       )}
+      
+      {order.status === 'Returning' && returnAction === 'PHOTO' && !order.returnPhotoUrl && (
+        <DeliveryConfirmationPhoto
+          orderId={order.id}
+          onConfirmed={handlePhotoConfirmed}
+        />
+      )}
+
+      {order.status === 'Returning' && returnAction === 'CALL' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PhoneCall className="text-primary" /> Next Step: Call Management
+            </CardTitle>
+            <CardDescription>
+              Please call dispatch immediately to report this issue and receive further instructions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <a href="tel:+233123456789">
+              <Button size="lg" className="w-full text-lg">
+                <PhoneCall className="mr-4" /> Call Dispatch
+              </Button>
+            </a>
+          </CardContent>
+        </Card>
+      )}
+      
 
       {order.status === 'Pending' && (
         <Button
@@ -361,13 +397,6 @@ export function DriverOrderDetails({
         >
           {isUpdating ? "Starting..." : <><PlayCircle className="mr-2" /> Start Delivery</>}
         </Button>
-      )}
-
-      {order.status === 'Returning' && !order.returnPhotoUrl && (
-        <DeliveryConfirmationPhoto
-          orderId={order.id}
-          onConfirmed={handlePhotoConfirmed}
-        />
       )}
 
       {(order.status === 'Returning' && order.returnPhotoUrl) && (
@@ -423,7 +452,7 @@ export function DriverOrderDetails({
                     variant="default"
                     className={cn('h-16 text-base font-semibold', reason.color)}
                     onClick={() =>
-                      handleLocalStatusUpdate('Returning', reason.description)
+                      handleLocalStatusUpdate('Returning', reason)
                     }
                     disabled={isUpdating}
                   >
