@@ -6,21 +6,13 @@ import { type Order, type OrderItem } from "@/lib/types";
 import {
   Card,
   CardContent,
-  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "./ui/button";
-import { ChevronRight, Package, Lock, Clock } from "lucide-react";
+import { ChevronRight, Package, Lock, Clock, MapPin, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { differenceInHours, formatDistanceToNowStrict } from 'date-fns';
 
@@ -34,10 +26,10 @@ const statusStyles: { [key in Order['status']]: string } = {
 };
 
 const urgencyLevels = {
-    overdue: { label: "Overdue", borderColor: "border-red-600" },
-    high: { label: "High Priority", borderColor: "border-red-500" },
-    medium: { label: "Approaching Deadline", borderColor: "border-amber-500" },
-    low: { label: "On Schedule", borderColor: "border-green-500" },
+    overdue: { label: "Overdue", color: "text-red-600", borderColor: "border-red-600" },
+    high: { label: "High Priority", color: "text-red-500", borderColor: "border-red-500" },
+    medium: { label: "Approaching Deadline", color: "text-amber-500", borderColor: "border-amber-500" },
+    low: { label: "On Schedule", color: "text-green-600", borderColor: "border-green-500" },
 };
 
 const getUrgency = (createdAt: string) => {
@@ -55,7 +47,6 @@ const getTimeRemaining = (createdAt: string) => {
     return formatDistanceToNowStrict(deadline, { addSuffix: true }).replace('in ', '');
 }
 
-
 const ItemDescription = ({ items }: { items: OrderItem[] }) => {
     if (!items || items.length === 0) {
         return <span className="text-muted-foreground">No items</span>;
@@ -64,110 +55,81 @@ const ItemDescription = ({ items }: { items: OrderItem[] }) => {
     const remainingCount = items.length - 1;
 
     return (
-        <div className="flex flex-col">
+        <div className="flex items-center gap-2 text-sm">
+            <Package className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">{firstItem.quantity} {firstItem.unit} of {firstItem.name}</span>
             {remainingCount > 0 && (
                 <span className="text-xs text-muted-foreground">
-                    + {remainingCount} more item{remainingCount > 1 ? 's' : ''}
+                    + {remainingCount} more
                 </span>
             )}
         </div>
     );
 };
 
-
 export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], onSelectOrder: (order: Order) => void }) {
   
   const activeOrder = useMemo(() => orders.find(o => o.status === 'Moving'), [orders]);
 
-  const OrderRow = ({ order, index }: { order: Order, index: number }) => {
+  const OrderCard = ({ order, index }: { order: Order, index: number }) => {
     const isLocked = activeOrder && activeOrder.id !== order.id;
     const isCurrent = activeOrder && activeOrder.id === order.id;
     const urgency = getUrgency(order.createdAt);
     const timeRemaining = getTimeRemaining(order.createdAt);
 
     return (
-        <TableRow 
+        <Card 
             key={order.id} 
-            className={cn("transition-colors", {
-                "cursor-not-allowed opacity-50": isLocked,
-                "cursor-pointer": !isLocked,
-                "border-l-4": true,
+            className={cn("transition-all overflow-hidden", {
+                "opacity-60 bg-muted/50": isLocked,
+                "cursor-pointer hover:border-primary": !isLocked,
+                "border-primary border-2 shadow-lg": isCurrent,
             }, urgency.borderColor)}
             onClick={() => !isLocked && onSelectOrder(order)}
         >
-          <TableCell className="font-mono text-xs w-28 md:w-32">
-              <div className="flex items-center gap-3">
-                <span className="text-xl font-bold text-muted-foreground">{index + 1}</span>
-                <div>
-                    <div className="font-bold">{order.id}</div>
+            <CardHeader className="flex flex-row items-center justify-between p-4 space-y-0">
+                <CardTitle className="text-base font-bold">{order.id}</CardTitle>
+                <Badge variant="outline" className={cn("font-semibold text-xs", statusStyles[order.status])}>
+                  {order.status}
+                </Badge>
+            </CardHeader>
+            <CardContent className="p-4 pt-0 space-y-3 text-sm">
+                <div className="flex items-center gap-2 font-semibold text-base">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{order.destination.address}</span>
                 </div>
-              </div>
-          </TableCell>
-          <TableCell className="hidden md:table-cell">
-            <ItemDescription items={order.items} />
-          </TableCell>
-          <TableCell className="font-medium text-sm">{order.destination.address}</TableCell>
-          <TableCell className="w-40">
-              <Badge variant="outline" className={cn("font-semibold text-xs mb-1", statusStyles[order.status], {
-                  'border-2 border-primary': isCurrent
-              })}>
-              {order.status}
-              </Badge>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Clock className="w-3 h-3" />
-                <span>{timeRemaining} left</span>
-              </div>
-          </TableCell>
-          <TableCell className="text-right">
-              <Button variant="ghost" size="icon" disabled={isLocked} asChild>
-                  {isLocked ? <Lock className="w-4 h-4" /> : 
-                      <div onClick={(e) => { e.stopPropagation(); onSelectOrder(order); }}>
-                          <ChevronRight className="w-4 h-4" />
-                      </div>
-                  }
-              </Button>
-          </TableCell>
-        </TableRow>
+                <ItemDescription items={order.items} />
+                <div className={cn("flex items-center gap-2 font-medium", urgency.color)}>
+                    {urgency.label === "Overdue" || urgency.label === "High Priority" ? (
+                        <AlertCircle className="h-4 w-4" />
+                    ) : (
+                        <Clock className="h-4 w-4" />
+                    )}
+                    <span>{timeRemaining} remaining</span>
+                </div>
+            </CardContent>
+            <CardFooter className="bg-muted/30 p-2 flex justify-end">
+                <Button variant="ghost" size="sm" disabled={isLocked} className="h-8 w-8 p-0">
+                    {isLocked ? <Lock className="w-4 h-4" /> : <ChevronRight className="w-5 h-5" />}
+                </Button>
+            </CardFooter>
+        </Card>
     );
   };
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <Package className="w-6 h-6" /> My Active Deliveries
-        </CardTitle>
-        <CardDescription>
-          Your prioritized list of assigned deliveries. Complete the active order to unlock the next.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Rank / Order</TableHead>
-              <TableHead className="hidden md:table-cell">Item(s)</TableHead>
-              <TableHead>Destination</TableHead>
-              <TableHead>Status / Time</TableHead>
-              <TableHead className="text-right"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.length > 0 ? (
-              orders.map((order, index) => (
-                <OrderRow key={order.id} order={order} index={index} />
-              ))
-            ) : (
-                <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24">
-                        No active deliveries assigned.
-                    </TableCell>
-                </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+        {orders.length > 0 ? (
+          orders.map((order, index) => (
+            <OrderCard key={order.id} order={order} index={index} />
+          ))
+        ) : (
+            <Card className="flex flex-col items-center justify-center h-48 text-center text-muted-foreground">
+                <Package className="h-12 w-12 mb-4" />
+                <h3 className="text-lg font-semibold">All Clear!</h3>
+                <p>No active deliveries assigned right now.</p>
+            </Card>
+        )}
+    </div>
   );
 }

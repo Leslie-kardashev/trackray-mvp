@@ -15,19 +15,14 @@ import { DriverOrderDetails } from '@/components/driver-order-details';
 
 function DashboardSkeleton() {
     return (
-        <div className="space-y-8">
-            <div>
+        <div className="space-y-6 p-4 md:p-0">
+            <div className="flex justify-between items-center">
                 <Skeleton className="h-10 w-48" />
-                <Skeleton className="h-4 w-64 mt-2" />
+                <Skeleton className="h-10 w-24" />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <div className="lg:col-span-2 space-y-8">
-                    <Skeleton className="h-64 w-full" />
-                </div>
-                <div className="lg:col-span-1 w-full">
-                    <Skeleton className="h-48 w-full" />
-                </div>
-            </div>
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-32 w-full" />
         </div>
     );
 }
@@ -115,37 +110,34 @@ export default function DriverDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-headline font-bold">Driver Hub</h1>
-        <p className="text-muted-foreground">
-          Your command center for all deliveries.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2 space-y-8">
-            <Tabs defaultValue="active">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="active">
-                        <ListTodo className="mr-2 h-4 w-4" /> Active Deliveries ({activeOrders.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="history">
-                        <History className="mr-2 h-4 w-4" /> Order History ({historyOrders.length})
-                    </TabsTrigger>
-                </TabsList>
-                <TabsContent value="active">
-                  <DriverDeliveries orders={activeOrders} onSelectOrder={handleSelectOrder} />
-                </TabsContent>
-                <TabsContent value="history">
-                  <DriverOrderHistory orders={historyOrders} onSelectOrder={handleSelectOrder} />
-                </TabsContent>
-            </Tabs>
+    <div className="space-y-6">
+        <div>
+            <h1 className="text-3xl font-headline font-bold">Driver Hub</h1>
+            <p className="text-muted-foreground">
+                Your command center for all deliveries.
+            </p>
         </div>
-        <div className="lg:col-span-1 w-full lg:sticky lg:top-24">
+        
+        <Tabs defaultValue="active" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="active">
+                    <ListTodo className="mr-2 h-4 w-4" /> Active ({activeOrders.length})
+                </TabsTrigger>
+                <TabsTrigger value="history">
+                    <History className="mr-2 h-4 w-4" /> History ({historyOrders.length})
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="active" className="mt-4">
+              <DriverDeliveries orders={activeOrders} onSelectOrder={handleSelectOrder} />
+            </TabsContent>
+            <TabsContent value="history" className="mt-4">
+              <DriverOrderHistory orders={historyOrders} onSelectOrder={handleSelectOrder} />
+            </TabsContent>
+        </Tabs>
+        
+        <div className="pt-4">
             <DriverSOS />
         </div>
-      </div>
     </div>
   );
 }

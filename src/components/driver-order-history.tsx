@@ -56,45 +56,39 @@ export function DriverOrderHistory({ orders, onSelectOrder }: { orders: Order[],
 
   return (
     <Card className="shadow-sm">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <History className="w-6 h-6" /> Completed & Returned Orders
+      <CardHeader className="p-4">
+        <CardTitle className="font-headline text-lg flex items-center gap-2">
+            <History className="w-5 h-5" /> Completed & Returned
         </CardTitle>
-        <CardDescription>
-          A record of your completed, cancelled, and returned deliveries.
-        </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead className="hidden sm:table-cell">Item(s)</TableHead>
+              <TableHead>Order</TableHead>
               <TableHead>Destination</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="hidden md:table-cell text-right">Completed On</TableHead>
-              <TableHead className="text-right"></TableHead>
+              <TableHead className="text-right">Date</TableHead>
+              <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.length > 0 ? (
               orders.map((order) => (
                 <TableRow key={order.id} className="cursor-pointer" onClick={() => onSelectOrder(order)}>
-                    <TableCell className="font-mono">{order.id}</TableCell>
-                    <TableCell className="font-medium hidden sm:table-cell">
-                       <ItemDescription items={order.items} />
-                    </TableCell>
+                    <TableCell className="font-mono text-xs">{order.id}</TableCell>
                     <TableCell>{order.destination.address}</TableCell>
                     <TableCell>
                         <Badge variant="outline" className={cn("font-semibold text-xs", statusStyles[order.status])}>
                             {order.status}
                         </Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell text-right">
-                        {order.completedAt ? format(new Date(order.completedAt), "PPp") : 'N/A'}
+                    <TableCell className="text-right text-xs">
+                        {order.completedAt ? format(new Date(order.completedAt), "MMM d") : 'N/A'}
                     </TableCell>
-                     <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" asChild>
+                     <TableCell className="text-right p-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                             <div>
                                 <ChevronRight className="w-4 h-4" />
                             </div>
@@ -104,13 +98,14 @@ export function DriverOrderHistory({ orders, onSelectOrder }: { orders: Order[],
               ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24">
+                    <TableCell colSpan={5} className="text-center h-24">
                         You have no completed orders yet.
                     </TableCell>
                 </TableRow>
             )}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

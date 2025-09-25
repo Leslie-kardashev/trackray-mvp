@@ -236,7 +236,7 @@ export function DriverOrderDetails({
             {order.status === 'Returning' && ` - Reason: ${order.returnReason}`}
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-8 md:grid-cols-2">
+        <CardContent className="grid gap-8 sm:grid-cols-2">
           <OrderDetailItem icon={User} label="Recipient Name">
             {order.recipientName}
           </OrderDetailItem>
@@ -272,7 +272,7 @@ export function DriverOrderDetails({
           <OrderDetailItem
             icon={order.paymentType === 'Prepaid' ? CreditCard : Wallet}
             label="Payment Status"
-            className="md:col-span-2 border-t pt-6"
+            className="sm:col-span-2 border-t pt-6"
           >
             <Badge
               variant={order.paymentType === 'Prepaid' ? 'default' : 'secondary'}
@@ -421,7 +421,7 @@ export function DriverOrderDetails({
                   This will be reported to dispatch.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <div className="grid grid-cols-2 gap-3 py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-4">
                 {returnReasons.map(reason => (
                   <Button
                     key={reason.code}

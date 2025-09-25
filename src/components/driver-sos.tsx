@@ -106,13 +106,13 @@ export function DriverSOS() {
   };
 
   return (
-    <Card className="shadow-sm sticky top-24">
+    <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="font-headline text-2xl flex items-center gap-2 text-destructive">
-          <AlertTriangle className="w-6 h-6" /> Report an Issue
+        <CardTitle className="font-headline text-xl flex items-center gap-2 text-destructive">
+          <AlertTriangle className="w-5 h-5" /> Report an Issue
         </CardTitle>
-        <CardDescription>
-          Use the TrackRay Color Alert System (TCAS) to report problems.
+        <CardDescription className="text-xs">
+          Use the TrackRay Color Alert System (TCAS) for emergencies.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -127,7 +127,7 @@ export function DriverSOS() {
             <DialogHeader>
               <DialogTitle>TrackRay Color Alert System (TCAS)</DialogTitle>
               <DialogDescription>
-                Select the category and specific problem you are facing.
+                Select the category and specific problem you are facing. This will immediately notify dispatch.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -141,12 +141,12 @@ export function DriverSOS() {
                       <Button
                         key={item.code}
                         variant="default"
-                        className={cn('h-16 text-base font-semibold flex-col', category.color)}
+                        className={cn('h-20 text-sm font-semibold flex-col text-center', category.color)}
                         onClick={() => handleSendSOS(item.code as ProblemCode, item.description)}
                         disabled={isSending}
                       >
-                        <span className="text-2xl font-bold">{item.code}</span>
-                        <span className="text-xs font-light text-center">{item.description}</span>
+                         <span className="text-xl font-bold">{item.code}</span>
+                        <span className="text-xs font-light text-center leading-tight">{item.description}</span>
                       </Button>
                     ))}
                   </div>
@@ -154,7 +154,7 @@ export function DriverSOS() {
               ))}
             </div>
             <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isSending}>
                     Cancel
                 </Button>
             </DialogFooter>
