@@ -5,15 +5,7 @@
 import { type InventoryItem, type Order, type Customer, type Driver, type SOSMessage, type Complaint } from './types';
 
 // In-memory data stores to simulate a database
-let inventory: InventoryItem[] = [
-  { id: 'ITM-001', name: 'Cocoa Beans (Grade A)', category: "Produce", quantity: 50, status: 'In Stock', lastUpdated: '2024-05-20', unitCost: 12.50, minThreshold: 20 },
-  { id: 'ITM-002', name: 'Kente Cloth Rolls', category: "Textiles", quantity: 200, status: 'In Stock', lastUpdated: '2024-05-21', unitCost: 75.00, minThreshold: 50 },
-  { id: 'ITM-003', name: 'Shea Butter Tubs', category: "Cosmetics", quantity: 15, status: 'Low Stock', lastUpdated: '2024-05-22', unitCost: 25.00, minThreshold: 20 },
-  { id: 'ITM-004', name: 'Imported Electronics', category: "Electronics", quantity: 150, status: 'Inbound', lastUpdated: '2024-05-23', unitCost: 150.00, minThreshold: 30 },
-  { id: 'ITM-005', name: 'Vehicle Spare Parts', category: "Automotive", quantity: 80, status: 'In Stock', lastUpdated: '2024-05-19', unitCost: 55.00, minThreshold: 40 },
-  { id: 'ITM-006', name: 'Tomato Paste (400g)', category: "FMCG", quantity: 850, status: 'In Stock', lastUpdated: '2024-05-24', unitCost: 4.50, minThreshold: 200 },
-];
-
+let inventory: InventoryItem[] = [];
 let orders: Order[] = [];
 let customers: Customer[] = [];
 let drivers: Driver[] = [];
@@ -41,6 +33,18 @@ const routeColors = [
   '#9932CC', '#800080', '#483D8B', '#6A5ACD', '#7B68EE'
 ];
 
+if (inventory.length === 0) {
+    inventory = [
+      { id: 'ITM-001', name: 'Milo Cereal (500g)', category: "FMCG", quantity: 500, status: 'In Stock', lastUpdated: '2024-05-20', unitCost: 35.00, minThreshold: 100 },
+      { id: 'ITM-002', name: 'Nido Milk Powder (400g)', category: "FMCG", quantity: 350, status: 'In Stock', lastUpdated: '2024-05-21', unitCost: 45.00, minThreshold: 80 },
+      { id: 'ITM-003', name: 'Maggi Cubes (100-pack)', category: "FMCG", quantity: 800, status: 'In Stock', lastUpdated: '2024-05-22', unitCost: 20.00, minThreshold: 200 },
+      { id: 'ITM-004', name: 'Cerelac Infant Cereal (Maize)', category: "FMCG", quantity: 150, status: 'Inbound', lastUpdated: '2024-05-23', unitCost: 28.00, minThreshold: 50 },
+      { id: 'ITM-005', name: 'Ideal Milk (Evaporated, 12-pack)', category: "FMCG", quantity: 250, status: 'In Stock', lastUpdated: '2024-05-19', unitCost: 60.00, minThreshold: 70 },
+      { id: 'ITM-006', name: 'Frytol Cooking Oil (3L)', category: "FMCG", quantity: 180, status: 'In Stock', lastUpdated: '2024-05-24', unitCost: 85.00, minThreshold: 50 },
+      { id: 'ITM-007', name: 'Omo Detergent (1kg)', category: "FMCG", quantity: 40, status: 'Low Stock', lastUpdated: '2024-05-24', unitCost: 25.00, minThreshold: 50 },
+    ];
+}
+
 if (drivers.length === 0) {
     drivers = [
         { id: 'DRV-001', name: 'Kofi Mensah', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233555111222' },
@@ -51,14 +55,17 @@ if (drivers.length === 0) {
 }
 
 if (customers.length === 0) {
+    const firstNames = ["Ama", "Kwaku", "Adwoa", "Kofi", "Abena", "Yaw", "Akosua", "Kwame", "Yaa", "Kojo"];
+    const lastNames = ["Mensah", "Owusu", "Boateng", "Osei", "Addo", "Annan", "Nkrumah", "Agyepong", "Asante", "Ofori"];
+
     customers = Array.from({ length: 15 }, (_, i) => {
         const customerTypes: Customer['customerType'][] = ['Retailer', 'Wholesaler', 'Other'];
         const paymentPreferences: Customer['paymentPreference'][] = ['Cash', 'Credit'];
         return {
             id: `CUS-${101 + i}`,
-            name: `Customer ${101 + i}`,
+            name: `${firstNames[i % firstNames.length]} ${lastNames[i % lastNames.length]}`,
             phone: `+233 24 123 45${60+i}`,
-            email: `customer${101+i}@example.com`,
+            email: `${firstNames[i % firstNames.length].toLowerCase()}.${lastNames[i % lastNames.length].toLowerCase()}@example.com`,
             location: getRandomLocation(),
             customerType: customerTypes[i % 3],
             paymentPreference: paymentPreferences[i % 2],
@@ -74,26 +81,25 @@ if (orders.length === 0) {
         const pickup = getRandomLocation();
         let destination = customer.location;
 
-        const statuses: Order['status'][] = ['Pending', 'Confirmed', 'Ready for Dispatch', 'Delivered', 'Cancelled', 'Archived'];
+        const statuses: Order['status'][] = ['Pending', 'Confirmed', 'Ready for Dispatch'];
         const status = statuses[i % statuses.length];
         
         const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Credit', 'Pending'];
         const paymentStatus = paymentStatuses[i % 3];
         
         let assignedDriver: Driver | undefined;
-        if (['Ready for Dispatch', 'Delivered'].includes(status)) {
+        if (['Ready for Dispatch'].includes(status)) {
             assignedDriver = drivers.find(d => d.id === `DRV-00${(i % 3) + 1}`);
         }
         
         let currentLocation: { lat: number, lng: number } | null = null;
-        if (status === 'Delivered' || status === 'Archived') {
-            currentLocation = destination.coords;
-        } else if (status === 'Ready for Dispatch' || status === 'Confirmed' || status === 'Pending') {
+        if (status === 'Ready for Dispatch' || status === 'Confirmed' || status === 'Pending') {
             currentLocation = pickup.coords;
         }
 
         const quantity = Math.floor(Math.random() * 50) + 1;
-        const unitPrice = Math.round(Math.random() * 100 + 10);
+        const inventoryItem = inventory[(i % inventory.length)];
+        const unitPrice = inventoryItem.unitCost;
         const orderValue = quantity * unitPrice;
         
         // Higher order value = lower (better) priority score
@@ -112,7 +118,7 @@ if (orders.length === 0) {
             id,
             customerId: customer.id,
             customerName: customer.name,
-            item: inventory[(i % inventory.length)].name,
+            item: inventoryItem.name,
             quantity,
             unitPrice,
             orderValue,
@@ -137,7 +143,7 @@ if (complaints.length === 0) {
             id: 'CMP-001',
             orderId: 'ORD-101',
             customerId: 'CUS-101',
-            customerName: 'Customer 101',
+            customerName: 'Ama Mensah',
             complaintType: 'Lateness',
             description: 'My package was 3 hours late and I could not reach the driver.',
             status: 'Open',
@@ -147,7 +153,7 @@ if (complaints.length === 0) {
             id: 'CMP-002',
             orderId: 'ORD-105',
             customerId: 'CUS-105',
-            customerName: 'Customer 105',
+            customerName: 'Abena Addo',
             complaintType: 'Damaged Item',
             description: 'The box was crushed and the items inside were broken.',
             status: 'Resolved',
@@ -163,19 +169,22 @@ if (complaints.length === 0) {
 export async function getInventory(): Promise<InventoryItem[]> {
   const updatedInventory = inventory.map(item => ({
     ...item,
-    status: item.quantity <= item.minThreshold && item.status !== 'Inbound' && item.status !== 'Outbound' ? 'Low Stock' : item.status
+    status: item.quantity <= item.minThreshold && item.status !== 'Inbound' && item.status !== 'Outbound' ? 'Low Stock' : 'In Stock'
   }));
   return Promise.resolve(updatedInventory);
 }
 
-export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated'>): Promise<InventoryItem> {
+export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated' | 'unitCost' | 'minThreshold' | 'category'>): Promise<InventoryItem> {
   const newId = `ITM-${String(inventory.length + 1).padStart(3, '0')}`;
   const today = new Date().toISOString().split('T')[0];
   const newItem: InventoryItem = {
     ...item,
     id: newId,
-    status: item.quantity <= item.minThreshold ? 'Low Stock' : 'In Stock',
+    status: item.quantity <= 20 ? 'Low Stock' : 'In Stock',
     lastUpdated: today,
+    unitCost: Math.round(Math.random() * 50 + 10),
+    minThreshold: 20,
+    category: "FMCG"
   };
   inventory = [...inventory, newItem];
   return Promise.resolve(newItem);
