@@ -34,12 +34,13 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog";
+import { PicklistDialog } from "./picklist-dialog";
 
 const formatCurrency = (amount: number) => {
     return `GHS ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, currentTab }: { orders: Order[], isLoading: boolean, onStatusChange: (orderId: string, newStatus: Order['status']) => void, onReportDelay: (orderId: string, driverName: string) => void, currentTab: string }) {
+function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, onGeneratePicklist, currentTab }: { orders: Order[], isLoading: boolean, onStatusChange: (orderId: string, newStatus: Order['status']) => void, onReportDelay: (orderId: string, driverName: string) => void, onGeneratePicklist: (order: Order) => void, currentTab: string }) {
     if (isLoading) {
         return (
              <Table>
@@ -118,7 +119,7 @@ function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, currentT
                                 </Button>
                             )}
                             {order.status === 'Confirmed' && (
-                                <Button size="sm" variant="outline">
+                                <Button size="sm" variant="outline" onClick={() => onGeneratePicklist(order)}>
                                     <ListOrdered className="mr-2" /> Generate Picklist
                                 </Button>
                             )}
@@ -158,6 +159,7 @@ export function WarehouseOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("pending");
+  const [picklistOrder, setPicklistOrder] = useState<Order | null>(null);
 
 
   const fetchOrders = async (isInitialLoad = false) => {
@@ -198,11 +200,16 @@ export function WarehouseOrders() {
     });
   };
 
+  const handleGeneratePicklist = (order: Order) => {
+    setPicklistOrder(order);
+  }
+
   const pendingOrders = orders.filter(o => o.status === 'Pending');
   const confirmedOrders = orders.filter(o => o.status === 'Confirmed');
   const readyForDispatchOrders = orders.filter(o => o.status === 'Ready for Dispatch');
 
   return (
+    <>
     <div className="space-y-8">
         <div>
             <h1 className="text-3xl font-headline font-bold">Order Management</h1>
@@ -229,18 +236,30 @@ export function WarehouseOrders() {
                     </div>
                     <ScrollArea className="h-[calc(100vh-280px)]">
                         <TabsContent value="pending" className="m-0">
-                            <OrderTable orders={pendingOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} currentTab="pending" />
+                            <OrderTable orders={pendingOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} onGeneratePicklist={handleGeneratePicklist} currentTab="pending" />
                         </TabsContent>
                         <TabsContent value="confirmed" className="m-0">
-                             <OrderTable orders={confirmedOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} currentTab="confirmed" />
+                             <OrderTable orders={confirmedOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} onGeneratePicklist={handleGeneratePicklist} currentTab="confirmed" />
                         </TabsContent>
                         <TabsContent value="ready" className="m-0">
-                            <OrderTable orders={readyForDispatchOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} currentTab="ready" />
+                            <OrderTable orders={readyForDispatchOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} onGeneratePicklist={handleGeneratePicklist} currentTab="ready" />
                         </TabsContent>
                     </ScrollArea>
                 </Tabs>
             </CardContent>
         </Card>
     </div>
+     {picklistOrder && (
+        <PicklistDialog
+            order={picklistOrder}
+            open={!!picklistOrder}
+            onOpenChange={(open) => {
+                if (!open) {
+                    setPicklistOrder(null);
+                }
+            }}
+        />
+     )}
+    </>
   );
 }
