@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useContext, useState } from 'react';
+import { useContext, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { AppContext } from '@/context/AppContext';
@@ -37,7 +37,14 @@ export default function CartPage() {
   }, 0);
 
   const discount = user?.type === 'Business' ? subtotal * 0.1 : 0;
-  const deliveryFee = 20; // Placeholder
+  
+  const deliveryFee = useMemo(() => {
+    if (deliveryLocation?.address.toLowerCase().includes('kumasi')) {
+      return 0;
+    }
+    return 20; // Standard delivery fee
+  }, [deliveryLocation]);
+
   const total = subtotal - discount + deliveryFee;
 
   const handlePlaceOrder = () => {

@@ -29,7 +29,11 @@ export function OrderSummary({
       )}
       <div className="flex justify-between text-muted-foreground">
         <span>Delivery Fee</span>
-        <span>GH₵{deliveryFee.toFixed(2)}</span>
+        {deliveryFee > 0 ? (
+          <span>GH₵{deliveryFee.toFixed(2)}</span>
+        ) : (
+          <span className="font-medium text-green-600">Free</span>
+        )}
       </div>
       <Separator />
       <div className="flex justify-between text-lg font-bold">
