@@ -42,6 +42,7 @@ export default function DashboardLayout({
             <div className="flex items-center gap-2 text-lg font-semibold md:hidden">
               <AppLogo />
               <span className="font-headline text-xl font-bold tracking-tighter">TrackRay</span>
+              <Badge variant="outline" className="text-xs">Driver</Badge>
             </div>
           </SheetTrigger>
           <SheetContent side="left">
