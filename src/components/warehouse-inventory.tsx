@@ -69,7 +69,7 @@ const statusStyles: { [key in InventoryItem['status']]: string } = {
 const itemSchema = z.object({
   name: z.string().min(3, "Item name must be at least 3 characters."),
   category: z.string().min(2, "Category is required."),
-  quantity: z.coerce.number().min(0, "Quantity cannot be negative."),
+  quantity: z.coerce.number().min(0, "Quantity cannot be negative.").default(0),
   unitCost: z.coerce.number().min(0.01, "Unit cost must be positive."),
   minThreshold: z.coerce.number().min(0, "Threshold cannot be negative."),
   weight: z.string().optional(),
@@ -88,13 +88,13 @@ function InventoryItemForm({
 }) {
   const form = useForm<ItemFormValues>({
     resolver: zodResolver(itemSchema),
-    defaultValues: defaultValues || {
-      name: "",
-      category: "",
-      quantity: 0,
-      unitCost: 0,
-      minThreshold: 10,
-      weight: "",
+    defaultValues: {
+      name: defaultValues?.name || "",
+      category: defaultValues?.category || "",
+      quantity: defaultValues?.quantity || 0,
+      unitCost: defaultValues?.unitCost || 0,
+      minThreshold: defaultValues?.minThreshold || 10,
+      weight: defaultValues?.weight || "",
     },
   });
 
@@ -110,12 +110,9 @@ function InventoryItemForm({
         <FormField control={form.control} name="name" render={({ field }) => (
             <FormItem><FormLabel>Item Name</FormLabel><FormControl><Input placeholder="e.g., Kente Cloth Rolls" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
             <FormField control={form.control} name="category" render={({ field }) => (
                 <FormItem><FormLabel>Category</FormLabel><FormControl><Input placeholder="e.g., FMCG" {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
-            <FormField control={form.control} name="quantity" render={({ field }) => (
-                <FormItem><FormLabel>Current Quantity</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
          <div className="grid grid-cols-2 gap-4">
@@ -126,7 +123,7 @@ function InventoryItemForm({
                 <FormItem><FormLabel>Low Stock Threshold</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
         </div>
-         <div className="grid grid-cols-2 gap-4">
+         <div className="grid grid-cols-1 gap-4">
             <FormField control={form.control} name="weight" render={({ field }) => (
                 <FormItem><FormLabel>Weight (Optional)</FormLabel><FormControl><Input placeholder="e.g., 5 kg" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
@@ -377,6 +374,8 @@ export function WarehouseInventory() {
     </>
   );
 }
+
+    
 
     
 
