@@ -147,6 +147,9 @@ export const mockOrders: Order[] = [
         orderDate: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
         scheduledDeliveryDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         paymentPreference: 'Pay On Credit',
+        trackingStatus: 'Moving',
+        currentLocationArea: 'Near Tesano',
+        trackingProgress: 45,
     },
     successfulOrder,
     {
@@ -164,5 +167,7 @@ export const mockOrders: Order[] = [
         orderDate: new Date().toISOString(),
         scheduledDeliveryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
         paymentPreference: 'Pay On Credit',
+        trackingStatus: 'Driver Assigned',
+        trackingProgress: 5,
     }
 ];

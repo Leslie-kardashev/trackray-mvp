@@ -1,7 +1,6 @@
 
 'use client';
 
-import Link from 'next/link';
 import { Order } from '@/lib/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
@@ -21,9 +20,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
+import { OrderTrackingDetails } from './order-tracking-details';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+
 
 interface OrdersListProps {
   orders: Order[];
@@ -36,7 +41,7 @@ const getStatusVariant = (status: Order['status']) => {
     case 'Delivered':
       return 'secondary';
     case 'Cancelled':
-        return 'destructive';
+      return 'destructive';
     default:
       return 'outline';
   }
@@ -44,6 +49,7 @@ const getStatusVariant = (status: Order['status']) => {
 
 export function OrdersList({ orders }: OrdersListProps) {
   const isMobile = useIsMobile();
+  const isActiveDelivery = orders[0] && (orders[0].status === 'Pending Assignment' || orders[0].status === 'Out for Delivery');
 
   if (isMobile) {
     return (
@@ -57,23 +63,27 @@ export function OrdersList({ orders }: OrdersListProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <div className='flex justify-between'>
-                    <span>Order Date</span>
-                    <span className='font-medium text-foreground'>{format(new Date(order.orderDate), 'PPP')}</span>
-                </div>
-                 <div className='flex justify-between'>
-                    <span>Total Amount</span>
-                    <span className='font-medium text-foreground'>GH₵{order.totalAmount.toFixed(2)}</span>
-                </div>
+              <div className="flex justify-between">
+                <span>Order Date</span>
+                <span className="font-medium text-foreground">
+                  {format(new Date(order.orderDate), 'PPP')}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Total Amount</span>
+                <span className="font-medium text-foreground">
+                  GH₵{order.totalAmount.toFixed(2)}
+                </span>
+              </div>
             </CardContent>
-            <Separator />
-            <CardFooter className="pt-4">
-               {(order.status === 'Pending Assignment' || order.status === 'Out for Delivery') && (
-                <Button asChild className='w-full' >
-                    <Link href={`/customer/tracking/${order.id}`}>Track on Map</Link>
-                </Button>
-               )}
-            </CardFooter>
+            {(order.status === 'Pending Assignment' || order.status === 'Out for Delivery') && (
+              <>
+                <Separator />
+                <CardFooter className="pt-4">
+                  <OrderTrackingDetails order={order} />
+                </CardFooter>
+              </>
+            )}
           </Card>
         ))}
       </div>
@@ -81,37 +91,49 @@ export function OrdersList({ orders }: OrdersListProps) {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Order ID</TableHead>
-          <TableHead>Date Placed</TableHead>
-          <TableHead>Scheduled Delivery</TableHead>
-          <TableHead>Total Amount</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {orders.map((order) => (
-          <TableRow key={order.id}>
-            <TableCell className="font-medium">#{order.id.split('-')[1]}</TableCell>
-            <TableCell>{format(new Date(order.orderDate), 'PPP')}</TableCell>
-            <TableCell>{format(new Date(order.scheduledDeliveryDate), 'PPP')}</TableCell>
-            <TableCell>GH₵{order.totalAmount.toFixed(2)}</TableCell>
-            <TableCell>
-              <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-            </TableCell>
-            <TableCell className="text-right">
-              {(order.status === 'Pending Assignment' || order.status === 'Out for Delivery') && (
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/customer/tracking/${order.id}`}>Track on Map</Link>
-                </Button>
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <Accordion type="single" collapsible defaultValue={isActiveDelivery ? orders[0].id : undefined} className="w-full">
+        <Table>
+            <TableHeader>
+                <TableRow>
+                <TableHead className="w-[100px]"></TableHead>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Date Placed</TableHead>
+                <TableHead>Total Amount</TableHead>
+                <TableHead>Status</TableHead>
+                </TableRow>
+            </TableHeader>
+        </Table>
+        {orders.map((order) => {
+             const isTrackable = order.status === 'Pending Assignment' || order.status === 'Out for Delivery';
+            return (
+                <AccordionItem value={order.id} key={order.id}>
+                    <Table>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell className="w-[100px]">
+                                    {isTrackable && (
+                                        <AccordionTrigger className="p-0 hover:no-underline"></AccordionTrigger>
+                                    )}
+                                </TableCell>
+                                <TableCell className="font-medium">#{order.id.split('-')[1]}</TableCell>
+                                <TableCell>{format(new Date(order.orderDate), 'PPP')}</TableCell>
+                                <TableCell>GH₵{order.totalAmount.toFixed(2)}</TableCell>
+                                <TableCell>
+                                <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                    {isTrackable && (
+                        <AccordionContent>
+                            <div className="border-t">
+                                <OrderTrackingDetails order={order} />
+                            </div>
+                        </AccordionContent>
+                    )}
+                </AccordionItem>
+            )
+        })}
+    </Accordion>
   );
 }

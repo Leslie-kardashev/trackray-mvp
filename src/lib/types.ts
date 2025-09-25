@@ -48,6 +48,8 @@ export type OrderItem = {
   variant?: ProductVariant;
 };
 
+export type TrackingStatus = 'Driver Assigned' | 'Moving' | 'Parked' | 'In Traffic' | 'SOS' | 'Inbound' | 'Arriving' | 'Arrived';
+
 export type Order = {
   id: string;
   userId: string;
@@ -58,4 +60,8 @@ export type Order = {
   orderDate: string; // ISO String
   scheduledDeliveryDate: string; // ISO String
   paymentPreference: 'Prepaid' | 'Pay On Credit';
+  // New tracking fields
+  trackingStatus?: TrackingStatus;
+  currentLocationArea?: string; // e.g., "Adenta"
+  trackingProgress?: number; // 0-100
 };
