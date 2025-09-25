@@ -262,7 +262,7 @@ export function WarehouseInventory() {
   return (
     <>
     <Card className="shadow-sm h-full">
-      <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <CardHeader className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <CardTitle className="font-headline text-2xl">
             Inventory Management
@@ -271,7 +271,7 @@ export function WarehouseInventory() {
             A complete overview of your product catalog and stock levels.
           </CardDescription>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-shrink-0 gap-2 items-center">
           <Button variant="outline" onClick={() => setActiveDialog('inbound')}><ArrowDownLeft /> Log Inbound</Button>
           <Button onClick={() => setActiveDialog('add')}><PlusCircle /> Add New Item</Button>
         </div>
