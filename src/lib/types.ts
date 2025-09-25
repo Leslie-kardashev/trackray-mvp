@@ -12,11 +12,14 @@ export type InventoryItem = {
   id: string;
   name: string;
   quantity: number;
-  status: 'In Stock' | 'Inbound' | 'Outbound' | 'Low Stock';
+  status: 'In Stock' | 'Inbound' | 'Outbound' | 'Low Stock' | 'Discontinued';
   lastUpdated: string;
   unitCost: number;
   minThreshold: number;
   category: string;
+  productDimensions?: string;
+  weight?: string;
+  arrivalDate?: string;
 };
 
 export type Customer = {
@@ -86,3 +89,4 @@ export type Complaint = {
   timestamp: string;
 };
 
+    

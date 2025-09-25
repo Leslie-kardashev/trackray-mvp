@@ -35,13 +35,13 @@ const routeColors = [
 
 if (inventory.length === 0) {
     inventory = [
-      { id: 'ITM-001', name: 'Milo Cereal (500g)', category: "FMCG", quantity: 500, status: 'In Stock', lastUpdated: '2024-05-20', unitCost: 35.00, minThreshold: 100 },
-      { id: 'ITM-002', name: 'Nido Milk Powder (400g)', category: "FMCG", quantity: 350, status: 'In Stock', lastUpdated: '2024-05-21', unitCost: 45.00, minThreshold: 80 },
-      { id: 'ITM-003', name: 'Maggi Cubes (100-pack)', category: "FMCG", quantity: 800, status: 'In Stock', lastUpdated: '2024-05-22', unitCost: 20.00, minThreshold: 200 },
-      { id: 'ITM-004', name: 'Cerelac Infant Cereal (Maize)', category: "FMCG", quantity: 150, status: 'Inbound', lastUpdated: '2024-05-23', unitCost: 28.00, minThreshold: 50 },
-      { id: 'ITM-005', name: 'Ideal Milk (Evaporated, 12-pack)', category: "FMCG", quantity: 250, status: 'In Stock', lastUpdated: '2024-05-19', unitCost: 60.00, minThreshold: 70 },
-      { id: 'ITM-006', name: 'Frytol Cooking Oil (3L)', category: "FMCG", quantity: 180, status: 'In Stock', lastUpdated: '2024-05-24', unitCost: 85.00, minThreshold: 50 },
-      { id: 'ITM-007', name: 'Omo Detergent (1kg)', category: "FMCG", quantity: 40, status: 'Low Stock', lastUpdated: '2024-05-24', unitCost: 25.00, minThreshold: 50 },
+      { id: 'ITM-001', name: 'Milo Cereal (500g)', category: "FMCG", quantity: 500, status: 'In Stock', lastUpdated: '2024-05-20', unitCost: 35.00, minThreshold: 100, productDimensions: '20x15x5 cm', weight: '500g' },
+      { id: 'ITM-002', name: 'Nido Milk Powder (400g)', category: "FMCG", quantity: 350, status: 'In Stock', lastUpdated: '2024-05-21', unitCost: 45.00, minThreshold: 80, productDimensions: '15x15x10 cm', weight: '400g' },
+      { id: 'ITM-003', name: 'Maggi Cubes (100-pack)', category: "FMCG", quantity: 800, status: 'In Stock', lastUpdated: '2024-05-22', unitCost: 20.00, minThreshold: 200, productDimensions: '10x5x5 cm', weight: '100g' },
+      { id: 'ITM-004', name: 'Cerelac Infant Cereal (Maize)', category: "FMCG", quantity: 150, status: 'In Stock', lastUpdated: '2024-05-23', unitCost: 28.00, minThreshold: 50, productDimensions: '18x12x4 cm', weight: '400g' },
+      { id: 'ITM-005', name: 'Ideal Milk (Evaporated, 12-pack)', category: "FMCG", quantity: 250, status: 'In Stock', lastUpdated: '2024-05-19', unitCost: 60.00, minThreshold: 70, productDimensions: '25x20x10 cm', weight: '2kg' },
+      { id: 'ITM-006', name: 'Frytol Cooking Oil (3L)', category: "FMCG", quantity: 180, status: 'In Stock', lastUpdated: '2024-05-24', unitCost: 85.00, minThreshold: 50, productDimensions: '15x10x30 cm', weight: '3kg' },
+      { id: 'ITM-007', name: 'Omo Detergent (1kg)', category: "FMCG", quantity: 40, status: 'Low Stock', lastUpdated: '2024-05-24', unitCost: 25.00, minThreshold: 50, productDimensions: '20x25x5 cm', weight: '1kg' },
     ];
 }
 
@@ -176,28 +176,58 @@ if (complaints.length === 0) {
 
 // == INVENTORY ==
 export async function getInventory(): Promise<InventoryItem[]> {
-  const updatedInventory = inventory.map(item => ({
-    ...item,
-    status: item.quantity <= item.minThreshold && item.status !== 'Inbound' && item.status !== 'Outbound' ? 'Low Stock' : 'In Stock'
-  }));
+  const updatedInventory = inventory.map(item => {
+    if (item.status === 'Discontinued' || item.status === 'Inbound' || item.status === 'Outbound') {
+        return item;
+    }
+    return {
+        ...item,
+        status: item.quantity <= item.minThreshold ? 'Low Stock' : 'In Stock'
+    };
+  });
   return Promise.resolve(updatedInventory);
 }
 
-export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated' | 'unitCost' | 'minThreshold' | 'category'>): Promise<InventoryItem> {
+export async function addInventoryItem(item: Omit<InventoryItem, 'id' | 'status' | 'lastUpdated'>): Promise<InventoryItem> {
   const newId = `ITM-${String(inventory.length + 1).padStart(3, '0')}`;
   const today = new Date().toISOString().split('T')[0];
   const newItem: InventoryItem = {
     ...item,
     id: newId,
-    status: item.quantity <= 20 ? 'Low Stock' : 'In Stock',
+    status: item.quantity <= item.minThreshold ? 'Low Stock' : 'In Stock',
     lastUpdated: today,
-    unitCost: Math.round(Math.random() * 50 + 10),
-    minThreshold: 20,
-    category: "FMCG"
   };
   inventory = [...inventory, newItem];
   return Promise.resolve(newItem);
 }
+
+export async function updateInventoryItem(updatedItem: InventoryItem): Promise<InventoryItem> {
+    inventory = inventory.map(item => item.id === updatedItem.id ? { ...updatedItem, lastUpdated: new Date().toISOString() } : item);
+    return Promise.resolve(updatedItem);
+}
+
+export async function addInboundTransfer(itemId: string, quantity: number, arrivalDate: string): Promise<InventoryItem> {
+    let updatedItem: InventoryItem | undefined;
+    inventory = inventory.map(item => {
+        if (item.id === itemId) {
+            updatedItem = {
+                ...item,
+                status: 'Inbound',
+                arrivalDate: arrivalDate,
+                lastUpdated: new Date().toISOString(),
+                // Temporarily add to quantity for planning, or handle differently based on business logic
+                quantity: item.quantity + quantity
+            };
+            return updatedItem;
+        }
+        return item;
+    });
+    if (updatedItem) {
+        return Promise.resolve(updatedItem);
+    }
+    return Promise.reject(new Error("Item not found for inbound transfer."));
+}
+
 
 // == CUSTOMERS ==
 export async function getCustomers(): Promise<Customer[]> {
@@ -381,3 +411,5 @@ export async function addComplaint(complaintData: Omit<Complaint, 'id' | 'timest
     complaints = [newComplaint, ...complaints];
     return Promise.resolve(newComplaint);
 }
+
+    
