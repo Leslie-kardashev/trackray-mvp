@@ -1,4 +1,5 @@
 
+
 export type Location = {
   address: string;
   coords: {
@@ -41,7 +42,9 @@ export type Order = {
   customerId: string; // Link to Customer
   customerName: string;
   item: string;
-  status: 'Pending' | 'Ready for Pickup' | 'Moving' | 'Idle' | 'Returning' | 'Delivered' | 'Cancelled' | 'Archived';
+  quantity: number;
+  unitPrice: number;
+  status: 'Pending' | 'Confirmed' | 'Ready for Dispatch' | 'Dispatched' | 'Delivered' | 'Cancelled' | 'Archived';
   paymentStatus: 'Paid' | 'Pay on Credit' | 'Pending';
   pickup: Location;
   destination: Location;
@@ -75,3 +78,4 @@ export type Complaint = {
   status: 'Open' | 'In Progress' | 'Resolved';
   timestamp: string;
 };
+

@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { type InventoryItem, type Order, type Customer, type Driver, type SOSMessage, type Complaint } from './types';
@@ -73,40 +74,38 @@ if (orders.length === 0) {
         const pickup = getRandomLocation();
         let destination = customer.location;
 
-        const statuses: Order['status'][] = ['Moving', 'Idle', 'Returning', 'Delivered', 'Pending', 'Cancelled', 'Ready for Pickup', 'Archived'];
+        const statuses: Order['status'][] = ['Pending', 'Confirmed', 'Ready for Dispatch', 'Dispatched', 'Delivered', 'Cancelled', 'Archived'];
         const status = statuses[Math.floor(Math.random() * statuses.length)];
         
         const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Credit', 'Pending'];
         const paymentStatus = paymentStatuses[i % 3];
         
         let assignedDriver: Driver | undefined;
-        if (['Moving', 'Idle', 'Returning', 'Delivered', 'Ready for Pickup'].includes(status)) {
+        if (['Dispatched', 'Delivered'].includes(status)) {
             assignedDriver = drivers.find(d => d.id === `DRV-00${(i % 3) + 1}`);
         }
-
+        
         let currentLocation: { lat: number, lng: number } | null = null;
-        if (status === 'Moving' || status === 'Returning') {
+        if (status === 'Dispatched') {
             currentLocation = {
                 lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
                 lng: pickup.coords.lng + (destination.coords.lng - pickup.coords.lng) * Math.random(),
             };
-        } else if (status === 'Idle') {
-            currentLocation = {
-                lat: pickup.coords.lat + (Math.random() - 0.5) * 0.1,
-                lng: pickup.coords.lng + (Math.random() - 0.5) * 0.1,
-            };
         } else if (status === 'Delivered' || status === 'Archived') {
             currentLocation = destination.coords;
-        } else if (status === 'Ready for Pickup') {
+        } else if (status === 'Ready for Dispatch') {
             currentLocation = pickup.coords;
         }
+
+        const quantity = Math.floor(Math.random() * 50) + 1;
+        const unitPrice = Math.round(Math.random() * 100 + 10);
+        const orderValue = quantity * unitPrice;
         
         // Add scheduled pickup time for relevant orders
         let scheduledPickupTime: string | undefined;
-        if (status === 'Ready for Pickup') {
+        if (status === 'Ready for Dispatch') {
             const now = new Date();
-            // Schedule some for the past (late), some for now, some for the future
-            const offsetHours = (i % 5) - 2; // -2, -1, 0, 1, 2 hours from now
+            const offsetHours = (i % 5) - 2; 
             now.setHours(now.getHours() + offsetHours);
             scheduledPickupTime = now.toISOString();
         }
@@ -115,7 +114,10 @@ if (orders.length === 0) {
             id,
             customerId: customer.id,
             customerName: customer.name,
-            item: `ITM-00${(i % 5) + 1}`,
+            item: inventory[(i % inventory.length)].name,
+            quantity,
+            unitPrice,
+            orderValue,
             status,
             paymentStatus,
             pickup,
@@ -126,7 +128,6 @@ if (orders.length === 0) {
             routeColor: routeColors[i % routeColors.length],
             driverId: assignedDriver?.id,
             driverName: assignedDriver?.name,
-            orderValue: (Math.random() * 2000) + 100, // Random order value between 100 and 2100
         };
     });
 }
@@ -207,11 +208,14 @@ export async function getArchivedOrders(): Promise<Order[]> {
     return Promise.resolve(orders.filter(o => ['Delivered', 'Cancelled', 'Archived'].includes(o.status)));
 }
 
-export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation'>): Promise<Order> {
+export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'unitPrice' | 'quantity'>): Promise<Order> {
     const newId = `ORD-${String(101 + orders.length)}`;
     const today = new Date().toISOString().split('T')[0];
     const customer = customers.find(c => c.id === newOrderData.customerId);
     if (!customer) throw new Error("Customer not found");
+
+    const quantity = Math.floor(Math.random() * 50) + 1;
+    const unitPrice = newOrderData.orderValue ? newOrderData.orderValue / quantity : 0;
 
     const newOrder: Order = {
         ...newOrderData,
@@ -219,11 +223,10 @@ export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 's
         orderDate: today,
         status: 'Pending',
         currentLocation: null,
-        // If pickup isn't provided (e.g. Sales creating order), use random warehouse.
-        // If it is provided (e.g. Customer creating order), use that.
         pickup: newOrderData.pickup || getRandomLocation(),
-        // Make sure destination is set from the customer profile.
         destination: newOrderData.destination || customer.location,
+        quantity: quantity,
+        unitPrice: unitPrice,
     };
     orders = [newOrder, ...orders];
     return Promise.resolve(newOrder);
@@ -238,7 +241,7 @@ export async function updateOrderStatus(orderId: string, newStatus: Order['statu
     let updatedOrder: Order | undefined;
     orders = orders.map(order => {
         if (order.id === orderId) {
-            const currentLocation = newStatus === 'Moving' ? order.pickup.coords : order.currentLocation;
+            const currentLocation = newStatus === 'Dispatched' ? order.pickup.coords : order.currentLocation;
             updatedOrder = { ...order, status: newStatus, currentLocation };
             return updatedOrder;
         }
@@ -257,10 +260,10 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
 export async function confirmOrderPickup(orderId: string): Promise<Order> {
   let updatedOrder: Order | undefined;
   orders = orders.map(order => {
-    if (order.id === orderId && order.status === 'Ready for Pickup') {
+    if (order.id === orderId && order.status === 'Ready for Dispatch') {
       updatedOrder = { 
         ...order, 
-        status: 'Moving', 
+        status: 'Dispatched', 
         currentLocation: order.pickup.coords 
       };
       return updatedOrder;
@@ -298,7 +301,7 @@ export async function assignDriver(orderId: string, driverId: string): Promise<O
                 ...order, 
                 driverId: driver.id,
                 driverName: driver.name,
-                status: 'Ready for Pickup', // Change status to indicate it's waiting for pickup
+                status: 'Ready for Dispatch', // Change status to indicate it's waiting for pickup
                 currentLocation: order.pickup.coords, // Location is now the pickup point
                 scheduledPickupTime: pickupTime.toISOString(),
             };
@@ -319,8 +322,8 @@ export async function assignDriver(orderId: string, driverId: string): Promise<O
 // Function to simulate truck movement for the admin map
 export async function updateTruckLocations(): Promise<Order[]> {
     orders = orders.map(order => {
-        if ((order.status === 'Moving' || order.status === 'Returning') && order.currentLocation) {
-            const destination = order.status === 'Returning' ? order.pickup.coords : order.destination.coords;
+        if (order.status === 'Dispatched' && order.currentLocation) {
+            const destination = order.destination.coords;
             const speed = 0.01; // Simulation speed
             
             const latDiff = destination.lat - order.currentLocation.lat;
@@ -328,7 +331,7 @@ export async function updateTruckLocations(): Promise<Order[]> {
             const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
 
             if (distance < speed) {
-                const newStatus = order.status === 'Moving' ? 'Delivered' : 'Idle';
+                const newStatus = 'Delivered';
                 // Make driver available again
                 if (order.driverId) {
                     drivers = drivers.map(d => d.id === order.driverId ? { ...d, status: 'Available'} : d);
