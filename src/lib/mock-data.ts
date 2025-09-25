@@ -1,5 +1,6 @@
 
 import { type User, type Product, type Order } from './types';
+import placeholderImages from '@/app/lib/placeholder-images.json';
 
 // In a real app, this data would come from a database.
 // For this demo, we're mocking it.
@@ -41,7 +42,7 @@ export const mockProducts: Product[] = [
         { id: 'milo-400', name: '400g Tin', unitPrice: 45.00 },
         { id: 'milo-900', name: '900g Tin', unitPrice: 90.00 },
     ],
-    imageUrl: 'https://picsum.photos/seed/milo/400/300',
+    imageUrl: placeholderImages.milo.url,
     category: 'Beverages',
   },
   {
@@ -52,7 +53,7 @@ export const mockProducts: Product[] = [
         { id: 'cowbell-sachet', name: 'Sachet', unitPrice: 5.00 },
         { id: 'cowbell-400', name: '400g Tin', unitPrice: 50.00 },
     ],
-    imageUrl: 'https://picsum.photos/seed/cowbell/400/300',
+    imageUrl: placeholderImages.cowbell.url,
     category: 'Dairy',
   },
   {
@@ -63,7 +64,7 @@ export const mockProducts: Product[] = [
         { id: 'frytol-1l', name: '1L Bottle', unitPrice: 65.00 },
         { id: 'frytol-5l', name: '5L Gallon', unitPrice: 300.00 },
     ],
-    imageUrl: 'https://picsum.photos/seed/frytol/400/300',
+    imageUrl: placeholderImages.frytol.url,
     category: 'Cooking Essentials',
   },
   {
@@ -71,7 +72,7 @@ export const mockProducts: Product[] = [
     name: 'Gino Tomato Mix',
     description: 'Rich and thick tomato paste.',
     unitPrice: 5.00,
-    imageUrl: 'https://picsum.photos/seed/gino/400/300',
+    imageUrl: placeholderImages.gino.url,
     category: 'Cooking Essentials',
   },
   {
@@ -83,7 +84,7 @@ export const mockProducts: Product[] = [
         { id: 'rice-10kg', name: '10kg Bag', unitPrice: 280.00 },
         { id: 'rice-25kg', name: '25kg Bag', unitPrice: 650.00 },
     ],
-    imageUrl: 'https://picsum.photos/seed/rice/400/300',
+    imageUrl: placeholderImages.rice.url,
     category: 'Grains',
   },
   {
@@ -91,7 +92,7 @@ export const mockProducts: Product[] = [
     name: 'Ideal Milk',
     description: 'Evaporated milk for cereals and tea.',
     unitPrice: 5.5,
-    imageUrl: 'https://picsum.photos/seed/ideal/400/300',
+    imageUrl: placeholderImages.ideal.url,
     category: 'Dairy',
   },
   {
@@ -99,7 +100,7 @@ export const mockProducts: Product[] = [
     name: 'Indomie Instant Noodles',
     description: 'Quick and tasty chicken flavor noodles.',
     unitPrice: 4.00,
-    imageUrl: 'https://picsum.photos/seed/indomie/400/300',
+    imageUrl: placeholderImages.indomie.url,
     category: 'Pantry',
   },
   {
@@ -107,7 +108,7 @@ export const mockProducts: Product[] = [
     name: 'Omo Detergent',
     description: 'Tough stain removal for laundry.',
     unitPrice: 30.00,
-    imageUrl: 'https://picsum.photos/seed/omo/400/300',
+    imageUrl: placeholderImages.omo.url,
     category: 'Household',
   },
 ];
@@ -242,3 +243,5 @@ export const mockOrders: Order[] = [
         paymentPreference: 'Prepaid',
     },
 ];
+
+    

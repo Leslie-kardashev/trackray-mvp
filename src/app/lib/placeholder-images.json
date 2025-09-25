@@ -1,0 +1,37 @@
+
+{
+    "milo": {
+        "url": "https://picsum.photos/seed/milo/400/300",
+        "data-ai-hint": "chocolate drink"
+    },
+    "cowbell": {
+        "url": "https://picsum.photos/seed/cowbell/400/300",
+        "data-ai-hint": "milk powder"
+    },
+    "frytol": {
+        "url": "https://picsum.photos/seed/frytol/400/300",
+        "data-ai-hint": "cooking oil"
+    },
+    "gino": {
+        "url": "https://picsum.photos/seed/gino/400/300",
+        "data-ai-hint": "tomato paste"
+    },
+    "rice": {
+        "url": "https://picsum.photos/seed/rice/400/300",
+        "data-ai-hint": "bag rice"
+    },
+    "ideal": {
+        "url": "https://picsum.photos/seed/ideal/400/300",
+        "data-ai-hint": "canned milk"
+    },
+    "indomie": {
+        "url": "https://picsum.photos/seed/indomie/400/300",
+        "data-ai-hint": "instant noodles"
+    },
+    "omo": {
+        "url": "https://picsum.photos/seed/omo/400/300",
+        "data-ai-hint": "laundry detergent"
+    }
+}
+
+    
