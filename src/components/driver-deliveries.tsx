@@ -15,6 +15,7 @@ import { Button } from "./ui/button";
 import { ChevronRight, Package, Lock, Clock, MapPin, AlertCircle, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { differenceInHours, formatDistanceToNowStrict } from 'date-fns';
+import { GeocodedAddress } from "./geocoded-address";
 
 const statusStyles: { [key in Order['status']]: string } = {
   'Pending': 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300',
@@ -89,7 +90,7 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
         >
             <CardHeader className="flex flex-row items-center justify-between p-4 space-y-0 gap-3">
                 {isCurrent ? (
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">
+                     <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">
                         1
                     </div>
                 ) : (
@@ -103,9 +104,9 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
                 </Badge>
             </CardHeader>
             <CardContent className="p-4 pt-0 space-y-3 text-sm">
-                <div className="flex items-center gap-2 font-semibold text-lg">
-                    <MapPin className="h-5 w-5 text-muted-foreground" />
-                    <span>{order.destination.address}</span>
+                <div className="flex items-start gap-2 font-semibold text-lg">
+                    <MapPin className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+                    <GeocodedAddress coords={order.destination.coords} fallbackAddress={order.destination.address} />
                 </div>
                 <ItemDescription items={order.items} />
                 <div className={cn("flex items-center gap-2 font-medium text-base", urgency.color)}>
