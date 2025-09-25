@@ -23,8 +23,8 @@ export function LocationPicker({
   const [mapCenter, setMapCenter] = useState({ lat: 5.6037, lng: -0.187 }); // Default to Accra
   const [markerPos, setMarkerPos] = useState(mapCenter);
   const [address, setAddress] = useState<string>('Drag the map to set your location');
-  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const geocodingLibrary = useMapsLibrary('geocoding');
   const placesLibrary = useMapsLibrary('places');
@@ -133,7 +133,7 @@ export function LocationPicker({
             center={mapCenter}
             zoom={12}
             onDragend={handleMapDragEnd}
-            onZoom_changed={handleMapDragEnd}
+            onZoomChanged={handleMapDragEnd}
             disableDefaultUI
             mapId="thonket_location_picker"
           />
