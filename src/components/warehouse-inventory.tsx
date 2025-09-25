@@ -95,6 +95,8 @@ function InventoryItemForm({
       quantity: 0,
       unitCost: 0,
       minThreshold: 10,
+      productDimensions: "",
+      weight: "",
     },
   });
 
