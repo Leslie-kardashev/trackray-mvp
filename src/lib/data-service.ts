@@ -225,18 +225,20 @@ export async function getArchivedOrders(): Promise<Order[]> {
     return Promise.resolve(orders.filter(o => ['Delivered', 'Cancelled', 'Archived'].includes(o.status)));
 }
 
-export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'priorityScore'>): Promise<Order> {
+export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'priorityScore' | 'items'> & { item: string }): Promise<Order> {
     const newId = `ORD-${String(101 + orders.length)}`;
     const today = new Date().toISOString().split('T')[0];
     const customer = customers.find(c => c.id === newOrderData.customerId);
     if (!customer) throw new Error("Customer not found");
 
-    const orderValue = newOrderData.items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+    const orderValue = newOrderData.orderValue || 0;
     const priorityScore = 1 / (orderValue || 1) * 10000;
+    const mockItem = inventory.find(i => i.name.toLowerCase().includes('milo')) || inventory[0];
 
     const newOrder: Order = {
         ...newOrderData,
         id: newId,
+        items: [{ name: newOrderData.item, quantity: 1, unitPrice: orderValue }],
         orderDate: today,
         status: 'Pending',
         currentLocation: null,
@@ -259,6 +261,9 @@ export async function updateOrderStatus(orderId: string, newStatus: Order['statu
     orders = orders.map(order => {
         if (order.id === orderId) {
             updatedOrder = { ...order, status: newStatus };
+            if (newStatus === 'Moving') {
+                updatedOrder.currentLocation = order.pickup.coords;
+            }
             return updatedOrder;
         }
         return order;
@@ -279,8 +284,8 @@ export async function confirmOrderPickup(orderId: string): Promise<Order> {
     if (order.id === orderId && order.status === 'Ready for Dispatch') {
       updatedOrder = { 
         ...order, 
-        status: 'Delivered', // Simplified for warehouse focus
-        currentLocation: order.destination.coords
+        status: 'Moving',
+        currentLocation: order.pickup.coords,
       };
       return updatedOrder;
     }

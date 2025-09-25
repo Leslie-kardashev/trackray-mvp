@@ -2,13 +2,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getOrders } from "@/lib/data-service";
+import { getOrders, confirmOrderPickup } from "@/lib/data-service";
 import { type Order } from "@/lib/types";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   Table,
@@ -19,9 +20,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "./ui/skeleton";
+import { Button } from "./ui/button";
 import { PackageCheck, Truck } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "./ui/badge";
 
 export function WarehousePickups() {
   const [pickupOrders, setPickupOrders] = useState<Order[]>([]);
@@ -44,11 +47,36 @@ export function WarehousePickups() {
     }
   };
 
+  const handleConfirmPickup = async (orderId: string) => {
+    try {
+      await confirmOrderPickup(orderId);
+      toast({ title: "Order Dispatched", description: `Order ${orderId} is now on its way.` });
+      fetchPickupOrders();
+    } catch (error) {
+       toast({ variant: "destructive", title: "Error", description: "Could not confirm pickup." });
+    }
+  }
+
   useEffect(() => {
     fetchPickupOrders(true);
     const interval = setInterval(() => fetchPickupOrders(false), 5000); // Refresh every 5 seconds
     return () => clearInterval(interval);
   }, []);
+
+  const getPriorityBadge = (pickupTime: string | undefined) => {
+      if (!pickupTime) return null;
+      const now = new Date();
+      const scheduled = new Date(pickupTime);
+      const diffMinutes = (scheduled.getTime() - now.getTime()) / 60000;
+      
+      if (diffMinutes < -30) {
+          return <Badge variant="destructive">Late</Badge>;
+      }
+      if (diffMinutes < 15) {
+          return <Badge variant="outline" className="text-yellow-600 border-yellow-500">Due</Badge>;
+      }
+      return null;
+  }
 
   return (
     <Card className="h-full">
@@ -80,7 +108,12 @@ export function WarehousePickups() {
                     pickupOrders.map((order, index) => {
                         return (
                             <TableRow key={order.id}>
-                                <TableCell className="font-bold text-center">{index + 1}</TableCell>
+                                <TableCell className="font-bold text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span>{index + 1}</span>
+                                        {getPriorityBadge(order.scheduledPickupTime)}
+                                    </div>
+                                </TableCell>
                                 <TableCell className="font-mono text-xs">{order.id}</TableCell>
                                 <TableCell className="text-xs">
                                      <div className="font-medium flex items-center gap-2">
@@ -103,6 +136,13 @@ export function WarehousePickups() {
             </Table>
         </ScrollArea>
       </CardContent>
+       <CardFooter className="p-2 border-t">
+            {pickupOrders.length > 0 && (
+                <Button size="sm" className="w-full" onClick={() => handleConfirmPickup(pickupOrders[0].id)}>
+                    <PackageCheck className="mr-2" /> Confirm Pickup for Order {pickupOrders[0].id}
+                </Button>
+            )}
+        </CardFooter>
     </Card>
   );
 }

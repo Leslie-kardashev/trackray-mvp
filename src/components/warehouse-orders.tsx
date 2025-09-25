@@ -112,7 +112,7 @@ function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, onGenera
                                 <div className="text-xs text-muted-foreground font-mono">{order.driverVehicleId}</div>
                             </TableCell>
                         )}
-                        <TableCell className="text-right">
+                        <TableCell className="text-right space-x-2">
                            {order.status === 'Pending' && (
                                 <Button size="sm" onClick={() => onStatusChange(order.id, 'Confirmed')}>
                                     <ShieldCheck className="mr-2" /> Acknowledge & Start Packing
@@ -124,27 +124,32 @@ function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, onGenera
                                 </Button>
                             )}
                              {order.status === 'Ready for Dispatch' && (
-                                 <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button size="sm" variant="destructive">
-                                            <AlertCircle className="mr-2" /> Report Delay
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Report Driver Delay?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This will flag order <span className="font-mono font-bold">{order.id}</span> and notify the operations terminal that the driver, <span className="font-bold">{order.driverName}</span>, is late for pickup. Are you sure?
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => onReportDelay(order.id, order.driverName || 'Unknown Driver')}>
-                                                Yes, Report Delay
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
+                                <>
+                                <AlertDialog>
+                                   <AlertDialogTrigger asChild>
+                                       <Button size="sm" variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10 hover:text-destructive">
+                                           <AlertCircle className="mr-2" /> Report Delay
+                                       </Button>
+                                   </AlertDialogTrigger>
+                                   <AlertDialogContent>
+                                       <AlertDialogHeader>
+                                           <AlertDialogTitle>Report Driver Delay?</AlertDialogTitle>
+                                           <AlertDialogDescription>
+                                               This will flag order <span className="font-mono font-bold">{order.id}</span> and notify the operations terminal that the driver, <span className="font-bold">{order.driverName}</span>, is late for pickup. Are you sure?
+                                           </AlertDialogDescription>
+                                       </AlertDialogHeader>
+                                       <AlertDialogFooter>
+                                           <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                           <AlertDialogAction onClick={() => onReportDelay(order.id, order.driverName || 'Unknown Driver')}>
+                                               Yes, Report Delay
+                                           </AlertDialogAction>
+                                       </AlertDialogFooter>
+                                   </AlertDialogContent>
                                 </AlertDialog>
+                                <Button size="sm" onClick={() => onStatusChange(order.id, 'Moving')}>
+                                    <Truck className="mr-2" /> Mark as Dispatched
+                                </Button>
+                                </>
                             )}
                         </TableCell>
                     </TableRow>

@@ -49,7 +49,7 @@ export type Order = {
   customerId: string; // Link to Customer
   customerName: string;
   items: OrderItem[];
-  status: 'Pending' | 'Confirmed' | 'Ready for Dispatch' | 'Delivered' | 'Cancelled' | 'Archived';
+  status: 'Pending' | 'Confirmed' | 'Ready for Dispatch' | 'Moving' | 'Delivered' | 'Cancelled' | 'Archived';
   paymentStatus: 'Paid' | 'Pay on Credit' | 'Pending';
   pickup: Location;
   destination: Location;
