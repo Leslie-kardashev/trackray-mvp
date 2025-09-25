@@ -65,7 +65,14 @@ const statusStyles: { [key in Order['status']]: string } = {
     'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
 };
 
-const returnReasons = [
+type ReturnReason = {
+  code: string;
+  description: string;
+  color: string;
+  action: 'PHOTO' | 'CALL';
+};
+
+const returnReasons: ReturnReason[] = [
   {
     code: 'PD',
     description: 'Product Damaged',
@@ -490,3 +497,5 @@ export function DriverOrderDetails({
     </div>
   );
 }
+
+    
