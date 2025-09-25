@@ -89,8 +89,8 @@ export function DriverDeliveries({ orders, onSelectOrder }: { orders: Order[], o
         >
             <CardHeader className="flex flex-row items-center justify-between p-4 space-y-0 gap-3">
                 {isCurrent ? (
-                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground flex-shrink-0">
-                        <Truck className="h-5 w-5" />
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex-shrink-0">
+                        1
                     </div>
                 ) : (
                     <div className="flex items-center justify-center h-8 w-8 rounded-full bg-muted font-bold text-lg flex-shrink-0">
