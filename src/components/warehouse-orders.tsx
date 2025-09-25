@@ -22,7 +22,13 @@ import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "./ui/scroll-area";
-import { Check, ListOrdered, Truck, Hourglass, ShieldCheck, AlertCircle } from "lucide-react";
+import { Check, ListOrdered, Truck, Hourglass, ShieldCheck, AlertCircle, MoreHorizontal } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -112,7 +118,7 @@ function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, onGenera
                                 <div className="text-xs text-muted-foreground font-mono">{order.driverVehicleId}</div>
                             </TableCell>
                         )}
-                        <TableCell className="text-right space-x-2">
+                        <TableCell className="text-right">
                            {order.status === 'Pending' && (
                                 <Button size="sm" onClick={() => onStatusChange(order.id, 'Confirmed')}>
                                     <ShieldCheck className="mr-2" /> Acknowledge & Start Packing
@@ -124,14 +130,26 @@ function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, onGenera
                                 </Button>
                             )}
                              {order.status === 'Ready for Dispatch' && (
-                                <>
-                                <AlertDialog>
-                                   <AlertDialogTrigger asChild>
-                                       <Button size="sm" variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10 hover:text-destructive">
-                                           <AlertCircle className="mr-2" /> Report Delay
-                                       </Button>
-                                   </AlertDialogTrigger>
-                                   <AlertDialogContent>
+                                 <AlertDialog>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                <span className="sr-only">Open menu</span>
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => onStatusChange(order.id, 'Moving')}>
+                                                <Truck className="mr-2" /> Mark as Dispatched
+                                            </DropdownMenuItem>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem className="text-destructive">
+                                                     <AlertCircle className="mr-2" /> Report Delay
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <AlertDialogContent>
                                        <AlertDialogHeader>
                                            <AlertDialogTitle>Report Driver Delay?</AlertDialogTitle>
                                            <AlertDialogDescription>
@@ -146,10 +164,6 @@ function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, onGenera
                                        </AlertDialogFooter>
                                    </AlertDialogContent>
                                 </AlertDialog>
-                                <Button size="sm" onClick={() => onStatusChange(order.id, 'Moving')}>
-                                    <Truck className="mr-2" /> Mark as Dispatched
-                                </Button>
-                                </>
                             )}
                         </TableCell>
                     </TableRow>
