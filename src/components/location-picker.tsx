@@ -1,12 +1,11 @@
+
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Map,
-  Marker,
   useMap,
   useMapsLibrary,
-  AdvancedMarker,
 } from '@vis.gl/react-google-maps';
 import { Card, CardContent } from './ui/card';
 import { Input } from './ui/input';
@@ -87,49 +86,34 @@ export function LocationPicker({
     }
   };
   
-<<<<<<< HEAD
-  const handleSearch = () => {
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!placesLibrary || !searchQuery || !map) return;
     
     const service = new placesLibrary.PlacesService(map);
-=======
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!placesLibrary || !searchQuery) return;
-    
-    const service = new placesLibrary.PlacesService(map!);
->>>>>>> 95ac1cf (Good Start)
     service.findPlaceFromQuery({
         query: searchQuery,
         fields: ['geometry', 'name'],
     }, (results, status) => {
         if (status === placesLibrary.PlacesServiceStatus.OK && results && results[0] && results[0].geometry) {
-            const newPos = {
-                lat: results[0].geometry.location!.lat(),
-                lng: results[0].geometry.location!.lng(),
-            };
-            setMapCenter(newPos);
-            setMarkerPos(newPos);
-            map?.setCenter(newPos);
-            map?.setZoom(15);
-            reverseGeocode(newPos);
+            const location = results[0].geometry.location;
+            if (location) {
+                const newPos = {
+                    lat: location.lat(),
+                    lng: location.lng(),
+                };
+                setMapCenter(newPos);
+                setMarkerPos(newPos);
+                map?.setCenter(newPos);
+                map?.setZoom(15);
+                reverseGeocode(newPos);
+            }
         } else {
             toast({ variant: 'destructive', title: 'Search Failed', description: 'Could not find that location.' });
         }
     });
   };
 
-<<<<<<< HEAD
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleSearch();
-    }
-  };
-
-
-=======
->>>>>>> 95ac1cf (Good Start)
   const handleConfirm = () => {
     onLocationConfirm({
       address: address,
@@ -157,20 +141,6 @@ export function LocationPicker({
              <MapPin className="h-10 w-10 text-primary drop-shadow-lg" style={{transform: 'translateY(-50%)'}} />
           </div>
           <div className="absolute top-2 left-2 right-2 flex gap-2">
-<<<<<<< HEAD
-            <div className="flex-grow relative">
-                <Input 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Search for a location..."
-                    className="w-full pl-10 pr-10 bg-white/90"
-                />
-                <Button type="button" size="icon" variant="ghost" onClick={handleSearch} className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
-                  <Search className="h-4 w-4 text-muted-foreground" />
-                </Button>
-            </div>
-=======
             <form onSubmit={handleSearch} className="flex-grow relative">
                 <Input 
                     value={searchQuery}
@@ -178,9 +148,10 @@ export function LocationPicker({
                     placeholder="Search for a location..."
                     className="w-full pl-10 bg-white/90"
                 />
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground border-none bg-transparent p-0">
+                    <Search />
+                </button>
             </form>
->>>>>>> 95ac1cf (Good Start)
             <Button type="button" size="icon" onClick={handleUseCurrentLocation} variant="secondary" className="flex-shrink-0 bg-white/90">
                 <LocateFixed className="h-5 w-5" />
             </Button>
