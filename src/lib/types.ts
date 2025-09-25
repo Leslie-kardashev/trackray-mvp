@@ -1,4 +1,3 @@
-
 export type Location = {
   address: string;
   coords: {
@@ -17,6 +16,29 @@ export type User = {
   businessOwnerName?: string;
   phoneNumbers?: string[];
   shopLocation: Location;
+<<<<<<< HEAD
+=======
+};
+
+export type Product = {
+  id: string;
+  name: string;
+  description: string;
+  unitPrice: number;
+  imageUrl: string;
+  category: string;
+};
+
+export type CartItem = {
+  product: Product;
+  quantity: number;
+};
+
+export type OrderItem = {
+  product: Product;
+  quantity: number;
+  priceAtOrder: number;
+>>>>>>> 95ac1cf (Good Start)
 };
 
 export type ProductVariant = {
@@ -60,8 +82,11 @@ export type Order = {
   orderDate: string; // ISO String
   scheduledDeliveryDate: string; // ISO String
   paymentPreference: 'Prepaid' | 'Pay On Credit';
+<<<<<<< HEAD
   // New tracking fields
   trackingStatus?: TrackingStatus;
   currentLocationArea?: string; // e.g., "Adenta"
   trackingProgress?: number; // 0-100
+=======
+>>>>>>> 95ac1cf (Good Start)
 };

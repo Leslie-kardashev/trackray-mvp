@@ -3,7 +3,11 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+<<<<<<< HEAD
 import { User, Product, CartItem, Order, ProductVariant } from '@/lib/types';
+=======
+import { User, Product, CartItem, Order } from '@/lib/types';
+>>>>>>> 95ac1cf (Good Start)
 import { mockUsers, mockProducts, mockOrders } from '@/lib/mock-data';
 
 interface AppContextType {
@@ -12,9 +16,15 @@ interface AppContextType {
   logout: () => void;
   products: Product[];
   cart: CartItem[];
+<<<<<<< HEAD
   addToCart: (product: Product, quantity: number, variant?: ProductVariant) => void;
   updateCartQuantity: (productId: string, quantity: number, variantId?: string) => void;
   removeFromCart: (productId: string, variantId?: string) => void;
+=======
+  addToCart: (product: Product, quantity: number) => void;
+  updateCartQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (productId: string) => void;
+>>>>>>> 95ac1cf (Good Start)
   clearCart: () => void;
   orders: Order[];
   placeOrder: (order: Omit<Order, 'id' | 'userId' | 'orderDate' >) => void;
@@ -82,6 +92,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     router.push('/customer/login');
   };
 
+<<<<<<< HEAD
   const addToCart = (product: Product, quantity: number, variant?: ProductVariant) => {
     if (quantity <= 0) return;
     setCart((prevCart) => {
@@ -91,10 +102,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (existingItem) {
         return prevCart.map((item) =>
           item.product.id === product.id && item.variant?.id === variant?.id
+=======
+  const addToCart = (product: Product, quantity: number) => {
+    if (quantity <= 0) return;
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.product.id === product.id);
+      if (existingItem) {
+        return prevCart.map((item) =>
+          item.product.id === product.id
+>>>>>>> 95ac1cf (Good Start)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
+<<<<<<< HEAD
       return [...prevCart, { product, quantity, variant }];
     });
   };
@@ -108,11 +129,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           item.product.id === productId && item.variant?.id === variantId
             ? { ...item, quantity }
             : item
+=======
+      return [...prevCart, { product, quantity }];
+    });
+  };
+
+  const updateCartQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+    } else {
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.product.id === productId ? { ...item, quantity } : item
+>>>>>>> 95ac1cf (Good Start)
         )
       );
     }
   };
 
+<<<<<<< HEAD
   const removeFromCart = (productId: string, variantId?: string) => {
     setCart((prevCart) =>
       prevCart.filter(
@@ -120,6 +155,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           !(item.product.id === productId && item.variant?.id === variantId)
       )
     );
+=======
+  const removeFromCart = (productId: string) => {
+    setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId));
+>>>>>>> 95ac1cf (Good Start)
   };
   
   const clearCart = () => {
