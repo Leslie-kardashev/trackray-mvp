@@ -1,8 +1,4 @@
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 95ac1cf (Good Start)
 'use client';
 import React, { useContext } from 'react';
 import Link from 'next/link';
@@ -64,18 +60,12 @@ function MainNavContent() {
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
             <AppLogo />
-<<<<<<< HEAD
             <div className="flex items-center gap-2">
                 <h1 className="font-headline text-2xl font-bold tracking-tighter">
                     Thonket
                 </h1>
                 <Badge variant="outline">Shop</Badge>
             </div>
-=======
-            <h1 className="font-headline text-2xl font-bold tracking-tighter">
-                Thonket
-            </h1>
->>>>>>> 95ac1cf (Good Start)
         </div>
       </SidebarHeader>
       <SidebarContent className="p-4">
@@ -84,11 +74,7 @@ function MainNavContent() {
             const badgeCount = getBadgeCount(item.badgeKey);
             return (
               <SidebarMenuItem key={item.href}>
-<<<<<<< HEAD
                 <Link href={item.href}>
-=======
-                <Link href={item.href} legacyBehavior passHref>
->>>>>>> 95ac1cf (Good Start)
                   <SidebarMenuButton
                     isActive={pathname === item.href}
                     className="relative"
@@ -106,13 +92,8 @@ function MainNavContent() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-4">
-<<<<<<< HEAD
          <Link href="/customer/login">
             <Button variant="ghost" className="justify-start gap-2 w-full" onClick={logout}>
-=======
-         <Link href="/customer/login" legacyBehavior passHref>
-            <Button variant="ghost" className="justify-start gap-2" onClick={logout}>
->>>>>>> 95ac1cf (Good Start)
               <LogOut className="h-5 w-5" />
               <span>Logout</span>
             </Button>
@@ -171,18 +152,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <SidebarTrigger />
             <div className="flex items-center gap-2">
                 <AppLogo />
-<<<<<<< HEAD
                 <div className="flex items-center gap-2">
                     <h1 className="font-headline text-2xl font-bold tracking-tighter">
                         Thonket
                     </h1>
                     <Badge variant="outline">Shop</Badge>
                 </div>
-=======
-                <h1 className="font-headline text-2xl font-bold tracking-tighter">
-                    Thonket
-                </h1>
->>>>>>> 95ac1cf (Good Start)
             </div>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8 pb-20 md:pb-8">
