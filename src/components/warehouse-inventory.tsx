@@ -72,7 +72,6 @@ const itemSchema = z.object({
   quantity: z.coerce.number().min(0, "Quantity cannot be negative."),
   unitCost: z.coerce.number().min(0.01, "Unit cost must be positive."),
   minThreshold: z.coerce.number().min(0, "Threshold cannot be negative."),
-  productDimensions: z.string().optional(),
   weight: z.string().optional(),
 });
 
@@ -95,7 +94,6 @@ function InventoryItemForm({
       quantity: 0,
       unitCost: 0,
       minThreshold: 10,
-      productDimensions: "",
       weight: "",
     },
   });
@@ -129,9 +127,6 @@ function InventoryItemForm({
             )} />
         </div>
          <div className="grid grid-cols-2 gap-4">
-            <FormField control={form.control} name="productDimensions" render={({ field }) => (
-                <FormItem><FormLabel>Dimensions (Optional)</FormLabel><FormControl><Input placeholder="e.g., 50x50x30 cm" {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
             <FormField control={form.control} name="weight" render={({ field }) => (
                 <FormItem><FormLabel>Weight (Optional)</FormLabel><FormControl><Input placeholder="e.g., 5 kg" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
@@ -243,7 +238,7 @@ export function WarehouseInventory() {
   const handleUpdateItem = async (values: ItemFormValues) => {
     if (!selectedItem) return;
     try {
-      await updateInventoryItem({ ...selectedItem, ...values });
+      await updateInventoryItem({ ...selectedItem, ...values, productDimensions: selectedItem.productDimensions });
       toast({ title: "Success", description: "Item details have been updated." });
       fetchInventory();
     } catch (error) {
@@ -382,5 +377,7 @@ export function WarehouseInventory() {
     </>
   );
 }
+
+    
 
     
