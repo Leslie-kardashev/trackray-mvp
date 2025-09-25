@@ -22,13 +22,24 @@ import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "./ui/scroll-area";
-import { Check, ListOrdered, Truck, Hourglass, ShieldCheck } from "lucide-react";
+import { Check, ListOrdered, Truck, Hourglass, ShieldCheck, AlertCircle } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog";
 
 const formatCurrency = (amount: number) => {
     return `GHS ${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-function OrderTable({ orders, isLoading, onStatusChange, currentTab }: { orders: Order[], isLoading: boolean, onStatusChange: (orderId: string, newStatus: Order['status']) => void, currentTab: string }) {
+function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, currentTab }: { orders: Order[], isLoading: boolean, onStatusChange: (orderId: string, newStatus: Order['status']) => void, onReportDelay: (orderId: string, driverName: string) => void, currentTab: string }) {
     if (isLoading) {
         return (
              <Table>
@@ -100,6 +111,29 @@ function OrderTable({ orders, isLoading, onStatusChange, currentTab }: { orders:
                                     <ListOrdered className="mr-2" /> Generate Picklist
                                 </Button>
                             )}
+                             {order.status === 'Ready for Dispatch' && (
+                                 <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button size="sm" variant="destructive">
+                                            <AlertCircle className="mr-2" /> Report Delay
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Report Driver Delay?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This will flag order <span className="font-mono font-bold">{order.id}</span> and notify the operations terminal that the driver, <span className="font-bold">{order.driverName}</span>, is late for pickup. Are you sure?
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => onReportDelay(order.id, order.driverName || 'Unknown Driver')}>
+                                                Yes, Report Delay
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
                         </TableCell>
                     </TableRow>
                 ))}
@@ -142,6 +176,17 @@ export function WarehouseOrders() {
     }
   };
 
+  const handleReportDelay = (orderId: string, driverName: string) => {
+    // In a real app, this would call a service to create a formal report.
+    // For this demo, a toast notification simulates sending the report.
+    console.log(`Reporting delay for order ${orderId}, driver: ${driverName}`);
+    toast({
+        variant: "destructive",
+        title: "Delay Reported",
+        description: `Operations terminal has been notified about the delay for order ${orderId}.`
+    });
+  };
+
   const pendingOrders = orders.filter(o => o.status === 'Pending');
   const confirmedOrders = orders.filter(o => o.status === 'Confirmed');
   const readyForDispatchOrders = orders.filter(o => o.status === 'Ready for Dispatch');
@@ -173,13 +218,13 @@ export function WarehouseOrders() {
                     </div>
                     <ScrollArea className="h-[calc(100vh-280px)]">
                         <TabsContent value="pending" className="m-0">
-                            <OrderTable orders={pendingOrders} isLoading={isLoading} onStatusChange={handleStatusChange} currentTab="pending" />
+                            <OrderTable orders={pendingOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} currentTab="pending" />
                         </TabsContent>
                         <TabsContent value="confirmed" className="m-0">
-                             <OrderTable orders={confirmedOrders} isLoading={isLoading} onStatusChange={handleStatusChange} currentTab="confirmed" />
+                             <OrderTable orders={confirmedOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} currentTab="confirmed" />
                         </TabsContent>
                         <TabsContent value="ready" className="m-0">
-                            <OrderTable orders={readyForDispatchOrders} isLoading={isLoading} onStatusChange={handleStatusChange} currentTab="ready" />
+                            <OrderTable orders={readyForDispatchOrders} isLoading={isLoading} onStatusChange={handleStatusChange} onReportDelay={handleReportDelay} currentTab="ready" />
                         </TabsContent>
                     </ScrollArea>
                 </Tabs>

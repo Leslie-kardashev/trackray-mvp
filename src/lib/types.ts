@@ -44,7 +44,7 @@ export type Order = {
   item: string;
   quantity: number;
   unitPrice: number;
-  status: 'Pending' | 'Confirmed' | 'Ready for Dispatch' | 'Dispatched' | 'Delivered' | 'Cancelled' | 'Archived';
+  status: 'Pending' | 'Confirmed' | 'Ready for Dispatch' | 'Delivered' | 'Cancelled' | 'Archived';
   paymentStatus: 'Paid' | 'Pay on Credit' | 'Pending';
   pickup: Location;
   destination: Location;

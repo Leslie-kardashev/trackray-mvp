@@ -74,26 +74,21 @@ if (orders.length === 0) {
         const pickup = getRandomLocation();
         let destination = customer.location;
 
-        const statuses: Order['status'][] = ['Pending', 'Confirmed', 'Ready for Dispatch', 'Dispatched', 'Delivered', 'Cancelled', 'Archived'];
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        const statuses: Order['status'][] = ['Pending', 'Confirmed', 'Ready for Dispatch', 'Delivered', 'Cancelled', 'Archived'];
+        const status = statuses[i % statuses.length];
         
         const paymentStatuses: Order['paymentStatus'][] = ['Paid', 'Pay on Credit', 'Pending'];
         const paymentStatus = paymentStatuses[i % 3];
         
         let assignedDriver: Driver | undefined;
-        if (['Ready for Dispatch', 'Dispatched', 'Delivered'].includes(status)) {
+        if (['Ready for Dispatch', 'Delivered'].includes(status)) {
             assignedDriver = drivers.find(d => d.id === `DRV-00${(i % 3) + 1}`);
         }
         
         let currentLocation: { lat: number, lng: number } | null = null;
-        if (status === 'Dispatched') {
-            currentLocation = {
-                lat: pickup.coords.lat + (destination.coords.lat - pickup.coords.lat) * Math.random(),
-                lng: pickup.coords.lng + (destination.coords.lng - pickup.coords.lng) * Math.random(),
-            };
-        } else if (status === 'Delivered' || status === 'Archived') {
+        if (status === 'Delivered' || status === 'Archived') {
             currentLocation = destination.coords;
-        } else if (status === 'Ready for Dispatch' || status === 'Confirmed') {
+        } else if (status === 'Ready for Dispatch' || status === 'Confirmed' || status === 'Pending') {
             currentLocation = pickup.coords;
         }
 
@@ -248,8 +243,7 @@ export async function updateOrderStatus(orderId: string, newStatus: Order['statu
     let updatedOrder: Order | undefined;
     orders = orders.map(order => {
         if (order.id === orderId) {
-            const currentLocation = newStatus === 'Dispatched' ? order.pickup.coords : order.currentLocation;
-            updatedOrder = { ...order, status: newStatus, currentLocation };
+            updatedOrder = { ...order, status: newStatus };
             return updatedOrder;
         }
         return order;
@@ -270,8 +264,8 @@ export async function confirmOrderPickup(orderId: string): Promise<Order> {
     if (order.id === orderId && order.status === 'Ready for Dispatch') {
       updatedOrder = { 
         ...order, 
-        status: 'Dispatched', 
-        currentLocation: order.pickup.coords 
+        status: 'Delivered', // Simplified for warehouse focus
+        currentLocation: order.destination.coords
       };
       return updatedOrder;
     }
@@ -328,35 +322,6 @@ export async function assignDriver(orderId: string, driverId: string): Promise<O
 
 // Function to simulate truck movement for the admin map
 export async function updateTruckLocations(): Promise<Order[]> {
-    orders = orders.map(order => {
-        if (order.status === 'Dispatched' && order.currentLocation) {
-            const destination = order.destination.coords;
-            const speed = 0.01; // Simulation speed
-            
-            const latDiff = destination.lat - order.currentLocation.lat;
-            const lngDiff = destination.lng - order.currentLocation.lng;
-            const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
-
-            if (distance < speed) {
-                const newStatus = 'Delivered';
-                // Make driver available again
-                if (order.driverId) {
-                    drivers = drivers.map(d => d.id === order.driverId ? { ...d, status: 'Available'} : d);
-                }
-                return { 
-                    ...order, 
-                    currentLocation: destination, 
-                    status: newStatus,
-                };
-            }
-
-            const newLat = order.currentLocation.lat + (latDiff / distance) * speed;
-            const newLng = order.currentLocation.lng + (lngDiff / distance) * speed;
-            
-            return { ...order, currentLocation: { lat: newLat, lng: newLng } };
-        }
-        return order;
-    });
     return Promise.resolve(orders.filter(o => o.status !== 'Archived'));
 }
 
