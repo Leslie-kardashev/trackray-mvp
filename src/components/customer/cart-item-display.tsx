@@ -35,61 +35,61 @@ export function CartItemDisplay() {
         {cart.map((item, index) => {
           const price = item.variant ? item.variant.unitPrice : item.product.unitPrice || 0;
           return (
-            <>
-            <div key={`${item.product.id}-${item.variant?.id}`} className="flex gap-4">
-              <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                <Image
-                  src={item.product.imageUrl}
-                  alt={item.product.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="flex flex-1 flex-col justify-between">
-                <div>
-                  <h3 className="font-semibold">{item.product.name}</h3>
-                  <p className="text-sm text-muted-foreground">{item.variant?.name}</p>
-                  <p className="text-sm font-medium">GH₵{price.toFixed(2)}</p>
+            <React.Fragment key={`${item.product.id}-${item.variant?.id}`}>
+              <div className="flex items-start gap-4">
+                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
+                  <Image
+                    src={item.product.imageUrl}
+                    alt={item.product.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
-                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleQuantityChange(item.product.id, item.variant?.id, -1)}
-                        >
-                        <Minus className="h-4 w-4" />
-                        </Button>
-                        <Input
-                            type="number"
-                            className="h-7 w-12 text-center"
-                            value={item.quantity}
-                            onChange={(e) => updateCartQuantity(item.product.id, parseInt(e.target.value) || 1, item.variant?.id)}
-                            min="1"
-                        />
-                        <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleQuantityChange(item.product.id, item.variant?.id, 1)}
-                        >
-                        <Plus className="h-4 w-4" />
-                        </Button>
-                    </div>
-                     <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground"
-                        onClick={() => removeFromCart(item.product.id, item.variant?.id)}
-                        >
-                        <Trash2 className="h-4 w-4" />
-                     </Button>
+                <div className="flex flex-1 flex-col justify-between self-stretch">
+                  <div className='flex-1'>
+                    <h3 className="font-semibold leading-tight">{item.product.name}</h3>
+                    {item.variant && <p className="text-sm text-muted-foreground">{item.variant.name}</p>}
+                    <p className="text-sm font-medium">GH₵{price.toFixed(2)}</p>
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center gap-2">
+                          <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleQuantityChange(item.product.id, item.variant?.id, -1)}
+                          >
+                          <Minus className="h-4 w-4" />
+                          </Button>
+                          <Input
+                              type="number"
+                              className="h-7 w-12 text-center"
+                              value={item.quantity}
+                              onChange={(e) => updateCartQuantity(item.product.id, parseInt(e.target.value) || 1, item.variant?.id)}
+                              min="1"
+                          />
+                          <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleQuantityChange(item.product.id, item.variant?.id, 1)}
+                          >
+                          <Plus className="h-4 w-4" />
+                          </Button>
+                      </div>
+                      <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground"
+                          onClick={() => removeFromCart(item.product.id, item.variant?.id)}
+                          >
+                          <Trash2 className="h-4 w-4" />
+                      </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-            {index < cart.length -1 && <Separator />}
-            </>
+              {index < cart.length - 1 && <Separator />}
+            </React.Fragment>
           );
         })}
       </div>
