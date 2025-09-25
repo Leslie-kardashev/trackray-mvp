@@ -2,30 +2,20 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { ShieldCheck, Truck, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { LayoutDashboard, Package, Boxes, BarChart3 } from "lucide-react";
 
 export function DashboardNav() {
   const pathname = usePathname();
-  const isActive = (path: string) => pathname.startsWith(path);
+  const isActive = (path: string) => pathname === path;
 
-  const role = pathname.split("/")[1];
-
-  const getNavItems = () => {
-    switch (role) {
-      case "admin":
-        return [];
-      case "driver":
-        return [];
-      case "customer":
-        return [];
-      default:
-        return [];
-    }
-  };
-
-  const navItems = getNavItems();
+  const navItems = [
+    { href: "/warehouse", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/warehouse/orders", label: "Orders", icon: Package },
+    { href: "/warehouse/inventory", label: "Inventory", icon: Boxes },
+    { href: "/warehouse/reports", label: "Reports", icon: BarChart3 },
+  ];
 
   return (
     <>
@@ -34,10 +24,11 @@ export function DashboardNav() {
           key={index}
           href={item.href}
           className={cn(
-            "transition-colors hover:text-foreground",
+            "transition-colors hover:text-foreground flex items-center gap-2",
             isActive(item.href) ? "text-foreground font-semibold" : "text-muted-foreground"
           )}
         >
+          <item.icon className="h-4 w-4" />
           {item.label}
         </Link>
       ))}
