@@ -57,6 +57,7 @@ export type Order = {
   specialInstructions?: string;
   driverId?: string | null;
   driverName?: string | null;
+  priorityScore: number;
 };
 
 export type SOSMessage = {
@@ -78,4 +79,3 @@ export type Complaint = {
   status: 'Open' | 'In Progress' | 'Resolved';
   timestamp: string;
 };
-

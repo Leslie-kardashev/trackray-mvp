@@ -81,7 +81,7 @@ if (orders.length === 0) {
         const paymentStatus = paymentStatuses[i % 3];
         
         let assignedDriver: Driver | undefined;
-        if (['Dispatched', 'Delivered'].includes(status)) {
+        if (['Ready for Dispatch', 'Dispatched', 'Delivered'].includes(status)) {
             assignedDriver = drivers.find(d => d.id === `DRV-00${(i % 3) + 1}`);
         }
         
@@ -93,13 +93,16 @@ if (orders.length === 0) {
             };
         } else if (status === 'Delivered' || status === 'Archived') {
             currentLocation = destination.coords;
-        } else if (status === 'Ready for Dispatch') {
+        } else if (status === 'Ready for Dispatch' || status === 'Confirmed') {
             currentLocation = pickup.coords;
         }
 
         const quantity = Math.floor(Math.random() * 50) + 1;
         const unitPrice = Math.round(Math.random() * 100 + 10);
         const orderValue = quantity * unitPrice;
+        
+        // Higher order value = lower (better) priority score
+        const priorityScore = 1 / (orderValue || 1) * 10000;
         
         // Add scheduled pickup time for relevant orders
         let scheduledPickupTime: string | undefined;
@@ -128,6 +131,7 @@ if (orders.length === 0) {
             routeColor: routeColors[i % routeColors.length],
             driverId: assignedDriver?.id,
             driverName: assignedDriver?.name,
+            priorityScore,
         };
     });
 }
@@ -208,7 +212,7 @@ export async function getArchivedOrders(): Promise<Order[]> {
     return Promise.resolve(orders.filter(o => ['Delivered', 'Cancelled', 'Archived'].includes(o.status)));
 }
 
-export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'unitPrice' | 'quantity'>): Promise<Order> {
+export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'unitPrice' | 'quantity' | 'priorityScore'>): Promise<Order> {
     const newId = `ORD-${String(101 + orders.length)}`;
     const today = new Date().toISOString().split('T')[0];
     const customer = customers.find(c => c.id === newOrderData.customerId);
@@ -216,6 +220,8 @@ export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 's
 
     const quantity = Math.floor(Math.random() * 50) + 1;
     const unitPrice = newOrderData.orderValue ? newOrderData.orderValue / quantity : 0;
+    const priorityScore = 1 / (newOrderData.orderValue || 1) * 10000;
+
 
     const newOrder: Order = {
         ...newOrderData,
@@ -227,6 +233,7 @@ export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 's
         destination: newOrderData.destination || customer.location,
         quantity: quantity,
         unitPrice: unitPrice,
+        priorityScore,
     };
     orders = [newOrder, ...orders];
     return Promise.resolve(newOrder);
