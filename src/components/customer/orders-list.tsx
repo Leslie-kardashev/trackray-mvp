@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import { Separator } from '../ui/separator';
 import { OrderTrackingDetails } from './order-tracking-details';
 import {
@@ -29,13 +29,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { cn } from '@/lib/utils';
+import type { VariantProps } from 'class-variance-authority';
 
 
 interface OrdersListProps {
   orders: Order[];
 }
 
-const getStatusVariant = (status: Order['status']): VariantProps<typeof Badge>["variant"] => {
+const getStatusVariant = (status: Order['status']): VariantProps<typeof badgeVariants>["variant"] => {
   switch (status) {
     case 'Out for Delivery':
       return 'default';
@@ -67,31 +68,31 @@ export function OrdersList({ orders }: OrdersListProps) {
     return (
       <div className="space-y-4 pt-4">
         {orders.map((order) => (
-          <Card key={order.id}>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center text-base">
-                <span>Order #{order.id.split('-')[1]}</span>
-                <Badge variant={getStatusVariant(order.status)} className={cn(getStatusClass(order.status))}>{order.status}</Badge>
+          <Card key={order.id} className="overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between bg-muted/30 p-4">
+              <CardTitle className="text-base font-semibold">
+                Order #{order.id.split('-')[1]}
               </CardTitle>
+              <Badge variant={getStatusVariant(order.status)} className={cn('text-xs', getStatusClass(order.status))}>{order.status}</Badge>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <CardContent className="space-y-3 p-4 text-sm">
               <div className="flex justify-between">
-                <span>Order Date</span>
+                <span className="text-muted-foreground">Order Date</span>
                 <span className="font-medium text-foreground">
                   {format(new Date(order.orderDate), 'PPP')}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Total Amount</span>
-                <span className="font-medium text-foreground">
+                <span className="text-muted-foreground">Total Amount</span>
+                <span className="font-bold text-foreground">
                   GH₵{order.totalAmount.toFixed(2)}
                 </span>
               </div>
             </CardContent>
-            {(order.status === 'Pending Assignment' || order.status === 'Out for Delivery') && (
+            {(order.status === 'Pending Assignment' || order.status === 'Out for Delivery') && order.trackingStatus && (
               <>
                 <Separator />
-                <CardFooter className="pt-4">
+                <CardFooter className="p-0">
                   <OrderTrackingDetails order={order} />
                 </CardFooter>
               </>
