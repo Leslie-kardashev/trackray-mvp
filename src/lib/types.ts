@@ -32,18 +32,23 @@ export type Customer = {
 export type Driver = {
     id: string;
     name: string;
+    vehicleId: string;
     vehicleType: 'Motorbike' | 'Standard Cargo Van' | 'Heavy Duty Truck';
     status: 'Available' | 'On-trip' | 'Offline';
     phone: string;
 };
 
+export type OrderItem = {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+}
+
 export type Order = {
   id: string;
   customerId: string; // Link to Customer
   customerName: string;
-  item: string;
-  quantity: number;
-  unitPrice: number;
+  items: OrderItem[];
   status: 'Pending' | 'Confirmed' | 'Ready for Dispatch' | 'Delivered' | 'Cancelled' | 'Archived';
   paymentStatus: 'Paid' | 'Pay on Credit' | 'Pending';
   pickup: Location;
@@ -57,6 +62,7 @@ export type Order = {
   specialInstructions?: string;
   driverId?: string | null;
   driverName?: string | null;
+  driverVehicleId?: string | null;
   priorityScore: number;
 };
 

@@ -2,7 +2,7 @@
 
 'use server';
 
-import { type InventoryItem, type Order, type Customer, type Driver, type SOSMessage, type Complaint } from './types';
+import { type InventoryItem, type Order, type Customer, type Driver, type SOSMessage, type Complaint, type OrderItem } from './types';
 
 // In-memory data stores to simulate a database
 let inventory: InventoryItem[] = [];
@@ -47,10 +47,10 @@ if (inventory.length === 0) {
 
 if (drivers.length === 0) {
     drivers = [
-        { id: 'DRV-001', name: 'Kofi Mensah', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233555111222' },
-        { id: 'DRV-002', name: 'Abeiku Acquah', vehicleType: 'Motorbike', status: 'Available', phone: '+233555333444' },
-        { id: 'DRV-003', name: 'Esi Prah', vehicleType: 'Heavy Duty Truck', status: 'On-trip', phone: '+233555555666' },
-        { id: 'DRV-004', name: 'Yaw Asante', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233555777888' },
+        { id: 'DRV-001', name: 'Kofi Mensah', vehicleId: 'GT-1234-24', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233555111222' },
+        { id: 'DRV-002', name: 'Abeiku Acquah', vehicleId: 'AS-5678-23', vehicleType: 'Motorbike', status: 'Available', phone: '+233555333444' },
+        { id: 'DRV-003', name: 'Esi Prah', vehicleId: 'WR-9101-22', vehicleType: 'Heavy Duty Truck', status: 'On-trip', phone: '+233555555666' },
+        { id: 'DRV-004', name: 'Yaw Asante', vehicleId: 'BA-1121-24', vehicleType: 'Standard Cargo Van', status: 'Available', phone: '+233555777888' },
     ];
 }
 
@@ -96,12 +96,22 @@ if (orders.length === 0) {
         if (status === 'Ready for Dispatch' || status === 'Confirmed' || status === 'Pending') {
             currentLocation = pickup.coords;
         }
-
-        const quantity = Math.floor(Math.random() * 50) + 1;
-        const inventoryItem = inventory[(i % inventory.length)];
-        const unitPrice = inventoryItem.unitCost;
-        const orderValue = quantity * unitPrice;
         
+        // Create multiple items for an order
+        const numItems = Math.floor(Math.random() * 3) + 1; // 1 to 3 items per order
+        const orderItems: OrderItem[] = [];
+        let orderValue = 0;
+        for (let j = 0; j < numItems; j++) {
+            const inventoryItem = inventory[(i + j) % inventory.length];
+            const quantity = Math.floor(Math.random() * 10) + 1;
+            orderItems.push({
+                name: inventoryItem.name,
+                quantity: quantity,
+                unitPrice: inventoryItem.unitCost,
+            });
+            orderValue += quantity * inventoryItem.unitCost;
+        }
+
         // Higher order value = lower (better) priority score
         const priorityScore = 1 / (orderValue || 1) * 10000;
         
@@ -118,9 +128,7 @@ if (orders.length === 0) {
             id,
             customerId: customer.id,
             customerName: customer.name,
-            item: inventoryItem.name,
-            quantity,
-            unitPrice,
+            items: orderItems,
             orderValue,
             status,
             paymentStatus,
@@ -132,6 +140,7 @@ if (orders.length === 0) {
             routeColor: routeColors[i % routeColors.length],
             driverId: assignedDriver?.id,
             driverName: assignedDriver?.name,
+            driverVehicleId: assignedDriver?.vehicleId,
             priorityScore,
         };
     });
@@ -216,16 +225,14 @@ export async function getArchivedOrders(): Promise<Order[]> {
     return Promise.resolve(orders.filter(o => ['Delivered', 'Cancelled', 'Archived'].includes(o.status)));
 }
 
-export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'unitPrice' | 'quantity' | 'priorityScore'>): Promise<Order> {
+export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 'status' | 'currentLocation' | 'priorityScore'>): Promise<Order> {
     const newId = `ORD-${String(101 + orders.length)}`;
     const today = new Date().toISOString().split('T')[0];
     const customer = customers.find(c => c.id === newOrderData.customerId);
     if (!customer) throw new Error("Customer not found");
 
-    const quantity = Math.floor(Math.random() * 50) + 1;
-    const unitPrice = newOrderData.orderValue ? newOrderData.orderValue / quantity : 0;
-    const priorityScore = 1 / (newOrderData.orderValue || 1) * 10000;
-
+    const orderValue = newOrderData.items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0);
+    const priorityScore = 1 / (orderValue || 1) * 10000;
 
     const newOrder: Order = {
         ...newOrderData,
@@ -235,8 +242,7 @@ export async function addOrder(newOrderData: Omit<Order, 'id' | 'orderDate' | 's
         currentLocation: null,
         pickup: newOrderData.pickup || getRandomLocation(),
         destination: newOrderData.destination || customer.location,
-        quantity: quantity,
-        unitPrice: unitPrice,
+        orderValue: orderValue,
         priorityScore,
     };
     orders = [newOrder, ...orders];
@@ -311,6 +317,7 @@ export async function assignDriver(orderId: string, driverId: string): Promise<O
                 ...order, 
                 driverId: driver.id,
                 driverName: driver.name,
+                driverVehicleId: driver.vehicleId,
                 status: 'Ready for Dispatch', // Change status to indicate it's waiting for pickup
                 currentLocation: order.pickup.coords, // Location is now the pickup point
                 scheduledPickupTime: pickupTime.toISOString(),

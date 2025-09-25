@@ -82,7 +82,7 @@ function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, currentT
                     <TableHead>Priority</TableHead>
                     <TableHead>Order ID</TableHead>
                     <TableHead>Customer</TableHead>
-                    <TableHead>Product</TableHead>
+                    <TableHead>Products</TableHead>
                     <TableHead>Total Value</TableHead>
                      {currentTab === 'ready' && <TableHead>Assigned Driver</TableHead>}
                     <TableHead className="text-right">Action</TableHead>
@@ -97,9 +97,20 @@ function OrderTable({ orders, isLoading, onStatusChange, onReportDelay, currentT
                             <div className="font-medium">{order.customerName}</div>
                             <div className="text-xs text-muted-foreground">{order.destination.address}</div>
                         </TableCell>
-                        <TableCell>{order.item}</TableCell>
+                        <TableCell>
+                            <ul className="list-disc list-inside">
+                                {order.items.map(item => (
+                                    <li key={item.name} className="text-xs">{item.quantity}x {item.name}</li>
+                                ))}
+                            </ul>
+                        </TableCell>
                         <TableCell>{formatCurrency(order.orderValue || 0)}</TableCell>
-                        {currentTab === 'ready' && <TableCell>{order.driverName || 'N/A'}</TableCell>}
+                        {currentTab === 'ready' && (
+                             <TableCell>
+                                <div className="font-medium">{order.driverName || 'N/A'}</div>
+                                <div className="text-xs text-muted-foreground font-mono">{order.driverVehicleId}</div>
+                            </TableCell>
+                        )}
                         <TableCell className="text-right">
                            {order.status === 'Pending' && (
                                 <Button size="sm" onClick={() => onStatusChange(order.id, 'Confirmed')}>

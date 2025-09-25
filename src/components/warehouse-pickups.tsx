@@ -33,7 +33,7 @@ export function WarehousePickups() {
     try {
       const allOrders = await getOrders();
       const filteredAndSortedOrders = allOrders
-        .filter((order) => order.status === "Ready for Pickup")
+        .filter((order) => order.status === "Ready for Dispatch")
         .sort((a, b) => a.priorityScore - b.priorityScore);
       setPickupOrders(filteredAndSortedOrders);
     } catch (error) {
@@ -82,9 +82,12 @@ export function WarehousePickups() {
                             <TableRow key={order.id}>
                                 <TableCell className="font-bold text-center">{index + 1}</TableCell>
                                 <TableCell className="font-mono text-xs">{order.id}</TableCell>
-                                <TableCell className="font-medium text-xs flex items-center gap-2">
-                                    <Truck className="w-4 h-4 text-muted-foreground" />
-                                    {order.driverName}
+                                <TableCell className="text-xs">
+                                     <div className="font-medium flex items-center gap-2">
+                                        <Truck className="w-4 h-4 text-muted-foreground" />
+                                        {order.driverName}
+                                    </div>
+                                    <div className="text-muted-foreground font-mono ml-6">{order.driverVehicleId}</div>
                                 </TableCell>
                             </TableRow>
                         );
