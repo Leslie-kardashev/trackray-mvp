@@ -81,11 +81,6 @@ const returnReasons = [
     color: 'bg-orange-500 hover:bg-orange-600',
   },
   {
-    code: 'PF',
-    description: 'Payment Failed',
-    color: 'bg-orange-500 hover:bg-orange-600',
-  },
-  {
     code: 'CR',
     description: 'Customer Refused',
     color: 'bg-blue-500 hover:bg-blue-600',
