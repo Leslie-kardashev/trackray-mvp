@@ -18,7 +18,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { AppContext } from '@/context/AppContext';
 import { useToast } from '@/hooks/use-toast';
 import { User, Location } from '@/lib/types';
@@ -26,7 +25,7 @@ import { Phone, Plus, Trash2 } from 'lucide-react';
 import { LocationPicker } from '../location-picker';
 import Link from 'next/link';
 
-const formSchema = z.object({
+const baseSchema = z.object({
   userType: z.enum(['Individual', 'Business']),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z
@@ -36,7 +35,7 @@ const formSchema = z.object({
   businessName: z.string().optional(),
   businessOwnerName: z.string().optional(),
   phoneNumbers: z
-    .array(z.object({ value: z.string().min(1, 'Phone number cannot be empty.') }))
+    .array(z.object({ value: z.string() }))
     .optional(),
   shopLocation: z
     .object({
@@ -45,6 +44,49 @@ const formSchema = z.object({
     })
     .nullable(),
 });
+
+const formSchema = baseSchema.superRefine((data, ctx) => {
+    if (data.userType === 'Individual') {
+        if (!data.fullName || data.fullName.trim() === '') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Full name is required.',
+                path: ['fullName'],
+            });
+        }
+    } else if (data.userType === 'Business') {
+        if (!data.businessName || data.businessName.trim() === '') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Business name is required.',
+                path: ['businessName'],
+            });
+        }
+        if (!data.businessOwnerName || data.businessOwnerName.trim() === '') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Business owner's name is required.",
+                path: ['businessOwnerName'],
+            });
+        }
+        if (!data.phoneNumbers || data.phoneNumbers.length === 0 || data.phoneNumbers.some(p => p.value.trim() === '')) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'At least one phone number is required.',
+                path: ['phoneNumbers'],
+            });
+        }
+    }
+
+    if (!data.shopLocation) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Please select a location on the map.',
+            path: ['shopLocation'],
+        });
+    }
+});
+
 
 type FormSchema = z.infer<typeof formSchema>;
 
@@ -84,7 +126,7 @@ export function RegisterForm() {
       fullName: values.fullName,
       businessName: values.businessName,
       businessOwnerName: values.businessOwnerName,
-      phoneNumbers: values.phoneNumbers?.map((p) => p.value),
+      phoneNumbers: values.phoneNumbers?.map((p) => p.value).filter(p => p.trim() !== ''),
       shopLocation: values.shopLocation!,
     };
 
@@ -115,6 +157,15 @@ export function RegisterForm() {
                   onValueChange={(value: 'Individual' | 'Business') => {
                     field.onChange(value);
                     setUserType(value);
+                    // Reset fields when switching
+                    form.reset({
+                      ...form.getValues(),
+                      userType: value,
+                      fullName: value === 'Individual' ? form.getValues().fullName : '',
+                      businessName: value === 'Business' ? form.getValues().businessName : '',
+                      businessOwnerName: value === 'Business' ? form.getValues().businessOwnerName : '',
+                      phoneNumbers: value === 'Business' ? form.getValues().phoneNumbers : [{ value: '' }],
+                    });
                   }}
                   defaultValue={field.value}
                   className="flex space-x-4"
@@ -249,6 +300,26 @@ export function RegisterForm() {
           </div>
         )}
 
+        {userType === 'Individual' && (
+             <FormField
+                control={form.control}
+                name={`phoneNumbers.0.value`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                        <div className="relative w-full">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input {...field} placeholder="e.g., 0244123456" className="pl-10" />
+                        </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+        )}
+
+
         <FormField
           control={form.control}
           name="shopLocation"
@@ -277,3 +348,5 @@ export function RegisterForm() {
     </Form>
   );
 }
+
+    
