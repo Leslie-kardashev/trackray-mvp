@@ -13,14 +13,14 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import {
   ArrowLeft,
   Check,
@@ -124,7 +124,7 @@ export function DriverOrderDetails({
   onStatusUpdate: (updatedOrder: Order) => void;
   onBack: () => void;
 }) {
-  const [isReturnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [isReturnSheetOpen, setReturnSheetOpen] = useState(false);
   const [specificAddress, setSpecificAddress] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const { toast } = useToast();
@@ -177,7 +177,7 @@ export function DriverOrderDetails({
       });
 
       if (newStatus === 'Returning') {
-        setReturnDialogOpen(false);
+        setReturnSheetOpen(false);
       }
       
     } catch (error) {
@@ -340,7 +340,7 @@ export function DriverOrderDetails({
                       ))}
                   </TableBody>
               </Table>
-          </CardContent>
+          </CardFooter>
           <CardFooter className="flex justify-between items-center bg-muted/50 p-4 mt-4 rounded-b-lg">
               <Button variant="outline"><FileText className="mr-2"/> View Invoice</Button>
               <div className="text-right">
@@ -399,11 +399,11 @@ export function DriverOrderDetails({
             {isUpdating ? "Completing..." : <><Check className="mr-2" /> Mark as Delivered</>}
           </Button>
 
-          <AlertDialog
-            open={isReturnDialogOpen}
-            onOpenChange={setReturnDialogOpen}
+          <Sheet
+            open={isReturnSheetOpen}
+            onOpenChange={setReturnSheetOpen}
           >
-            <AlertDialogTrigger asChild>
+            <SheetTrigger asChild>
               <Button
                 size="lg"
                 variant="outline"
@@ -412,16 +412,16 @@ export function DriverOrderDetails({
               >
                 <Undo2 className="mr-2" /> Initiate Return
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Select Reason for Return</AlertDialogTitle>
-                <AlertDialogDescription>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-lg">
+              <SheetHeader>
+                <SheetTitle>Select Reason for Return</SheetTitle>
+                <SheetDescription>
                   Choose the most accurate reason for returning this delivery.
                   This will be reported to dispatch.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-4">
+                </SheetDescription>
+              </SheetHeader>
+              <div className="grid grid-cols-1 gap-3 py-4">
                 {returnReasons.map(reason => (
                   <Button
                     key={reason.code}
@@ -430,21 +430,24 @@ export function DriverOrderDetails({
                     onClick={() =>
                       handleLocalStatusUpdate('Returning', reason.description)
                     }
+                    disabled={isUpdating}
                   >
                     {reason.description}
                   </Button>
                 ))}
               </div>
-              <AlertDialogFooter>
+              <SheetFooter>
                 <Button
                   variant="ghost"
-                  onClick={() => setReturnDialogOpen(false)}
+                  className="w-full"
+                  onClick={() => setReturnSheetOpen(false)}
+                  disabled={isUpdating}
                 >
-                  <X className="mr-2" /> Cancel
+                  Cancel
                 </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
         </div>
       )}
 
