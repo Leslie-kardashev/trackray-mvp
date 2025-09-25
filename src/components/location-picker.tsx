@@ -87,11 +87,10 @@ export function LocationPicker({
     }
   };
   
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!placesLibrary || !searchQuery) return;
+  const handleSearch = () => {
+    if (!placesLibrary || !searchQuery || !map) return;
     
-    const service = new placesLibrary.PlacesService(map!);
+    const service = new placesLibrary.PlacesService(map);
     service.findPlaceFromQuery({
         query: searchQuery,
         fields: ['geometry', 'name'],
@@ -111,6 +110,14 @@ export function LocationPicker({
         }
     });
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    }
+  };
+
 
   const handleConfirm = () => {
     onLocationConfirm({
@@ -139,15 +146,18 @@ export function LocationPicker({
              <MapPin className="h-10 w-10 text-primary drop-shadow-lg" style={{transform: 'translateY(-50%)'}} />
           </div>
           <div className="absolute top-2 left-2 right-2 flex gap-2">
-            <form onSubmit={handleSearch} className="flex-grow relative">
+            <div className="flex-grow relative">
                 <Input 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder="Search for a location..."
-                    className="w-full pl-10 bg-white/90"
+                    className="w-full pl-10 pr-10 bg-white/90"
                 />
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </form>
+                <Button type="button" size="icon" variant="ghost" onClick={handleSearch} className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8">
+                  <Search className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            </div>
             <Button type="button" size="icon" onClick={handleUseCurrentLocation} variant="secondary" className="flex-shrink-0 bg-white/90">
                 <LocateFixed className="h-5 w-5" />
             </Button>
