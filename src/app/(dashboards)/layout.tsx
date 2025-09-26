@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { DashboardNav } from "@/components/dashboard-nav";
+import { Badge } from "@/components/ui/badge";
 
 const AppLogo = () => (
     <svg role="img" aria-label="Thonket Logo" className="w-auto h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -32,7 +33,10 @@ export default function DashboardLayout({
               className="flex items-center gap-2 font-semibold text-foreground"
             >
               <AppLogo />
-              <span className="font-headline text-xl font-bold tracking-tighter">Thonket</span>
+              <div className="flex items-center gap-2">
+                <span className="font-headline text-xl font-bold tracking-tighter">Thonket</span>
+                <Badge variant="outline">Finance</Badge>
+              </div>
             </Link>
             <DashboardNav />
           </div>
@@ -55,7 +59,10 @@ export default function DashboardLayout({
                 className="flex items-center gap-2 text-lg font-semibold"
               >
                 <AppLogo />
-                <span className="font-headline text-xl font-bold tracking-tighter">Thonket</span>
+                <div className="flex items-center gap-2">
+                    <span className="font-headline text-xl font-bold tracking-tighter">Thonket</span>
+                    <Badge variant="outline">Finance</Badge>
+                </div>
               </Link>
               <DashboardNav />
             </nav>
