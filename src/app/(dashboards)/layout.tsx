@@ -25,15 +25,17 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
-        <nav className="hidden font-medium md:flex md:flex-row md:items-center md:gap-5 lg:gap-8 text-sm">
-          <Link
-            href="#"
-            className="flex items-center gap-2 font-semibold text-foreground"
-          >
-            <AppLogo />
-            <span className="font-headline text-xl font-bold tracking-tighter">Thonket</span>
-          </Link>
-          <DashboardNav />
+        <nav className="hidden font-medium md:flex md:flex-row md:items-center md:justify-between md:gap-5 lg:gap-8 text-sm w-full">
+          <div className="flex items-center gap-5 lg:gap-8">
+            <Link
+              href="#"
+              className="flex items-center gap-2 font-semibold text-foreground"
+            >
+              <AppLogo />
+              <span className="font-headline text-xl font-bold tracking-tighter">Thonket</span>
+            </Link>
+            <DashboardNav />
+          </div>
         </nav>
         <Sheet>
           <SheetTrigger asChild>
@@ -59,7 +61,7 @@ export default function DashboardLayout({
             </nav>
           </SheetContent>
         </Sheet>
-        <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+        <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4 md:w-auto">
             <div className="ml-auto flex-1 sm:flex-initial">
                 {/* Optional search bar can go here */}
             </div>

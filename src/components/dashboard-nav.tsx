@@ -4,7 +4,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, BarChart3, Fuel } from "lucide-react";
+import { LayoutDashboard, BarChart3, Sparkles } from "lucide-react";
 
 export function DashboardNav() {
   const pathname = usePathname();
@@ -13,7 +13,7 @@ export function DashboardNav() {
   const navItems = [
     { href: "/finance", label: "Overview", icon: LayoutDashboard, exact: true },
     { href: "/finance/reports", label: "Reports", icon: BarChart3 },
-    { href: "/finance/efficiency", label: "Tally Force", icon: Fuel },
+    { href: "/finance/efficiency", label: "Tally Force", icon: Sparkles },
   ];
 
   return (
