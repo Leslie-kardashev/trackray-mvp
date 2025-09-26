@@ -1,11 +1,55 @@
 
 "use client";
 
-import { CheckCircle, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle, AlertTriangle, RefreshCw, XCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from './ui/card';
+import { Button } from './ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
+
+type ConnectionStatus = 'untested' | 'testing' | 'connected' | 'disconnected';
 
 export function TallyConnectionGuide() {
+    const [status, setStatus] = useState<ConnectionStatus>('untested');
+    const { toast } = useToast();
+
+    const handleTestConnection = async () => {
+        setStatus('testing');
+        try {
+            const response = await fetch('/api/tally/test');
+            const data = await response.json();
+
+            if (response.ok) {
+                setStatus('connected');
+                toast({
+                    title: "Connection Successful!",
+                    description: "Successfully connected to your Tally Prime instance.",
+                    variant: 'default',
+                });
+            } else {
+                throw new Error(data.message || 'Failed to connect.');
+            }
+        } catch (error) {
+            setStatus('disconnected');
+            toast({
+                title: "Connection Failed",
+                description: error.message || "Could not connect to Tally. Please check the guide and try again.",
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const statusInfo = {
+        untested: { text: "Untested", color: "text-muted-foreground", icon: <AlertTriangle className="h-4 w-4" /> },
+        testing: { text: "Testing...", color: "text-blue-500", icon: <RefreshCw className="h-4 w-4 animate-spin" /> },
+        connected: { text: "Connected", color: "text-green-600", icon: <CheckCircle className="h-4 w-4" /> },
+        disconnected: { text: "Disconnected", color: "text-destructive", icon: <XCircle className="h-4 w-4" /> },
+    };
+
     const steps = [
         {
             title: "Enable ODBC Server",
@@ -39,6 +83,20 @@ export function TallyConnectionGuide() {
 
     return (
         <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Connection Status</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                     <div className={cn("flex items-center gap-2 font-semibold", statusInfo[status].color)}>
+                        {statusInfo[status].icon}
+                        <span>Status: {statusInfo[status].text}</span>
+                    </div>
+                    <Button onClick={handleTestConnection} disabled={status === 'testing'}>
+                        <RefreshCw className="mr-2" /> Test Connection
+                    </Button>
+                </CardContent>
+            </Card>
              <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>For Localhost Access Only</AlertTitle>

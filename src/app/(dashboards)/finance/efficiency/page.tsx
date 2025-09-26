@@ -30,7 +30,7 @@ export default function TallyForcePage() {
                 <TabsList>
                     <TabsTrigger value="guide">
                         <HelpCircle className="mr-2"/>
-                        Connection Guide
+                        Setup & Connection Guide
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="guide">
