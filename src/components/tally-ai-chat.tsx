@@ -5,17 +5,20 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BrainCircuit, User, Loader, BarChart, LineChart, PieChart } from "lucide-react";
+import { BrainCircuit, User, Loader } from "lucide-react";
 import { ScrollArea } from './ui/scroll-area';
 import { explainFinancials, type ExplainFinancialsOutput } from '@/ai/flows/explain-financials';
 import {
   ResponsiveContainer,
+  BarChart,
   Bar,
   XAxis,
   YAxis,
   Tooltip,
+  PieChart,
   Pie,
   Cell,
+  LineChart,
   Line,
 } from 'recharts';
 
@@ -54,31 +57,31 @@ function ChartRenderer({ data, chartHint }: { data: any[], chartHint: ExplainFin
         <div className="h-48 w-full my-4">
             <ResponsiveContainer>
                 {type === 'bar' && (
-                     <Recharts.BarChart data={data}>
+                     <BarChart data={data}>
                         <XAxis dataKey={x} fontSize={10} tickLine={false} axisLine={false} />
                         <YAxis fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val/1000}k`} />
                         <Tooltip cursor={{fill: 'hsl(var(--accent))'}} contentStyle={{backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}/>
                         <Bar dataKey={yKey} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </Recharts.BarChart>
+                    </BarChart>
                 )}
                  {type === 'line' && (
-                    <Recharts.LineChart data={data}>
+                    <LineChart data={data}>
                         <XAxis dataKey={x} fontSize={10} tickLine={false} axisLine={false} />
                         <YAxis fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `${val/1000}k`} />
                         <Tooltip cursor={{fill: 'hsl(var(--accent))'}} contentStyle={{backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}/>
                         <Line type="monotone" dataKey={yKey} stroke="hsl(var(--primary))" strokeWidth={2} dot={false}/>
                         {yKey2 && <Line type="monotone" dataKey={yKey2} stroke="hsl(var(--destructive))" strokeWidth={2} dot={false}/>}
-                    </Recharts.LineChart>
+                    </LineChart>
                 )}
                  {type === 'pie' && (
-                    <Recharts.PieChart>
+                    <PieChart>
                         <Tooltip cursor={{fill: 'hsl(var(--accent))'}} contentStyle={{backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}}/>
                         <Pie data={data} dataKey={yKey} nameKey={x} cx="50%" cy="50%" outerRadius={60} label={(props) => `${(props.percent * 100).toFixed(0)}%`}>
                              {data.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                         </Pie>
-                    </Recharts.PieChart>
+                    </PieChart>
                 )}
             </ResponsiveContainer>
         </div>
@@ -217,3 +220,5 @@ export function TallyAiChat() {
         </Card>
     );
 }
+
+    
