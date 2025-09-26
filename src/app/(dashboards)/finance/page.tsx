@@ -7,9 +7,9 @@ export default function FinanceDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-headline font-bold">Finance Dashboard</h1>
+        <h1 className="text-3xl font-headline font-bold">Finance Terminal</h1>
         <p className="text-muted-foreground">
-          Monitor financial operations, maintenance costs, and vehicle efficiency.
+          Your AI-powered command center for TallyPrime financial data.
         </p>
       </div>
 
