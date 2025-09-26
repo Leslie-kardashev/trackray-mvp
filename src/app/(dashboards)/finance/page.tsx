@@ -1,7 +1,6 @@
 
 import { FinanceDeliveriesOverview } from "@/components/finance-deliveries-overview";
 import { FinanceMaintenance } from "@/components/finance-maintenance";
-import { FinanceVehicleEfficiency } from "@/components/finance-vehicle-efficiency";
 
 export default function FinanceDashboard() {
   return (
@@ -15,10 +14,7 @@ export default function FinanceDashboard() {
 
       <div className="space-y-8">
         <FinanceDeliveriesOverview />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <FinanceMaintenance />
-            <FinanceVehicleEfficiency />
-        </div>
+        <FinanceMaintenance />
       </div>
     </div>
   );
