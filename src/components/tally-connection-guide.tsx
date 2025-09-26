@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { CheckCircle, AlertTriangle, RefreshCw, XCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, RefreshCw, XCircle, ShieldQuestion } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from './ui/card';
@@ -60,7 +60,7 @@ export function TallyConnectionGuide() {
             description: "Press F1 (Help) > Settings > Startup. Set 'Load companies on startup' to 'Yes' and select your primary company. This ensures data is always available when Tally is running."
         },
         {
-            title: "Configure Firewall",
+            title: "Configure Inbound Firewall Rule",
             description: "If you have a firewall enabled on your computer (like Windows Defender), you must create an inbound rule to allow connections on the port you noted in Step 1 (e.g., TCP Port 9000).",
             details: (
                 <div className="space-y-3 text-xs pl-6 pt-2 pb-1">
@@ -68,7 +68,7 @@ export function TallyConnectionGuide() {
                     <p><strong>2. Go to Advanced Settings:</strong> Click on "Firewall & network protection", then "Advanced settings".</p>
                     <p><strong>3. New Inbound Rule:</strong> Click "Inbound Rules" on the left, then "New Rule..." on the right.</p>
                     <p><strong>4. Port Type:</strong> Select "Port" and click Next.</p>
-                    <p><strong>5. Specify Port:</strong> Select "TCP" and in "Specific local ports", enter <strong>9000</strong>. Click Next.</p>
+                    <p><strong>5. Specify Port:</strong> Select "TCP" and in "Specific local ports", enter <strong>9000</strong> (or your custom port). Click Next.</p>
                     <p><strong>6. Action:</strong> Select "Allow the connection" and click Next.</p>
                     <p><strong>7. Profile:</strong> Keep "Domain" and "Private" checked. Click Next.</p>
                     <p><strong>8. Name Rule:</strong> Name it something memorable, like `Tally Prime Access`. Click Finish.</p>
@@ -129,6 +129,35 @@ export function TallyConnectionGuide() {
                 <CheckCircle className="h-5 w-5" />
                 <p>Once completed, Thonket will be able to securely read data and push updates directly to your Tally company.</p>
             </div>
+
+             <Card className="mt-8">
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg flex items-center gap-2">
+                        <ShieldQuestion className="text-primary"/> Troubleshooting
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Accordion type="single" collapsible>
+                        <AccordionItem value="gateway-error">
+                            <AccordionTrigger>Seeing an "Unable to connect to Tally Gateway" error in Tally?</AccordionTrigger>
+                            <AccordionContent className="space-y-4 pt-2">
+                                <p className="text-sm text-muted-foreground">This error usually means Tally Prime itself cannot access the internet. Here’s how to fix it by creating an **outbound** firewall rule:</p>
+                                <ol className="space-y-2 text-xs list-decimal pl-5">
+                                    <li>Open **Windows Security** > **Firewall & network protection** > **Advanced settings**.</li>
+                                    <li>Click on **Outbound Rules** on the left, then **New Rule...** on the right.</li>
+                                    <li>Select **Program** and click Next.</li>
+                                    <li>Click **Browse...** and find your Tally application (usually `C:\Program Files\TallyPrime\tally.exe`). Click Next.</li>
+                                    <li>Ensure **Allow the connection** is selected. Click Next three times.</li>
+                                    <li>Give the rule a name like `Tally Prime Outbound Access` and click **Finish**.</li>
+                                    <li>Restart Tally Prime.</li>
+                                </ol>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                </CardContent>
+            </Card>
         </div>
     )
 }
+
+    
