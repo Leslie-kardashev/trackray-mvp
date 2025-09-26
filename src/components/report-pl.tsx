@@ -1,6 +1,9 @@
 
 "use client";
 
+import { useRef } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   Card,
   CardContent,
@@ -23,6 +26,7 @@ import { Download, FileText } from "lucide-react";
 const formatCurrency = (value: number) => `GHS ${value.toLocaleString()}`;
 
 export function ReportPL() {
+  const reportRef = useRef<HTMLDivElement>(null);
   const data = {
     revenue: 185231,
     costOfGoodsSold: 98500,
@@ -38,8 +42,26 @@ export function ReportPL() {
     netProfit: -21269,
   };
 
+  const handleDownload = () => {
+    const input = reportRef.current;
+    if (input) {
+      html2canvas(input, { scale: 2 }).then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        const pdfHeight = pdfWidth / ratio;
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`profit-loss-statement.pdf`);
+      });
+    }
+  };
+
+
   return (
-    <Card>
+    <Card ref={reportRef}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -50,7 +72,7 @@ export function ReportPL() {
               For the period ending May 31, 2024
             </CardDescription>
           </div>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleDownload}>
             <Download className="mr-2" /> Export PDF
           </Button>
         </div>
