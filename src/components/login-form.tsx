@@ -18,11 +18,12 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Badge } from "./ui/badge";
 
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const role = "warehouse";
+  const role = "finance";
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

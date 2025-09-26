@@ -4,17 +4,17 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Package, Boxes, BarChart3 } from "lucide-react";
+import { LayoutDashboard, BarChart3, Wrench, Fuel } from "lucide-react";
 
 export function DashboardNav() {
   const pathname = usePathname();
   const isActive = (path: string) => pathname.startsWith(path);
 
   const navItems = [
-    { href: "/warehouse", label: "Dashboard", icon: LayoutDashboard, exact: true },
-    { href: "/warehouse/orders", label: "Orders", icon: Package },
-    { href: "/warehouse/inventory", label: "Inventory", icon: Boxes },
-    { href: "/warehouse/reports", label: "Reports", icon: BarChart3 },
+    { href: "/finance", label: "Overview", icon: LayoutDashboard, exact: true },
+    { href: "/finance/reports", label: "Financial Reports", icon: BarChart3 },
+    { href: "/finance/maintenance", label: "Maintenance Costs", icon: Wrench },
+    { href: "/finance/efficiency", label: "Vehicle Efficiency", icon: Fuel },
   ];
 
   return (
