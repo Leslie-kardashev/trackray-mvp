@@ -1,6 +1,7 @@
-import { FinanceKPIs } from "@/components/finance-kpis";
-import { FinanceCashflowChart } from "@/components/finance-cashflow-chart";
-import { FinanceSalesAnalytics } from "@/components/finance-sales-analytics";
+
+import { FinanceKPIs } from "@/components/finance-deliveries-overview";
+import { FinanceCashflowChart } from "@/components/finance-maintenance";
+import { FinanceSalesAnalytics } from "@/components/finance-vehicle-efficiency";
 import { FinanceExpenseChart } from "@/components/finance-expense-chart";
 import { FinanceRecentVouchers } from "@/components/finance-recent-vouchers";
 import { FinanceAIAssistant } from "@/components/finance-ai-assistant";
