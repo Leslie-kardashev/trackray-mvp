@@ -30,7 +30,7 @@ export default function Home() {
             <div className="text-left mb-8">
                <div className="flex items-center gap-4 mb-4 text-foreground">
                 <span className="font-headline text-3xl font-bold tracking-tighter">Thonket</span>
-                <Badge variant="outline">Warehouse Terminal</Badge>
+                <Badge variant="outline">Finance Terminal</Badge>
               </div>
               <h1 className="font-headline text-3xl font-bold tracking-tighter">
                 Agent Portal
