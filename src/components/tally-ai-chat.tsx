@@ -30,19 +30,6 @@ type Message = {
   sql?: string;
 };
 
-// Mock response for demonstration
-const mockResponse: ExplainFinancialsOutput = {
-    summary: "Cash flow has been volatile over the last 3 weeks, with two weeks showing a net negative position. The largest expense category last month was 'Salaries' at GHS 45,000.",
-    recommendations: ["Investigate the spike in 'Transport' costs in the last week.", "Follow up on outstanding receivables from 'Maxmart' to improve cash inflow."],
-    sql: "SELECT strftime('%Y-%W', date) AS week, SUM(CASE WHEN is_debit THEN amount ELSE 0 END) AS cash_in, SUM(CASE WHEN NOT is_debit THEN amount ELSE 0 END) AS cash_out FROM voucher_lines JOIN vouchers ON vouchers.id = voucher_lines.voucher_id GROUP BY week ORDER BY week DESC LIMIT 4;",
-    data: [
-        { week: '2024-20', cash_in: 52000, cash_out: 48000 },
-        { week: '2024-21', cash_in: 48000, cash_out: 51000 },
-        { week: '2024-22', cash_in: 61000, cash_out: 45000 },
-    ],
-    chartHint: { type: 'line', x: 'week', y: ['cash_in', 'cash_out'] }
-}
-
 
 function ChartRenderer({ data, chartHint }: { data: any[], chartHint: ExplainFinancialsOutput['chartHint'] }) {
     if (!data || !chartHint) return null;
@@ -143,10 +130,7 @@ export function TallyAiChat() {
         setIsLoading(true);
 
         try {
-            // In a real app, you'd call the actual AI flow
-            // const response = await explainFinancials(currentQuery);
-            await new Promise(res => setTimeout(res, 1500)); // Simulate network delay
-            const response = mockResponse;
+            const response = await explainFinancials(currentQuery);
             
             const assistantMessage: Message = {
                 role: 'assistant',
@@ -220,5 +204,3 @@ export function TallyAiChat() {
         </Card>
     );
 }
-
-    
