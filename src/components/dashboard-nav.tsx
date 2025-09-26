@@ -13,7 +13,7 @@ export function DashboardNav() {
   const navItems = [
     { href: "/finance", label: "Overview", icon: LayoutDashboard, exact: true },
     { href: "/finance/reports", label: "Reports", icon: BarChart3 },
-    { href: "/finance/efficiency", label: "Vehicle Efficiency", icon: Fuel },
+    { href: "/finance/efficiency", label: "Tally Force", icon: Fuel },
   ];
 
   return (
