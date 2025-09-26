@@ -141,9 +141,13 @@ export function TallyAiChat() {
             };
             setMessages(prev => [...prev, assistantMessage]);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("AI flow error:", error);
-            const errorMessage: Message = { role: 'assistant', content: 'Sorry, I encountered an error trying to process your request.' };
+            let errorMessageText = 'Sorry, I encountered an error trying to process your request.';
+            if (error.message && error.message.includes('429')) {
+                errorMessageText = 'The AI model is currently experiencing high traffic. This might be due to API rate limits on your project. Please try again in a moment, or check your Google Cloud project to ensure the "generativelanguage.googleapis.com" API is enabled and has sufficient quota.';
+            }
+            const errorMessage: Message = { role: 'assistant', content: errorMessageText };
             setMessages(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
