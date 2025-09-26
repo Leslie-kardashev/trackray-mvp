@@ -1,4 +1,7 @@
 // pages/api/tally/proxy.js
+import { config } from 'dotenv';
+config();
+
 export default async function handler(req, res) {
   // example: POST body should contain raw XML in req.body.xml
   const TALLY_URL = process.env.TALLY_URL || "http://localhost:9000";

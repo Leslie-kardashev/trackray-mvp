@@ -1,5 +1,7 @@
 // pages/api/tally/test.js
 import { XMLParser } from "fast-xml-parser";
+import { config } from 'dotenv';
+config();
 
 const TALLY_URL = process.env.TALLY_URL || "http://localhost:9000";
 
