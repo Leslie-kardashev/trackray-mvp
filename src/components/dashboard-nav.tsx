@@ -1,4 +1,3 @@
-
 "use client";
 
 import { usePathname } from "next/navigation";
@@ -13,7 +12,6 @@ export function DashboardNav() {
   const navItems = [
     { href: "/finance", label: "Overview", icon: LayoutDashboard, exact: true },
     { href: "/finance/reports", label: "Financial Reports", icon: BarChart3 },
-    { href: "/finance/maintenance", label: "Maintenance Costs", icon: Wrench },
     { href: "/finance/efficiency", label: "Vehicle Efficiency", icon: Fuel },
   ];
 
