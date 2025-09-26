@@ -11,10 +11,10 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const ExplainFinancialsInputSchema = z.string().describe('A natural language question about financial data.');
+const ExplainFinancialsInputSchema = z.string().describe('A natural language question about financial data.');
 export type ExplainFinancialsInput = z.infer<typeof ExplainFinancialsInputSchema>;
 
-export const ExplainFinancialsOutputSchema = z.object({
+const ExplainFinancialsOutputSchema = z.object({
   summary: z.string().describe('A concise, one-sentence summary of the findings.'),
   recommendations: z.array(z.string()).describe('A list of 1-2 recommended actions based on the findings.'),
   sql: z.string().describe('The exact SQLite query used to generate the data.'),

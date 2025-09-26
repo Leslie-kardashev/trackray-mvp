@@ -11,7 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const ProposeVoucherCorrectionInputSchema = z.object({
+const ProposeVoucherCorrectionInputSchema = z.object({
   voucherId: z.string().describe('The master ID of the voucher to be altered, e.g., "VCH-00453".'),
   currentNarration: z.string().describe('The current narration of the voucher.'),
   currentAmount: z.string().describe('The current total amount of the voucher.'),
@@ -19,7 +19,7 @@ export const ProposeVoucherCorrectionInputSchema = z.object({
 });
 export type ProposeVoucherCorrectionInput = z.infer<typeof ProposeVoucherCorrectionInputSchema>;
 
-export const ProposeVoucherCorrectionOutputSchema = z.object({
+const ProposeVoucherCorrectionOutputSchema = z.object({
   tallyXml: z.string().describe('The complete Tally XML <ENVELOPE> required to import the altered voucher.'),
 });
 export type ProposeVoucherCorrectionOutput = z.infer<typeof ProposeVoucherCorrectionOutputSchema>;
