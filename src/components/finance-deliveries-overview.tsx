@@ -42,4 +42,4 @@ export function FinanceKPIs() {
 }
 
 // Re-exporting with a more specific name for clarity in page.tsx
-export { FinanceKPIs };
+// export { FinanceKPIs };

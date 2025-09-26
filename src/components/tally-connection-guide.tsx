@@ -33,7 +33,7 @@ export function TallyConnectionGuide() {
             } else {
                 throw new Error(data.message || 'Failed to connect.');
             }
-        } catch (error) {
+        } catch (error: any) {
             setStatus('disconnected');
             toast({
                 title: "Connection Failed",
@@ -143,7 +143,7 @@ export function TallyConnectionGuide() {
                             <AccordionContent className="space-y-4 pt-2">
                                 <p className="text-sm text-muted-foreground">This error usually means Tally Prime itself cannot access the internet. Here’s how to fix it by creating an **outbound** firewall rule:</p>
                                 <ol className="space-y-2 text-xs list-decimal pl-5">
-                                    <li>Open **Windows Security** > **Firewall & network protection** > **Advanced settings**.</li>
+                                    <li>Open **Windows Security** &gt; **Firewall &amp; network protection** &gt; **Advanced settings**.</li>
                                     <li>Click on **Outbound Rules** on the left, then **New Rule...** on the right.</li>
                                     <li>Select **Program** and click Next.</li>
                                     <li>Click **Browse...** and find your Tally application (usually `C:\Program Files\TallyPrime\tally.exe`). Click Next.</li>
@@ -159,5 +159,3 @@ export function TallyConnectionGuide() {
         </div>
     )
 }
-
-    
